@@ -49,6 +49,7 @@ const getAllUsers = async (req, res) => {
         lastName: true,
         role: true,
         createdAt: true,
+        updatedAt: true,
         _count: {
           select: {
             journalEntries: true,
@@ -122,4 +123,3 @@ module.exports = {
   updateUserRole,
   deleteUser
 };
-
