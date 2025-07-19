@@ -1,4 +1,4 @@
-generator client {
+﻿generator client {
   provider = "prisma-client-js"
 }
 
@@ -16,9 +16,10 @@ model User {
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  journalEntries JournalEntry[]
-  
+
+  journalEntries    JournalEntry[]
+  breathingSessions BreathingSession[]
+
   @@map("users")
 }
 
@@ -27,14 +28,27 @@ model JournalEntry {
   userId    String
   title     String?
   content   String
-  mood      Int      // 1-5 scale (terrible to great)
+  mood      Int
   date      DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@map("journal_entries")
+}
+
+model BreathingSession {
+  id         String   @id @default(cuid())
+  userId     String
+  duration   Int
+  type       String
+  completed  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("breathing_sessions")
 }
 
 model MentalHealthResource {
@@ -46,7 +60,7 @@ model MentalHealthResource {
   imageUrl    String?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
-  
+
   @@map("mental_health_resources")
 }
 
