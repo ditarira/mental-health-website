@@ -1,5 +1,5 @@
 ﻿// src/controllers/adminController.js
-const { PrismaClient } = require('../../generated/prisma');
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // Get admin dashboard stats
@@ -122,3 +122,4 @@ module.exports = {
   updateUserRole,
   deleteUser
 };
+

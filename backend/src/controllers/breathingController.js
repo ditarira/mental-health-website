@@ -1,5 +1,5 @@
 ﻿// src/controllers/breathingController.js
-const { PrismaClient } = require('../../generated/prisma');
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // Get all breathing sessions for user
@@ -76,3 +76,4 @@ module.exports = {
   createBreathingSession,
   getBreathingStats
 };
+

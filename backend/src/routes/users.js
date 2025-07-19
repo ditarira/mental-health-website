@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
-const { PrismaClient } = require('../../generated/prisma');
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // Get user profile
@@ -52,3 +52,4 @@ router.put('/profile', authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+

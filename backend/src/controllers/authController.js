@@ -1,7 +1,7 @@
 ﻿// src/controllers/authController.js
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('../../generated/prisma');
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // Register new user
@@ -103,3 +103,4 @@ module.exports = {
   register,
   login
 };
+

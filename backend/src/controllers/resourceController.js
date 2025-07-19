@@ -1,5 +1,5 @@
 ﻿// src/controllers/resourceController.js
-const { PrismaClient } = require('../../generated/prisma');
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // Get all resources
@@ -114,3 +114,4 @@ module.exports = {
   updateResource,
   deleteResource
 };
+
