@@ -54,6 +54,7 @@ model JournalEntry {
   @@map("journal_entries")
 }
 
+
 model MentalHealthResource {
   id          String           @id @default(cuid())
   title       String
