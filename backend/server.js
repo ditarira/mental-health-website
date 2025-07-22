@@ -11,7 +11,7 @@ const authRoutes = require('./src/routes/auth');
 const userRoutes = require('./src/routes/users');
 const journalRoutes = require('./src/routes/journal');
 const resourceRoutes = require('./src/routes/resources');
-const breathingRoutes = require('./src/routes/breathing');
+const breathingRoutes = require('./routes/breathing');
 const adminRoutes = require('./src/routes/admin');
 
 const app = express();
