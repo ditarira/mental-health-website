@@ -1,7 +1,7 @@
 // backend/routes/breathing.js
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken } = require('./middleware/auth');
 
 // POST /api/breathing/sessions - Create a new breathing session
 router.post('/sessions', authenticateToken, async (req, res) => {
