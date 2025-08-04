@@ -1,0 +1,552 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
+
+const BreathingExercise = () => {
+  const { user } = useAuth();
+  const [selectedTechnique, setSelectedTechnique] = useState('4-7-8');
+  const [isActive, setIsActive] = useState(false);
+  const [phase, setPhase] = useState('ready'); // ready, inhale, hold, exhale
+  const [cycleCount, setCycleCount] = useState(0);
+  const [targetCycles, setTargetCycles] = useState(5);
+  const [sessionDuration, setSessionDuration] = useState(0);
+  const [breathingStats, setBreathingStats] = useState(null);
+  const [sessionHistory, setSessionHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  const timerRef = useRef(null);
+  const sessionStartTime = useRef(null);
+  const audioContext = useRef(null);
+
+  const breathingTechniques = {
+    '4-7-8': {
+      name: '4-7-8 Relaxation',
+      description: 'Inhale 4, hold 7, exhale 8. Perfect for relaxation and sleep.',
+      inhale: 4,
+      hold: 7,
+      exhale: 8,
+      icon: '🌙',
+      color: 'var(--soft-purple)'
+    },
+    'box': {
+      name: 'Box Breathing',
+      description: 'Equal timing: 4-4-4-4. Great for focus and stress relief.',
+      inhale: 4,
+      hold: 4,
+      exhale: 4,
+      pause: 4,
+      icon: '⬜',
+      color: 'var(--primary)'
+    },
+    'triangle': {
+      name: 'Triangle Breathing',
+      description: 'Simple 4-4-4 pattern for beginners.',
+      inhale: 4,
+      hold: 4,
+      exhale: 4,
+      icon: '🔺',
+      color: 'var(--calm-green)'
+    },
+    'coherent': {
+      name: 'Coherent Breathing',
+      description: '5-5 rhythm for heart rate variability.',
+      inhale: 5,
+      hold: 0,
+      exhale: 5,
+      icon: '💖',
+      color: 'var(--gentle-pink)'
+    }
+  };
+
+  useEffect(() => {
+    fetchBreathingStats();
+    fetchSessionHistory();
+    
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  const fetchBreathingStats = async () => {
+    try {
+      const response = await axios.get('/api/breathing/stats');
+      setBreathingStats(response.data);
+    } catch (error) {
+      console.error('Error fetching breathing stats:', error);
+    }
+  };
+
+  const fetchSessionHistory = async () => {
+    try {
+      const response = await axios.get('/api/breathing/sessions?limit=5');
+      setSessionHistory(response.data.sessions);
+    } catch (error) {
+      console.error('Error fetching session history:', error);
+    }
+  };
+
+  const playTone = (frequency, duration) => {
+    if (!audioContext.current) {
+      audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    const oscillator = audioContext.current.createOscillator();
+    const gainNode = audioContext.current.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.current.destination);
+    
+    oscillator.frequency.value = frequency;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0, audioContext.current.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.current.currentTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.current.currentTime + duration);
+    
+    oscillator.start(audioContext.current.currentTime);
+    oscillator.stop(audioContext.current.currentTime + duration);
+  };
+
+  const startBreathingSession = () => {
+    setIsActive(true);
+    setPhase('inhale');
+    setCycleCount(0);
+    sessionStartTime.current = Date.now();
+    setSessionDuration(0);
+    runBreathingCycle();
+  };
+
+  const runBreathingCycle = () => {
+    const technique = breathingTechniques[selectedTechnique];
+    let currentPhase = 'inhale';
+    let phaseIndex = 0;
+    
+    const phases = [
+      { name: 'inhale', duration: technique.inhale, tone: 220 },
+      { name: 'hold', duration: technique.hold, tone: 330 },
+      { name: 'exhale', duration: technique.exhale, tone: 165 },
+      ...(technique.pause ? [{ name: 'pause', duration: technique.pause, tone: 110 }] : [])
+    ];
+
+    const runPhase = () => {
+      if (!isActive && phases[phaseIndex]) return;
+      
+      const currentPhaseData = phases[phaseIndex];
+      setPhase(currentPhaseData.name);
+      
+      // Play audio cue
+      if (currentPhaseData.tone) {
+        playTone(currentPhaseData.tone, 0.2);
+      }
+      
+      timerRef.current = setTimeout(() => {
+        phaseIndex++;
+        
+        if (phaseIndex >= phases.length) {
+          // Cycle complete
+          setCycleCount(prev => {
+            const newCount = prev + 1;
+            if (newCount >= targetCycles) {
+              endSession(true);
+              return newCount;
+            }
+            phaseIndex = 0;
+            runPhase();
+            return newCount;
+          });
+        } else {
+          runPhase();
+        }
+      }, currentPhaseData.duration * 1000);
+    };
+
+    runPhase();
+  };
+
+  const endSession = async (completed = false) => {
+    setIsActive(false);
+    setPhase('ready');
+    
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    const duration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
+    setSessionDuration(duration);
+
+    // Save session to backend
+    try {
+      setLoading(true);
+      await axios.post('/api/breathing/sessions', {
+        technique: selectedTechnique,
+        duration: duration,
+        targetDuration: targetCycles * getTechniqueCycleDuration(selectedTechnique),
+        completed: completed,
+        cyclesCompleted: cycleCount,
+        targetCycles: targetCycles
+      });
+      
+      // Refresh stats and history
+      fetchBreathingStats();
+      fetchSessionHistory();
+    } catch (error) {
+      console.error('Error saving breathing session:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTechniqueCycleDuration = (techniqueKey) => {
+    const technique = breathingTechniques[techniqueKey];
+    return technique.inhale + (technique.hold || 0) + technique.exhale + (technique.pause || 0);
+  };
+
+  const getPhaseInstruction = () => {
+    const technique = breathingTechniques[selectedTechnique];
+    
+    switch (phase) {
+      case 'inhale':
+        return `Breathe in slowly for ${technique.inhale} seconds`;
+      case 'hold':
+        return `Hold your breath for ${technique.hold} seconds`;
+      case 'exhale':
+        return `Exhale slowly for ${technique.exhale} seconds`;
+      case 'pause':
+        return `Pause for ${technique.pause} seconds`;
+      default:
+        return 'Get comfortable and prepare to begin';
+    }
+  };
+
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div style={{paddingTop: '100px', minHeight: '100vh', backgroundColor: 'var(--light)'}}>
+      <div className="container">
+        {/* Header */}
+        <div style={{textAlign: 'center', marginBottom: '3rem'}}>
+          <h1 style={{color: 'var(--dark)', marginBottom: '0.5rem'}}>
+            🧘 Breathing Studio
+          </h1>
+          <p style={{color: 'var(--muted)', fontSize: '1.1rem'}}>
+            Interactive breathing techniques for wellness
+          </p>
+        </div>
+
+        {/* Stats Overview */}
+        {breathingStats && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1rem',
+            marginBottom: '2rem'
+          }}>
+            <div style={{
+              backgroundColor: 'var(--calm-green)',
+              padding: '1.5rem',
+              borderRadius: '15px',
+              textAlign: 'center',
+              color: 'white'
+            }}>
+              <div style={{fontSize: '2rem', marginBottom: '0.5rem'}}>🧘</div>
+              <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>
+                {breathingStats.totalSessions}
+              </div>
+              <div style={{fontSize: '0.9rem', opacity: '0.9'}}>Total Sessions</div>
+            </div>
+            
+            <div style={{
+              backgroundColor: 'var(--primary)',
+              padding: '1.5rem',
+              borderRadius: '15px',
+              textAlign: 'center',
+              color: 'white'
+            }}>
+              <div style={{fontSize: '2rem', marginBottom: '0.5rem'}}>⏱️</div>
+              <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>
+                {formatDuration(breathingStats.totalDuration)}
+              </div>
+              <div style={{fontSize: '0.9rem', opacity: '0.9'}}>Total Time</div>
+            </div>
+            
+            <div style={{
+              backgroundColor: 'var(--soft-purple)',
+              padding: '1.5rem',
+              borderRadius: '15px',
+              textAlign: 'center',
+              color: 'white'
+            }}>
+              <div style={{fontSize: '2rem', marginBottom: '0.5rem'}}>✅</div>
+              <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>
+                {breathingStats.completionRate}%
+              </div>
+              <div style={{fontSize: '0.9rem', opacity: '0.9'}}>Completion Rate</div>
+            </div>
+          </div>
+        )}
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+          gap: '2rem',
+          alignItems: 'start'
+        }}>
+          {/* Main Breathing Interface */}
+          <div style={{
+            backgroundColor: 'white',
+            padding: '2rem',
+            borderRadius: '15px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+            textAlign: 'center'
+          }}>
+            {/* Technique Selector */}
+            <div style={{marginBottom: '2rem'}}>
+              <h3 style={{marginBottom: '1rem', color: 'var(--dark)'}}>Choose Your Technique</h3>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                gap: '0.5rem'
+              }}>
+                {Object.entries(breathingTechniques).map(([key, technique]) => (
+                  <button
+                    key={key}
+                    onClick={() => !isActive && setSelectedTechnique(key)}
+                    disabled={isActive}
+                    style={{
+                      padding: '1rem',
+                      border: selectedTechnique === key ? `2px solid ${technique.color}` : '2px solid #eee',
+                      borderRadius: '10px',
+                      backgroundColor: selectedTechnique === key ? technique.color : 'white',
+                      color: selectedTechnique === key ? 'white' : 'var(--dark)',
+                      cursor: isActive ? 'not-allowed' : 'pointer',
+                      opacity: isActive ? 0.6 : 1,
+                      fontSize: '0.9rem',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <div style={{fontSize: '1.5rem', marginBottom: '0.5rem'}}>
+                      {technique.icon}
+                    </div>
+                    {technique.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Selected Technique Info */}
+            <div style={{
+              backgroundColor: 'var(--light)',
+              padding: '1rem',
+              borderRadius: '10px',
+              marginBottom: '2rem'
+            }}>
+              <h4 style={{color: 'var(--dark)', marginBottom: '0.5rem'}}>
+                {breathingTechniques[selectedTechnique].icon} {breathingTechniques[selectedTechnique].name}
+              </h4>
+              <p style={{color: 'var(--muted)', fontSize: '0.9rem', margin: '0'}}>
+                {breathingTechniques[selectedTechnique].description}
+              </p>
+            </div>
+
+            {/* Breathing Circle */}
+            <div style={{
+              position: 'relative',
+              width: '250px',
+              height: '250px',
+              margin: '0 auto 2rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <div
+                style={{
+                  width: phase === 'inhale' ? '220px' : phase === 'hold' ? '240px' : '180px',
+                  height: phase === 'inhale' ? '220px' : phase === 'hold' ? '240px' : '180px',
+                  borderRadius: '50%',
+                  backgroundColor: breathingTechniques[selectedTechnique].color,
+                  opacity: 0.3,
+                  transition: 'all 2s ease-in-out',
+                  position: 'absolute'
+                }}
+              />
+              <div style={{
+                width: '150px',
+                height: '150px',
+                borderRadius: '50%',
+                backgroundColor: 'white',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
+                position: 'relative',
+                zIndex: 1
+              }}>
+                <div style={{fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--dark)'}}>
+                  {isActive ? phase.charAt(0).toUpperCase() + phase.slice(1) : 'Ready'}
+                </div>
+                {isActive && (
+                  <div style={{fontSize: '0.9rem', color: 'var(--muted)'}}>
+                    {cycleCount}/{targetCycles}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Instructions */}
+            <div style={{
+              minHeight: '3rem',
+              marginBottom: '2rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <p style={{
+                fontSize: '1.1rem',
+                color: 'var(--dark)',
+                margin: '0',
+                textAlign: 'center'
+              }}>
+                {getPhaseInstruction()}
+              </p>
+            </div>
+
+            {/* Controls */}
+            <div style={{marginBottom: '1rem'}}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '1rem',
+                marginBottom: '1.5rem'
+              }}>
+                <label style={{fontSize: '0.9rem', color: 'var(--dark)'}}>
+                  Target Cycles:
+                </label>
+                <select
+                  value={targetCycles}
+                  onChange={(e) => setTargetCycles(parseInt(e.target.value))}
+                  disabled={isActive}
+                  style={{
+                    padding: '0.5rem',
+                    border: '1px solid #ddd',
+                    borderRadius: '5px',
+                    backgroundColor: 'white'
+                  }}
+                >
+                  {[3, 5, 8, 10, 15, 20].map(num => (
+                    <option key={num} value={num}>{num}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{display: 'flex', gap: '1rem', justifyContent: 'center'}}>
+                {!isActive ? (
+                  <button
+                    onClick={startBreathingSession}
+                    className="btn"
+                    style={{
+                      backgroundColor: breathingTechniques[selectedTechnique].color,
+                      padding: '1rem 2rem',
+                      fontSize: '1.1rem'
+                    }}
+                  >
+                    Start Session
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => endSession(false)}
+                    className="btn"
+                    style={{
+                      backgroundColor: '#e74c3c',
+                      padding: '1rem 2rem',
+                      fontSize: '1.1rem'
+                    }}
+                  >
+                    End Session
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {sessionDuration > 0 && (
+              <div style={{
+                backgroundColor: 'var(--light)',
+                padding: '1rem',
+                borderRadius: '10px',
+                marginTop: '1rem'
+              }}>
+                <p style={{margin: '0', color: 'var(--dark)'}}>
+                  Session completed! Duration: {formatDuration(sessionDuration)}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Session History */}
+          <div style={{
+            backgroundColor: 'white',
+            padding: '2rem',
+            borderRadius: '15px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+          }}>
+            <h3 style={{marginBottom: '1.5rem', color: 'var(--dark)'}}>Recent Sessions</h3>
+            
+            {sessionHistory.length > 0 ? (
+              <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                {sessionHistory.map((session, index) => (
+                  <div key={session.id || index} style={{
+                    padding: '1rem',
+                    backgroundColor: 'var(--light)',
+                    borderRadius: '10px',
+                    borderLeft: `4px solid ${breathingTechniques[session.technique]?.color || 'var(--primary)'}`
+                  }}>
+                    <div style={{display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '0.5rem'}}>
+                      <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                        <span style={{fontSize: '1.2rem'}}>
+                          {breathingTechniques[session.technique]?.icon || '🧘'}
+                        </span>
+                        <strong style={{color: 'var(--dark)'}}>
+                          {breathingTechniques[session.technique]?.name || session.technique}
+                        </strong>
+                      </div>
+                      {session.completed && (
+                        <span style={{
+                          backgroundColor: 'var(--calm-green)',
+                          color: 'white',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '12px',
+                          fontSize: '0.8rem'
+                        }}>
+                          ✓ Complete
+                        </span>
+                      )}
+                    </div>
+                    <div style={{fontSize: '0.9rem', color: 'var(--muted)'}}>
+                      Duration: {formatDuration(session.duration)} • 
+                      Cycles: {session.cyclesCompleted}/{session.targetCycles} •
+                      {new Date(session.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{textAlign: 'center', padding: '2rem', color: 'var(--muted)'}}>
+                <div style={{fontSize: '3rem', marginBottom: '1rem'}}>🧘</div>
+                <p>No sessions yet. Start your first breathing exercise!</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BreathingExercise;
