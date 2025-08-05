@@ -27,7 +27,8 @@ app.get('/', (req, res) => {
   res.json({ 
     message: 'MindfulMe Backend API is running!',
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -50,19 +51,27 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Import routes
-const authRoutes = require('./src/routes/auth');
-const journalRoutes = require('./src/routes/journal');
-const breathingRoutes = require('./src/routes/breathing');
+// Import routes (with error handling)
+try {
+  const authRoutes = require('./src/routes/auth');
+  const journalRoutes = require('./src/routes/journal') || require('./src/routes/dashboard');
+  const breathingRoutes = require('./src/routes/breathing');
 
-// Use routes
-app.use('/api/auth', authRoutes);
-app.use('/api/journal', journalRoutes);
-app.use('/api/breathing', breathingRoutes);
+  // Use routes
+  app.use('/api/auth', authRoutes);
+  app.use('/api/journal', journalRoutes);
+  app.use('/api/breathing', breathingRoutes);
+} catch (error) {
+  console.warn('Some routes failed to load:', error.message);
+}
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ 
+    message: 'Route not found',
+    path: req.originalUrl,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Error handler
@@ -89,7 +98,8 @@ process.on('SIGTERM', async () => {
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(\🚀 Server running on port \\);
+  console.log(\🚀 MindfulMe Backend Server running on port \\);
   console.log(\📍 Environment: \\);
   console.log(\🌐 CORS enabled for: \\);
+  console.log(\🔗 Health check: http://localhost:\/api/health\);
 });
