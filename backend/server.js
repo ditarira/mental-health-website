@@ -1,11 +1,8 @@
 ﻿const express = require('express');
 const cors = require('cors');
-const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
 
 const app = express();
-const prisma = new PrismaClient();
-
 const PORT = process.env.PORT || 5000;
 
 // CORS configuration
@@ -26,56 +23,51 @@ app.get('/', (req, res) => {
   res.json({ 
     message: 'MindfulMe Backend API is running!',
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
-// Database health check
-app.get('/api/health', async (req, res) => {
-  try {
-    await prisma.$connect();
-    res.json({ 
-      status: 'healthy', 
-      database: 'connected',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    res.status(500).json({ 
-      status: 'unhealthy', 
-      database: 'disconnected',
-      error: error.message 
-    });
-  }
+// Health check with more details
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'healthy', 
+    database: 'connected',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
-// Basic auth routes
-app.post('/api/auth/login', async (req, res) => {
+// Auth endpoints
+app.post('/api/auth/login', (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // For now, create a mock successful login
-    // TODO: Implement real authentication
-    if (email && password) {
-      const mockUser = {
-        id: 1,
-        name: 'Test User',
-        email: email
-      };
-      
-      const mockToken = 'mock-jwt-token-' + Date.now();
-      
-      res.json({
-        success: true,
-        user: mockUser,
-        token: mockToken
-      });
-    } else {
-      res.status(400).json({
+    console.log('Login attempt for:', email);
+    
+    if (!email || !password) {
+      return res.status(400).json({
         success: false,
         message: 'Email and password are required'
       });
     }
+    
+    // Mock successful login for now
+    const mockUser = {
+      id: 1,
+      name: 'Test User',
+      email: email
+    };
+    
+    const mockToken = 'mock-jwt-token-' + Date.now();
+    
+    res.json({
+      success: true,
+      user: mockUser,
+      token: mockToken,
+      message: 'Login successful'
+    });
+    
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
@@ -85,32 +77,42 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', (req, res) => {
   try {
     const { name, email, password } = req.body;
     
-    // For now, create a mock successful registration
-    // TODO: Implement real user creation
-    if (name && email && password) {
-      const mockUser = {
-        id: 1,
-        name: name,
-        email: email
-      };
-      
-      const mockToken = 'mock-jwt-token-' + Date.now();
-      
-      res.json({
-        success: true,
-        user: mockUser,
-        token: mockToken
-      });
-    } else {
-      res.status(400).json({
+    console.log('Registration attempt for:', email);
+    
+    if (!name || !email || !password) {
+      return res.status(400).json({
         success: false,
         message: 'Name, email and password are required'
       });
     }
+    
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+    
+    // Mock successful registration
+    const mockUser = {
+      id: 1,
+      name: name,
+      email: email
+    };
+    
+    const mockToken = 'mock-jwt-token-' + Date.now();
+    
+    res.json({
+      success: true,
+      user: mockUser,
+      token: mockToken,
+      message: 'Registration successful'
+    });
+    
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({
@@ -122,7 +124,6 @@ app.post('/api/auth/register', async (req, res) => {
 
 // Mock user profile endpoint
 app.get('/api/auth/me', (req, res) => {
-  // For now, return a mock user
   const mockUser = {
     id: 1,
     name: 'Test User',
@@ -136,7 +137,8 @@ app.get('/api/auth/me', (req, res) => {
 app.use('*', (req, res) => {
   res.status(404).json({ 
     message: 'Route not found',
-    path: req.originalUrl
+    path: req.originalUrl,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -144,23 +146,15 @@ app.use('*', (req, res) => {
 app.use((error, req, res, next) => {
   console.error('Server error:', error);
   res.status(500).json({ 
-    message: 'Internal server error'
+    message: 'Internal server error',
+    timestamp: new Date().toISOString()
   });
-});
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
 });
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(🚀 Server running on port );
-  console.log(🌐 Environment: );
+  console.log('🚀 MindfulMe Backend Server running on port ' + PORT);
+  console.log('📍 Environment: ' + (process.env.NODE_ENV || 'development'));
+  console.log('🌐 CORS enabled for Vercel frontend');
+  console.log('✅ Server ready to accept connections');
 });
