@@ -15,14 +15,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Use environment variable with fallback
   const API_URL = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
   useEffect(() => {
-    console.log('🔗 Using API URL:', API_URL);
+    console.log('Using API URL:', API_URL);
     const token = localStorage.getItem('token');
     if (token) {
-      axios.defaults.headers.common['Authorization'] = \Bearer \\;
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
       fetchUser();
     } else {
       setLoading(false);
@@ -31,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get(\\/api/auth/me\);
+      const response = await axios.get(API_URL + '/api/auth/me');
       setUser(response.data);
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -44,15 +43,15 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      console.log('🔐 Attempting login to:', \\/api/auth/login\);
-      const response = await axios.post(\\/api/auth/login\, {
+      console.log('Attempting login to:', API_URL + '/api/auth/login');
+      const response = await axios.post(API_URL + '/api/auth/login', {
         email,
         password,
       });
       
       const { token, user } = response.data;
       localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = \Bearer \\;
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
       setUser(user);
       return { success: true };
     } catch (error) {
@@ -66,11 +65,11 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      console.log('📝 Attempting registration to:', \\/api/auth/register\);
-      const response = await axios.post(\\/api/auth/register\, userData);
+      console.log('Attempting registration to:', API_URL + '/api/auth/register');
+      const response = await axios.post(API_URL + '/api/auth/register', userData);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = \Bearer \\;
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
       setUser(user);
       return { success: true };
     } catch (error) {
