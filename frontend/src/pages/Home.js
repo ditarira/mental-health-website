@@ -2,167 +2,225 @@
 import { Link } from 'react-router-dom';
 
 const Home = () => {
+  const features = [
+    {
+      icon: "📝",
+      title: "Journal & Track",
+      description: "Document your thoughts, feelings, and daily experiences with our intuitive journaling system."
+    },
+    {
+      icon: "🧘", 
+      title: "Mindfulness",
+      description: "Practice breathing exercises and meditation techniques to reduce stress and anxiety."
+    },
+    {
+      icon: "📚",
+      title: "Resources", 
+      description: "Access helpful articles, tips, and professional support when you need it most."
+    }
+  ];
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: 'white',
-      textAlign: 'center',
-      padding: '2rem'
-    }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{
-          fontSize: '6rem',
-          marginBottom: '1rem',
-          background: 'linear-gradient(45deg, #ff6b6b, #feca57)',
-          borderRadius: '50%',
-          width: '120px',
-          height: '120px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 2rem auto',
-          animation: 'pulse 2s ease-in-out infinite alternate'
-        }}>🧠</div>
-        
-        <h1 style={{
-          fontSize: '4rem',
-          fontWeight: 'bold',
-          marginBottom: '1rem',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
-        }}>
-          MindfulMe
-        </h1>
-        
-        <h2 style={{
-          fontSize: '2rem',
-          fontWeight: '300',
-          marginBottom: '1rem',
-          opacity: 0.9
-        }}>
-          Mental Health Platform
-        </h2>
-        
-        <p style={{
-          fontSize: '1.3rem',
-          marginBottom: '3rem',
-          opacity: 0.8,
-          maxWidth: '600px'
-        }}>
-          Your personal companion for mental wellness. Track your mood, journal your thoughts, 
-          practice mindfulness, and access resources for better mental health.
-        </p>
-      </div>
-
-      <div style={{
+    <div>
+      {/* Hero Section */}
+      <section style={{
+        height: '100vh',
         display: 'flex',
-        gap: '2rem',
-        flexWrap: 'wrap',
-        justifyContent: 'center'
-      }}>
-        <Link
-          to="/login"
-          style={{
-            background: 'rgba(255, 255, 255, 0.2)',
-            color: 'white',
-            padding: '1rem 2.5rem',
-            borderRadius: '50px',
-            textDecoration: 'none',
-            fontSize: '1.2rem',
-            fontWeight: '600',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            backdropFilter: 'blur(10px)',
-            transition: 'all 0.3s ease',
-            display: 'inline-block'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.background = 'rgba(255, 255, 255, 0.3)';
-            e.target.style.transform = 'translateY(-2px)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.background = 'rgba(255, 255, 255, 0.2)';
-            e.target.style.transform = 'translateY(0)';
-          }}
-        >
-          🚀 Get Started
-        </Link>
-        
-        <Link
-          to="/register"
-          style={{
-            background: 'linear-gradient(135deg, #ff6b6b, #feca57)',
-            color: 'white',
-            padding: '1rem 2.5rem',
-            borderRadius: '50px',
-            textDecoration: 'none',
-            fontSize: '1.2rem',
-            fontWeight: '600',
-            border: 'none',
-            boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
-            transition: 'all 0.3s ease',
-            display: 'inline-block'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.boxShadow = '0 12px 35px rgba(0,0,0,0.3)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)';
-          }}
-        >
-          ✨ Create Account
-        </Link>
-      </div>
-
-      <div style={{
-        marginTop: '4rem',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '2rem',
-        maxWidth: '1000px',
-        width: '100%'
+        alignItems: 'center',
+        background: 'linear-gradient(135deg, rgba(152, 193, 217, 0.8) 0%, rgba(124, 165, 184, 0.8) 100%)',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
         <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          padding: '2rem',
-          borderRadius: '20px',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '0 2rem',
+          color: 'white',
+          zIndex: 1,
+          textAlign: 'center'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
-          <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Journal & Track</h3>
-          <p style={{ opacity: 0.8 }}>Document your thoughts, feelings, and daily experiences with our intuitive journaling system.</p>
+          <h1 style={{
+            fontSize: '3.5rem',
+            marginBottom: '1.5rem',
+            color: 'white'
+          }}>
+            🧠 MindfulMe
+          </h1>
+          <h2 style={{
+            fontSize: '2rem',
+            marginBottom: '1rem',
+            color: 'white'
+          }}>
+            Mental Health Platform
+          </h2>
+          <p style={{
+            fontSize: '1.2rem',
+            marginBottom: '2rem'
+          }}>
+            Your personal companion for mental wellness. Track your mood, 
+            journal your thoughts, practice mindfulness, and access 
+            resources for better mental health.
+          </p>
+          <div style={{
+            display: 'flex',
+            gap: '1rem',
+            justifyContent: 'center',
+            flexWrap: 'wrap'
+          }}>
+            <Link 
+              to="/login"
+              style={{
+                display: 'inline-block',
+                padding: '0.8rem 1.5rem',
+                borderRadius: '30px',
+                backgroundColor: 'transparent',
+                border: '2px solid white',
+                color: 'white',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                textDecoration: 'none',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = 'white';
+                e.target.style.color = '#7ca5b8';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.color = 'white';
+              }}
+            >
+              🚀 Get Started
+            </Link>
+            <Link 
+              to="/register"
+              style={{
+                display: 'inline-block',
+                padding: '0.8rem 1.5rem',
+                borderRadius: '30px',
+                backgroundColor: '#7ca5b8',
+                border: 'none',
+                color: 'white',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                textDecoration: 'none',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.transform = 'translateY(-3px)';
+                e.target.style.boxShadow = '0 6px 15px rgba(0, 0, 0, 0.15)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = 'none';
+              }}
+            >
+              ✨ Create Account
+            </Link>
+          </div>
         </div>
+      </section>
 
+      {/* Features Section */}
+      <section style={{
+        backgroundColor: 'white',
+        padding: '5rem 0'
+      }}>
         <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          padding: '2rem',
-          borderRadius: '20px',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '0 2rem'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🧘</div>
-          <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Mindfulness</h3>
-          <p style={{ opacity: 0.8 }}>Practice breathing exercises and meditation techniques to reduce stress and anxiety.</p>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '2rem'
+          }}>
+            {features.map((feature, index) => (
+              <div key={index} style={{
+                background: 'white',
+                borderRadius: '15px',
+                padding: '2rem',
+                boxShadow: '0 10px 20px rgba(0, 0, 0, 0.05)',
+                textAlign: 'center',
+                borderBottom: '4px solid transparent',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-10px)';
+                e.currentTarget.style.borderBottom = '4px solid #7ca5b8';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.borderBottom = '4px solid transparent';
+              }}
+              >
+                <div style={{
+                  fontSize: '3rem',
+                  color: '#7ca5b8',
+                  marginBottom: '1.5rem',
+                  display: 'inline-block',
+                  padding: '1.5rem',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(124, 165, 184, 0.1)'
+                }}>
+                  {feature.icon}
+                </div>
+                <h3 style={{
+                  marginBottom: '1rem',
+                  color: '#2d4654'
+                }}>{feature.title}</h3>
+                <p style={{ color: '#666' }}>{feature.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
+      </section>
 
+      {/* Crisis Support Banner */}
+      <section style={{
+        backgroundColor: '#ffe6e6',
+        borderTop: '3px solid #e74c3c',
+        padding: '3rem 0',
+        textAlign: 'center'
+      }}>
         <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          padding: '2rem',
-          borderRadius: '20px',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '0 2rem'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
-          <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Resources</h3>
-          <p style={{ opacity: 0.8 }}>Access helpful articles, tips, and professional support when you need it most.</p>
+          <h3 style={{color: '#e74c3c', marginBottom: '1rem'}}>🆘 Need Immediate Help?</h3>
+          <p style={{marginBottom: '1rem'}}>
+            If you're experiencing a mental health crisis, please reach out for help immediately.
+          </p>
+          <div style={{display: 'flex', gap: '2rem', justifyContent: 'center', flexWrap: 'wrap'}}>
+            <a 
+              href="tel:988" 
+              style={{
+                color: '#e74c3c',
+                fontWeight: 'bold',
+                fontSize: '1.1rem',
+                textDecoration: 'none'
+              }}
+            >
+              📞 988 - Crisis Lifeline
+            </a>
+            <a 
+              href="tel:911" 
+              style={{
+                color: '#e74c3c',
+                fontWeight: 'bold',
+                fontSize: '1.1rem',
+                textDecoration: 'none'
+              }}
+            >
+              🚨 911 - Emergency
+            </a>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
