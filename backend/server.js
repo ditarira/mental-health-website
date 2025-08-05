@@ -6,10 +6,9 @@ require('dotenv').config();
 const app = express();
 const prisma = new PrismaClient();
 
-// Get port from environment or default to 5000
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration for production
+// CORS configuration
 const corsOptions = {
   origin: [
     'http://localhost:3000',
@@ -27,15 +26,14 @@ app.get('/', (req, res) => {
   res.json({ 
     message: 'MindfulMe Backend API is running!',
     status: 'healthy',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    timestamp: new Date().toISOString()
   });
 });
 
-// Test database connection
+// Database health check
 app.get('/api/health', async (req, res) => {
   try {
-    await prisma.\();
+    await prisma.$connect();
     res.json({ 
       status: 'healthy', 
       database: 'connected',
@@ -51,26 +49,94 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Import routes (with error handling)
-try {
-  const authRoutes = require('./src/routes/auth');
-  const journalRoutes = require('./src/routes/journal') || require('./src/routes/dashboard');
-  const breathingRoutes = require('./src/routes/breathing');
+// Basic auth routes
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // For now, create a mock successful login
+    // TODO: Implement real authentication
+    if (email && password) {
+      const mockUser = {
+        id: 1,
+        name: 'Test User',
+        email: email
+      };
+      
+      const mockToken = 'mock-jwt-token-' + Date.now();
+      
+      res.json({
+        success: true,
+        user: mockUser,
+        token: mockToken
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
 
-  // Use routes
-  app.use('/api/auth', authRoutes);
-  app.use('/api/journal', journalRoutes);
-  app.use('/api/breathing', breathingRoutes);
-} catch (error) {
-  console.warn('Some routes failed to load:', error.message);
-}
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    
+    // For now, create a mock successful registration
+    // TODO: Implement real user creation
+    if (name && email && password) {
+      const mockUser = {
+        id: 1,
+        name: name,
+        email: email
+      };
+      
+      const mockToken = 'mock-jwt-token-' + Date.now();
+      
+      res.json({
+        success: true,
+        user: mockUser,
+        token: mockToken
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Name, email and password are required'
+      });
+    }
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Mock user profile endpoint
+app.get('/api/auth/me', (req, res) => {
+  // For now, return a mock user
+  const mockUser = {
+    id: 1,
+    name: 'Test User',
+    email: 'test@example.com'
+  };
+  
+  res.json(mockUser);
+});
 
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({ 
     message: 'Route not found',
-    path: req.originalUrl,
-    timestamp: new Date().toISOString()
+    path: req.originalUrl
   });
 });
 
@@ -78,28 +144,23 @@ app.use('*', (req, res) => {
 app.use((error, req, res, next) => {
   console.error('Server error:', error);
   res.status(500).json({ 
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    message: 'Internal server error'
   });
 });
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('Shutting down gracefully...');
-  await prisma.\();
+  await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('Shutting down gracefully...');
-  await prisma.\();
+  await prisma.$disconnect();
   process.exit(0);
 });
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(\🚀 MindfulMe Backend Server running on port \\);
-  console.log(\📍 Environment: \\);
-  console.log(\🌐 CORS enabled for: \\);
-  console.log(\🔗 Health check: http://localhost:\/api/health\);
+  console.log(🚀 Server running on port );
+  console.log(🌐 Environment: );
 });
