@@ -1,4 +1,5 @@
 ﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -14,136 +15,81 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const checkAuthStatus = () => {
-      try {
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
-        
-        if (token && userData) {
-          setUser(JSON.parse(userData));
-        }
-      } catch (error) {
-        console.error('Error checking auth status:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Use environment variable with fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
-    checkAuthStatus();
-  }, []);
+  useEffect(() => {
+    console.log('🔗 Using API URL:', API_URL);
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = \Bearer \\;
+      fetchUser();
+    } else {
+      setLoading(false);
+    }
+  }, [API_URL]);
+
+  const fetchUser = async () => {
+    try {
+      const response = await axios.get(\\/api/auth/me\);
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (email, password) => {
     try {
-      setLoading(true);
-      
-      // Try API login first
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
+      console.log('🔐 Attempting login to:', \\/api/auth/login\);
+      const response = await axios.post(\\/api/auth/login\, {
+        email,
+        password,
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        const { token, user } = data;
-        
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        setUser(user);
-        return { success: true };
-      } else {
-        const errorData = await response.json();
-        return { success: false, error: errorData.message || 'Login failed' };
-      }
-    } catch (error) {
-      // Fallback to demo login if API is not available
-      console.log('API not available, using demo login');
-      const demoUser = {
-        id: 'demo-user',
-        firstName: 'Demo',
-        lastName: 'User',
-        email: email || 'demo@mindfulme.com'
-      };
       
-      const demoToken = 'demo-token-' + Date.now();
-      
-      localStorage.setItem('token', demoToken);
-      localStorage.setItem('user', JSON.stringify(demoUser));
-      setUser(demoUser);
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = \Bearer \\;
+      setUser(user);
       return { success: true };
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Login error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Login failed' 
+      };
     }
   };
 
   const register = async (userData) => {
     try {
-      setLoading(true);
-      
-      // Try API registration first
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const { token, user } = data;
-        
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        setUser(user);
-        return { success: true };
-      } else {
-        const errorData = await response.json();
-        return { success: false, error: errorData.message || 'Registration failed' };
-      }
-    } catch (error) {
-      // Fallback to demo registration if API is not available
-      console.log('API not available, using demo registration');
-      const newUser = {
-        id: 'user-' + Date.now(),
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email
-      };
-      
-      const demoToken = 'demo-token-' + Date.now();
-      
-      localStorage.setItem('token', demoToken);
-      localStorage.setItem('user', JSON.stringify(newUser));
-      setUser(newUser);
+      console.log('📝 Attempting registration to:', \\/api/auth/register\);
+      const response = await axios.post(\\/api/auth/register\, userData);
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = \Bearer \\;
+      setUser(user);
       return { success: true };
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Registration failed' 
+      };
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    delete axios.defaults.headers.common['Authorization'];
     setUser(null);
   };
 
-  const value = {
-    user,
-    loading,
-    login,
-    register,
-    logout
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
