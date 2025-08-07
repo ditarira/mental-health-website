@@ -22,27 +22,41 @@ const Login = () => {
   }, [user, navigate]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
     // Clear error when user starts typing
     if (error) setError('');
+  };
+
+  const validateForm = () => {
+    if (!formData.email || !formData.email.trim()) {
+      setError('Email address is required');
+      return false;
+    }
+    
+    if (!formData.password || !formData.password.trim()) {
+      setError('Password is required');
+      return false;
+    }
+
+    if (!formData.email.includes('@')) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('Form submitted with data:', formData);
+    console.log('🔐 Login form submitted:', { email: formData.email, hasPassword: !!formData.password });
     
-    // Frontend validation
-    if (!formData.email || !formData.password) {
-      setError('Email and password are required');
-      return;
-    }
-
-    if (formData.email.trim() === '' || formData.password.trim() === '') {
-      setError('Email and password cannot be empty');
+    // Validate form before submission
+    if (!validateForm()) {
       return;
     }
 
@@ -50,21 +64,19 @@ const Login = () => {
     setError('');
 
     try {
-      console.log('🔐 Attempting login with:', { email: formData.email, password: '***' });
+      console.log('🔐 Attempting login with:', formData.email);
+      const result = await login(formData.email.trim(), formData.password);
       
-      const result = await login(formData);
-      
-      console.log('Login result:', result);
-      
-      if (result.success) {
-        console.log('✅ Login successful! Redirecting to dashboard...');
-        navigate('/dashboard');
+      if (result && result.success) {
+        console.log('✅ Login successful! User:', result.user);
+        // The useEffect above will handle the redirect when user state updates
       } else {
-        setError(result.error || 'Login failed. Please check your credentials.');
+        console.error('❌ Login failed:', result);
+        setError(result?.error || result?.message || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
       console.error('❌ Login error:', err);
-      setError('Network error. Please check your connection and try again.');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -74,15 +86,18 @@ const Login = () => {
   if (user) {
     return (
       <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         display: 'flex',
-        alignItems: 'center',
         justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: 'white',
         fontSize: '1.2rem'
       }}>
-        Redirecting to dashboard...
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔄</div>
+          <div>Redirecting to dashboard...</div>
+        </div>
       </div>
     );
   }
@@ -130,8 +145,8 @@ const Login = () => {
         {/* Error Message */}
         {error && (
           <div style={{
-            background: '#fee2e2',
-            color: '#dc2626',
+            background: '#fee',
+            color: '#c53030',
             padding: '1rem',
             borderRadius: '10px',
             marginBottom: '1.5rem',
@@ -139,21 +154,7 @@ const Login = () => {
             textAlign: 'center',
             fontSize: '0.9rem'
           }}>
-            {error}
-          </div>
-        )}
-
-        {/* Debug Info (remove in production) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div style={{
-            background: '#f0f9ff',
-            color: '#1e40af',
-            padding: '0.5rem',
-            borderRadius: '5px',
-            marginBottom: '1rem',
-            fontSize: '0.8rem'
-          }}>
-            Debug: API URL = {process.env.REACT_APP_API_URL || 'undefined'}
+            ⚠️ {error}
           </div>
         )}
 
@@ -175,6 +176,7 @@ const Login = () => {
               value={formData.email}
               onChange={handleChange}
               disabled={loading}
+              autoComplete="email"
               required
               style={{
                 width: '100%',
@@ -184,8 +186,7 @@ const Login = () => {
                 fontSize: '1rem',
                 transition: 'all 0.3s ease',
                 backgroundColor: loading ? '#f9fafb' : 'white',
-                cursor: loading ? 'not-allowed' : 'text',
-                boxSizing: 'border-box'
+                cursor: loading ? 'not-allowed' : 'text'
               }}
               placeholder="Enter your email"
               onFocus={(e) => {
@@ -215,6 +216,7 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               disabled={loading}
+              autoComplete="current-password"
               required
               style={{
                 width: '100%',
@@ -224,8 +226,7 @@ const Login = () => {
                 fontSize: '1rem',
                 transition: 'all 0.3s ease',
                 backgroundColor: loading ? '#f9fafb' : 'white',
-                cursor: loading ? 'not-allowed' : 'text',
-                boxSizing: 'border-box'
+                cursor: loading ? 'not-allowed' : 'text'
               }}
               placeholder="Enter your password"
               onFocus={(e) => {
@@ -242,10 +243,10 @@ const Login = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !formData.email.trim() || !formData.password.trim()}
             style={{
               width: '100%',
-              background: loading 
+              background: loading || !formData.email.trim() || !formData.password.trim()
                 ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
                 : 'linear-gradient(135deg, #7ca5b8, #4d7a97)',
               color: 'white',
@@ -254,18 +255,18 @@ const Login = () => {
               borderRadius: '15px',
               fontSize: '1.1rem',
               fontWeight: 'bold',
-              cursor: loading ? 'not-allowed' : 'pointer',
+              cursor: loading || !formData.email.trim() || !formData.password.trim() ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
               marginBottom: '1.5rem'
             }}
             onMouseOver={(e) => {
-              if (!loading) {
+              if (!loading && formData.email.trim() && formData.password.trim()) {
                 e.target.style.transform = 'translateY(-2px)';
                 e.target.style.boxShadow = '0 10px 25px rgba(124, 165, 184, 0.4)';
               }
             }}
             onMouseOut={(e) => {
-              if (!loading) {
+              if (!loading && formData.email.trim() && formData.password.trim()) {
                 e.target.style.transform = 'translateY(0)';
                 e.target.style.boxShadow = 'none';
               }
@@ -289,7 +290,53 @@ const Login = () => {
               '🚀 Sign In'
             )}
           </button>
+          
+          {/* Forgot Password Link */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '1.5rem'
+          }}>
+            <Link
+              to="/reset-password"
+              style={{
+                color: '#7ca5b8',
+                textDecoration: 'none',
+                fontSize: '0.9rem',
+                fontWeight: '500'
+              }}
+            >
+              Forgot your password?
+            </Link>
+          </div>
         </form>
+
+        {/* Admin Login Hint */}
+        <div style={{
+          background: '#f0f9ff',
+          border: '2px solid #bae6fd',
+          borderRadius: '10px',
+          padding: '1rem',
+          marginBottom: '1.5rem',
+          textAlign: 'center'
+        }}>
+          <p style={{
+            color: '#0369a1',
+            fontSize: '0.9rem',
+            margin: '0 0 0.5rem 0',
+            fontWeight: '600'
+          }}>
+            👑 Admin Access
+          </p>
+          <p style={{
+            color: '#0c4a6e',
+            fontSize: '0.8rem',
+            margin: 0,
+            lineHeight: '1.4'
+          }}>
+            Use: <strong>admin@mindfulme.com</strong><br/>
+            Password: <strong>admin123</strong>
+          </p>
+        </div>
 
         {/* Register Link */}
         <div style={{
@@ -323,13 +370,16 @@ const Login = () => {
           </Link>
         </div>
 
-        {/* Back to Home Link */}
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <Link 
-            to="/" 
-            style={{ 
-              color: '#6b7280', 
-              textDecoration: 'none', 
+        {/* Back to Home */}
+        <div style={{
+          textAlign: 'center',
+          marginTop: '1.5rem'
+        }}>
+          <Link
+            to="/"
+            style={{
+              color: '#9ca3af',
+              textDecoration: 'none',
               fontSize: '0.9rem'
             }}
           >
@@ -339,7 +389,7 @@ const Login = () => {
       </div>
 
       {/* Loading Animation Styles */}
-      <style>{`
+      <style jsx>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
