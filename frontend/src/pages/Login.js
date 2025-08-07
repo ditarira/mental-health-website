@@ -33,8 +33,16 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('Form submitted with data:', formData);
+    
+    // Frontend validation
     if (!formData.email || !formData.password) {
-      setError('Please fill in all fields');
+      setError('Email and password are required');
+      return;
+    }
+
+    if (formData.email.trim() === '' || formData.password.trim() === '') {
+      setError('Email and password cannot be empty');
       return;
     }
 
@@ -42,18 +50,21 @@ const Login = () => {
     setError('');
 
     try {
-      console.log('🔐 Attempting login...');
+      console.log('🔐 Attempting login with:', { email: formData.email, password: '***' });
+      
       const result = await login(formData);
+      
+      console.log('Login result:', result);
       
       if (result.success) {
         console.log('✅ Login successful! Redirecting to dashboard...');
-        // The useEffect above will handle the redirect when user state updates
+        navigate('/dashboard');
       } else {
-        setError(result.error || 'Login failed');
+        setError(result.error || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
       console.error('❌ Login error:', err);
-      setError('An unexpected error occurred');
+      setError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -61,7 +72,19 @@ const Login = () => {
 
   // Don't render login form if user is already logged in
   if (user) {
-    return <div>Redirecting...</div>;
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontSize: '1.2rem'
+      }}>
+        Redirecting to dashboard...
+      </div>
+    );
   }
 
   return (
@@ -107,8 +130,8 @@ const Login = () => {
         {/* Error Message */}
         {error && (
           <div style={{
-            background: '#fee',
-            color: '#c53030',
+            background: '#fee2e2',
+            color: '#dc2626',
             padding: '1rem',
             borderRadius: '10px',
             marginBottom: '1.5rem',
@@ -117,6 +140,20 @@ const Login = () => {
             fontSize: '0.9rem'
           }}>
             {error}
+          </div>
+        )}
+
+        {/* Debug Info (remove in production) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div style={{
+            background: '#f0f9ff',
+            color: '#1e40af',
+            padding: '0.5rem',
+            borderRadius: '5px',
+            marginBottom: '1rem',
+            fontSize: '0.8rem'
+          }}>
+            Debug: API URL = {process.env.REACT_APP_API_URL || 'undefined'}
           </div>
         )}
 
@@ -138,6 +175,7 @@ const Login = () => {
               value={formData.email}
               onChange={handleChange}
               disabled={loading}
+              required
               style={{
                 width: '100%',
                 padding: '1rem',
@@ -177,6 +215,7 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               disabled={loading}
+              required
               style={{
                 width: '100%',
                 padding: '1rem',
