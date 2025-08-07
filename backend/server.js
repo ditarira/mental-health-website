@@ -18,6 +18,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+app.use('/api/auth', require('./routes/auth'));
+console.log('✅ Auth routes loaded');
+
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({ 
@@ -158,3 +161,69 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('🌐 CORS enabled for Vercel frontend');
   console.log('✅ Server ready to accept connections');
 });
+
+// Import your auth middleware
+const authMiddleware = require('./middleware/auth');
+
+// Admin routes - use your authMiddleware
+app.use('/api/admin', authMiddleware, require('./routes/admin'));
+
+// Test route
+app.get('/api/test-admin', authMiddleware, (req, res) => {
+  res.json({
+    message: 'Test endpoint working',
+    user: req.user,
+    isAdmin: req.user?.role === 'ADMIN',
+    timestamp: new Date()
+  });
+});
+
+
+// Admin routes - self-contained
+
+
+// Enhanced API routes
+app.use('/api/journal', require('./routes/journal'));
+app.use('/api/breathing', require('./routes/breathing'));
+app.use('/api/users', require('./routes/users'));
+
+console.log('✅ Enhanced API routes loaded');
+
+// Import auth middleware
+
+// API Routes
+app.use('/api/journal', require('./routes/journal'));
+app.use('/api/dashboard', require('./routes/dashboard'));
+
+// Test endpoints
+app.get('/api/test-auth', authMiddleware, (req, res) => {
+  res.json({
+    message: 'Authentication working',
+    user: req.user,
+    timestamp: new Date()
+  });
+});
+
+console.log('✅ All API routes loaded successfully');
+
+// Test auth endpoint to verify tokens and get user data
+app.get('/api/test-auth', authMiddleware, (req, res) => {
+  console.log('🔍 Test auth for user:', req.user?.email);
+  
+  res.json({
+    message: 'Authentication successful',
+    user: {
+      id: req.user.id,
+      email: req.user.email,
+      firstName: req.user.firstName,
+      lastName: req.user.lastName,
+      role: req.user.role,
+      createdAt: req.user.createdAt
+    },
+    timestamp: new Date(),
+    success: true
+  });
+});
+
+console.log('✅ Test auth endpoint added');
+
