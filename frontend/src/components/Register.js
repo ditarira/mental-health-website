@@ -1,88 +1,146 @@
 ﻿import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import EmailService from '../services/EmailService';
 
 const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
+  const [step, setStep] = useState(1); // 1: form, 2: email verification
+  const [verificationCode, setVerificationCode] = useState('');
+  const [userVerificationCode, setUserVerificationCode] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
-    // Clear error when user starts typing
-    if (error) setError('');
-  };
-
-  const validateForm = () => {
-    if (!formData.name.trim()) {
-      return 'Name is required';
-    }
-    if (!formData.email.trim()) {
-      return 'Email is required';
-    }
-    if (!formData.email.includes('@')) {
-      return 'Please enter a valid email address';
-    }
-    if (!formData.password) {
-      return 'Password is required';
-    }
-    if (formData.password.length < 6) {
-      return 'Password must be at least 6 characters long';
-    }
-    if (formData.password !== formData.confirmPassword) {
-      return 'Passwords do not match';
-    }
-    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setError('');
+    setLoading(true);
 
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
-      setIsSubmitting(false);
+    // Validation
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+      setError('All fields are required');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
       return;
     }
 
     try {
-      console.log('Attempting registration...');
-      const result = await register({
-        name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password
-      });
-      
-      if (result.success) {
-        console.log('Registration successful! Redirecting to dashboard...');
-        navigate('/dashboard');
+      // Generate verification code
+      const code = EmailService.generateVerificationCode();
+      setVerificationCode(code);
+
+      // Send verification email
+      const emailResult = await EmailService.sendVerificationCode(
+        formData.email,
+        code,
+        `${formData.firstName} ${formData.lastName}`
+      );
+
+      if (emailResult.success) {
+        setStep(2); // Move to verification step
       } else {
-        setError(result.error || 'Registration failed. Please try again.');
+        // If email fails, register anyway but skip verification
+        console.warn('Email failed, registering without verification');
+        await completeRegistration();
       }
     } catch (error) {
       console.error('Registration error:', error);
-      setError('An unexpected error occurred. Please try again.');
+      setError('Registration failed. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
+    }
+  };
+
+  const handleVerification = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    if (userVerificationCode === verificationCode) {
+      await completeRegistration();
+    } else {
+      setError('Invalid verification code. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const completeRegistration = async () => {
+    try {
+      const result = await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (result.success) {
+        // Send welcome email
+        EmailService.sendWelcomeEmail(formData.email, formData.firstName);
+        navigate('/dashboard');
+      } else {
+        setError(result.error || 'Registration failed');
+        setStep(1); // Go back to form
+      }
+    } catch (error) {
+      setError('Registration failed. Please try again.');
+      setStep(1);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendCode = async () => {
+    setLoading(true);
+    try {
+      const code = EmailService.generateVerificationCode();
+      setVerificationCode(code);
+      
+      await EmailService.sendVerificationCode(
+        formData.email,
+        code,
+        `${formData.firstName} ${formData.lastName}`
+      );
+      
+      setError('');
+      alert('New verification code sent!');
+    } catch (error) {
+      setError('Failed to resend code');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -90,263 +148,256 @@ const Register = () => {
     }}>
       <div style={{
         background: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: '25px',
-        padding: '3rem',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
-        backdropFilter: 'blur(20px)',
+        borderRadius: '20px',
+        padding: '2.5rem',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(10px)',
         width: '100%',
-        maxWidth: '500px',
-        border: '1px solid rgba(255,255,255,0.2)'
+        maxWidth: '400px'
       }}>
-        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🧠</div>
+          <div style={{
+            fontSize: '3rem',
+            marginBottom: '1rem',
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+            borderRadius: '50%',
+            width: '80px',
+            height: '80px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem'
+          }}>
+            <span style={{ color: 'white' }}>🧠</span>
+          </div>
           <h1 style={{
-            fontSize: '2.5rem',
+            fontSize: '2rem',
             fontWeight: 'bold',
-            background: 'linear-gradient(135deg, #7ca5b8, #d4af37)',
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            margin: '0 0 0.5rem 0'
+            marginBottom: '0.5rem'
           }}>
-            MindfulMe
+            {step === 1 ? 'Join MindfulMe' : 'Verify Your Email'}
           </h1>
-          <p style={{
-            color: '#64748b',
-            fontSize: '1.1rem',
-            margin: 0
-          }}>
-            Start your mental wellness journey today
+          <p style={{ color: '#666', fontSize: '1rem' }}>
+            {step === 1 
+              ? 'Start your mental wellness journey today' 
+              : `We sent a verification code to ${formData.email}`
+            }
           </p>
         </div>
 
-        {/* Error Message */}
         {error && (
           <div style={{
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
+            background: '#fee2e2',
             color: '#dc2626',
             padding: '1rem',
             borderRadius: '12px',
             marginBottom: '1.5rem',
-            textAlign: 'center',
-            fontSize: '0.95rem'
+            fontSize: '0.9rem'
           }}>
-            ⚠️ {error}
+            {error}
           </div>
         )}
 
-        {/* Registration Form */}
-        <form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '1rem',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.5rem'
-            }}>
-              Full Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your full name"
+        {step === 1 ? (
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="text"
+                name="firstName"
+                placeholder="First Name"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  outline: 'none'
+                }}
+                required
+              />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="text"
+                name="lastName"
+                placeholder="Last Name"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  outline: 'none'
+                }}
+                required
+              />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={handleInputChange}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  outline: 'none'
+                }}
+                required
+              />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleInputChange}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  outline: 'none'
+                }}
+                required
+              />
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  outline: 'none'
+                }}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
               style={{
                 width: '100%',
+                background: loading ? '#9ca3af' : 'linear-gradient(135deg, #667eea, #764ba2)',
+                color: 'white',
+                border: 'none',
                 padding: '1rem',
-                border: '2px solid #e2e8f0',
                 borderRadius: '12px',
                 fontSize: '1rem',
-                outline: 'none',
-                transition: 'border-color 0.3s ease',
-                background: 'rgba(255,255,255,0.8)',
-                boxSizing: 'border-box'
+                fontWeight: '600',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                marginBottom: '1rem'
               }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#7ca5b8';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e2e8f0';
-              }}
-              required
-            />
-          </div>
+            >
+              {loading ? 'Creating Account...' : '📧 Create Account'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerification}>
+            <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📧</div>
+              <p style={{ color: '#666', marginBottom: '1rem' }}>
+                Enter the 6-digit code we sent to your email
+              </p>
+            </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '1rem',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.5rem'
-            }}>
-              Email Address
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
+            <div style={{ marginBottom: '1.5rem' }}>
+              <input
+                type="text"
+                placeholder="000000"
+                value={userVerificationCode}
+                onChange={(e) => setUserVerificationCode(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '12px',
+                  fontSize: '1.5rem',
+                  textAlign: 'center',
+                  letterSpacing: '0.5rem',
+                  outline: 'none'
+                }}
+                maxLength={6}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
               style={{
                 width: '100%',
+                background: loading ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
+                color: 'white',
+                border: 'none',
                 padding: '1rem',
-                border: '2px solid #e2e8f0',
                 borderRadius: '12px',
                 fontSize: '1rem',
-                outline: 'none',
-                transition: 'border-color 0.3s ease',
-                background: 'rgba(255,255,255,0.8)',
-                boxSizing: 'border-box'
+                fontWeight: '600',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                marginBottom: '1rem'
               }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#7ca5b8';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e2e8f0';
-              }}
-              required
-            />
-          </div>
+            >
+              {loading ? 'Verifying...' : '✅ Verify & Complete'}
+            </button>
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '1rem',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.5rem'
-            }}>
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password (min. 6 characters)"
-              style={{
-                width: '100%',
-                padding: '1rem',
-                border: '2px solid #e2e8f0',
-                borderRadius: '12px',
-                fontSize: '1rem',
-                outline: 'none',
-                transition: 'border-color 0.3s ease',
-                background: 'rgba(255,255,255,0.8)',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#7ca5b8';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e2e8f0';
-              }}
-              required
-            />
-          </div>
+            <div style={{ textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={resendCode}
+                disabled={loading}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#667eea',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  fontSize: '0.9rem'
+                }}
+              >
+                Didn't receive code? Resend
+              </button>
+            </div>
+          </form>
+        )}
 
-          <div style={{ marginBottom: '2rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '1rem',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.5rem'
-            }}>
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-              style={{
-                width: '100%',
-                padding: '1rem',
-                border: '2px solid #e2e8f0',
-                borderRadius: '12px',
-                fontSize: '1rem',
-                outline: 'none',
-                transition: 'border-color 0.3s ease',
-                background: 'rgba(255,255,255,0.8)',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#7ca5b8';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e2e8f0';
-              }}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            style={{
-              width: '100%',
-              background: isSubmitting 
-                ? '#9ca3af' 
-                : 'linear-gradient(135deg, #7ca5b8, #a8ccd1)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '15px',
-              padding: '1rem',
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s ease',
-              fontWeight: '600',
-              fontSize: '1.1rem'
-            }}
-          >
-            {isSubmitting ? '🔄 Creating Account...' : '🌟 Create Account'}
-          </button>
-        </form>
-
-        {/* Login Link */}
-        <div style={{
-          textAlign: 'center',
-          padding: '1.5rem 0',
-          borderTop: '1px solid #e2e8f0'
-        }}>
-          <p style={{
-            color: '#64748b',
-            fontSize: '1rem',
-            margin: '0 0 1rem 0'
-          }}>
-            Already have an account?
-          </p>
+        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+          <span style={{ color: '#666' }}>Already have an account? </span>
           <Link 
-            to="/login"
-            style={{
-              color: '#7ca5b8',
-              textDecoration: 'none',
-              fontWeight: '600',
-              fontSize: '1rem',
-              transition: 'color 0.3s ease'
+            to="/login" 
+            style={{ 
+              color: '#667eea', 
+              textDecoration: 'none', 
+              fontWeight: '600' 
             }}
           >
-            Sign In Instead →
-          </Link>
-        </div>
-
-        {/* Back to Home */}
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <Link
-            to="/"
-            style={{
-              color: '#7ca5b8',
-              textDecoration: 'none',
-              fontSize: '0.9rem'
-            }}
-          >
-            ← Back to Home
+            Sign In
           </Link>
         </div>
       </div>

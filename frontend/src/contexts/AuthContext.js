@@ -1,4 +1,5 @@
 ﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -13,38 +14,50 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const API_URL = 'https://mental-health-backend-2mtp.onrender.com';
+  
+  const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
   useEffect(() => {
-    console.log('Using API URL:', API_URL);
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
+    initializeAuth();
   }, []);
 
-  const fetchUser = async () => {
+  const initializeAuth = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(API_URL + '/api/auth/me', {
-        headers: {
-          'Authorization': 'Bearer ' + token,
+      console.log('🔍 Checking stored token:', token ? 'Found' : 'Not found');
+      
+      if (!token) {
+        console.log('❌ No token found, user not authenticated');
+        setLoading(false);
+        return;
+      }
+
+      console.log('🔐 Verifying token with backend...');
+      
+      // Use the correct verify endpoint
+      const response = await axios.get(`${API_BASE}/api/auth/verify`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 10000
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data);
-      } else {
-        localStorage.removeItem('token');
-      }
+      console.log('✅ Token verified, user data:', response.data);
+      setUser(response.data.user);
+      
+      // Set default header for future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
     } catch (error) {
-      console.error('Error fetching user:', error);
+      console.error('❌ Token verification failed:', error.response?.data || error.message);
+      
+      // Clear invalid token
       localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+      setUser(null);
+      
     } finally {
       setLoading(false);
     }
@@ -52,88 +65,79 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      console.log('Attempting login to:', API_URL + '/api/auth/login');
-      const response = await fetch(API_URL + '/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password
-        })
+      console.log('🔐 Attempting login for:', email);
+      
+      const response = await axios.post(`${API_BASE}/api/auth/login`, {
+        email,
+        password
       });
       
-      const data = await response.json();
-      console.log('Login response:', data);
+      const { token, user: userData } = response.data;
       
-      if (response.ok && data.success) {
-        const token = data.token;
-        const userData = data.user;
-        
-        localStorage.setItem('token', token);
-        setUser(userData);
-        
-        return { success: true };
-      } else {
-        return { 
-          success: false, 
-          error: data.message || 'Login failed' 
-        };
-      }
+      // Store token
+      localStorage.setItem('token', token);
+      
+      // Set header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      // Set user
+      setUser(userData);
+      
+      console.log('✅ Login successful:', userData.email);
+      return { success: true, user: userData };
+      
     } catch (error) {
-      console.error('Login error:', error);
-      return { 
-        success: false, 
-        error: 'Network error occurred' 
-      };
+      console.error('❌ Login failed:', error.response?.data || error.message);
+      const errorMessage = error.response?.data?.error || 'Login failed';
+      return { success: false, error: errorMessage };
     }
   };
 
   const register = async (userData) => {
     try {
-      console.log('Attempting registration to:', API_URL + '/api/auth/register');
-      const response = await fetch(API_URL + '/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData)
-      });
+      const response = await axios.post(`${API_BASE}/api/auth/register`, userData);
+      const { token, user: newUser } = response.data;
       
-      const data = await response.json();
-      console.log('Registration response:', data);
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setUser(newUser);
       
-      if (response.ok && data.success) {
-        const token = data.token;
-        const user = data.user;
-        
-        localStorage.setItem('token', token);
-        setUser(user);
-        
-        return { success: true };
-      } else {
-        return { 
-          success: false, 
-          error: data.message || 'Registration failed' 
-        };
-      }
+      return { success: true, user: newUser };
     } catch (error) {
-      console.error('Registration error:', error);
-      return { 
-        success: false, 
-        error: 'Network error occurred' 
-      };
+      const errorMessage = error.response?.data?.error || 'Registration failed';
+      return { success: false, error: errorMessage };
     }
   };
 
   const logout = () => {
+    console.log('👋 Logging out user');
     localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
     setUser(null);
   };
 
+  const isAdmin = () => {
+    return user && (user.role === 'ADMIN' || user.email === 'admin@mindfulme.com');
+  };
+
+  const value = {
+    user,
+    loading,
+    login,
+    register,
+    logout,
+    isAdmin: isAdmin(),
+    initializeAuth
+  };
+
+  console.log('🔄 AuthContext state:', { 
+    userEmail: user?.email, 
+    isAdmin: isAdmin(), 
+    loading 
+  });
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
