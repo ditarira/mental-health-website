@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 
 function Home() {
@@ -14,7 +14,7 @@ function Home() {
       textAlign: 'center',
       padding: '2rem'
     }}>
-      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>??</div>
+      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🧠</div>
       
       <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>MindfulMe</h1>
       
@@ -33,13 +33,18 @@ function Home() {
         maxWidth: '600px',
         marginBottom: '2rem'
       }}>
-        <h3>? Features</h3>
-        <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0 }}>
-          <li>?? Mood tracking & analytics</li>
-          <li>?? Digital journaling</li>
-          <li>?? Breathing exercises</li>
-          <li>?? Personalized settings</li>
-          <li>?? Achievement system</li>
+        <h3>✨ Features</h3>
+        <ul style={{ 
+          textAlign: 'left', 
+          listStyle: 'none', 
+          padding: 0,
+          lineHeight: '1.8'
+        }}>
+          <li>📊 Mood tracking & analytics</li>
+          <li>📝 Digital journaling</li>
+          <li>🧘 Breathing exercises</li>
+          <li>⚙️ Personalized settings</li>
+          <li>🎯 Achievement system</li>
         </ul>
       </div>
       
@@ -56,9 +61,10 @@ function Home() {
           borderRadius: '30px',
           fontSize: '1rem',
           textDecoration: 'none',
-          display: 'inline-block'
+          display: 'inline-block',
+          transition: 'all 0.3s ease'
         }}>
-          ?? Sign In
+          🚀 Sign In
         </Link>
         
         <Link to="/register" style={{
@@ -69,9 +75,11 @@ function Home() {
           borderRadius: '30px',
           fontSize: '1rem',
           textDecoration: 'none',
-          fontWeight: 'bold'
+          fontWeight: 'bold',
+          display: 'inline-block',
+          transition: 'all 0.3s ease'
         }}>
-          ? Create Account
+          ✨ Create Account
         </Link>
       </div>
     </div>
