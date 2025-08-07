@@ -1,4 +1,3 @@
-﻿// src/components/settings/PrivacySettings.js
 import React, { useState } from 'react';
 import EmailService from '../../services/EmailService';
 
@@ -12,7 +11,6 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
     try {
       await saveSettings('privacy');
       
-      // Send email notification about privacy settings update
       await EmailService.sendSettingsChangeNotification(
         localStorage.getItem('userEmail'),
         localStorage.getItem('userName'),
@@ -30,10 +28,10 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
 
   const exportData = async () => {
     try {
-      const response = await fetch(${process.env.REACT_APP_API_URL}/api/user/export-data, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/user/export-data`, {
         method: 'GET',
         headers: {
-          'Authorization': Bearer 
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
 
@@ -53,10 +51,10 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
 
   const deleteAccount = async () => {
     try {
-      const response = await fetch(${process.env.REACT_APP_API_URL}/api/user/delete-account, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/user/delete-account`, {
         method: 'DELETE',
         headers: {
-          'Authorization': Bearer 
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
 
@@ -137,7 +135,7 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
         alignItems: 'center',
         gap: '0.5rem'
       }}>
-        📊 Data & Privacy
+        ?? Data & Privacy
       </h2>
 
       {success && (
@@ -152,12 +150,11 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
         </div>
       )}
 
-      {/* Privacy Toggles */}
       <div style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>🔒 Privacy Preferences</h3>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>?? Privacy Preferences</h3>
         
         <PrivacyToggle
-          icon="🤝"
+          icon="??"
           label="Data Sharing"
           description="Allow anonymous data sharing for research purposes"
           checked={settings.dataSharing}
@@ -165,7 +162,7 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
         />
 
         <PrivacyToggle
-          icon="📈"
+          icon="??"
           label="Analytics"
           description="Help us improve the app with usage analytics"
           checked={settings.analytics}
@@ -173,7 +170,7 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
         />
 
         <PrivacyToggle
-          icon="📬"
+          icon="??"
           label="Marketing Communications"
           description="Receive tips and updates about mental wellness"
           checked={settings.marketing}
@@ -181,9 +178,8 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
         />
       </div>
 
-      {/* Data Management */}
       <div style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>💾 Data Management</h3>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>?? Data Management</h3>
         
         <div style={{
           padding: '1rem',
@@ -191,7 +187,7 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
           borderRadius: '8px',
           marginBottom: '1rem'
         }}>
-          <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>📥 Export Your Data</h4>
+          <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>?? Export Your Data</h4>
           <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1rem' }}>
             Download all your journal entries, mood tracking data, and settings
           </p>
@@ -208,7 +204,7 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
               cursor: 'pointer'
             }}
           >
-            📥 Export Data
+            ?? Export Data
           </button>
         </div>
 
@@ -218,7 +214,7 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
           borderRadius: '8px',
           border: '1px solid #fecaca'
         }}>
-          <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: '#dc2626' }}>🗑️ Delete Account</h4>
+          <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: '#dc2626' }}>??? Delete Account</h4>
           <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1rem' }}>
             Permanently delete your account and all associated data. This action cannot be undone.
           </p>
@@ -237,7 +233,7 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
                 cursor: 'pointer'
               }}
             >
-              🗑️ Delete Account
+              ??? Delete Account
             </button>
           ) : (
             <div>
@@ -295,7 +291,7 @@ const PrivacySettings = ({ settings, updateSettings, saveSettings }) => {
           cursor: loading ? 'not-allowed' : 'pointer'
         }}
       >
-        {loading ? 'Saving...' : '🔒 Save Privacy Settings'}
+        {loading ? 'Saving...' : '?? Save Privacy Settings'}
       </button>
     </div>
   );

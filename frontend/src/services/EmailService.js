@@ -1,23 +1,20 @@
-﻿import emailjs from 'emailjs-com';
+import emailjs from 'emailjs-com';
 
 class EmailService {
   constructor() {
-    // Your actual EmailJS credentials
     this.serviceId = 'service_wo991hq';
     this.publicKey = 'W42E2JtVKWVg1M3t-';
     
-    // Initialize EmailJS
     emailjs.init(this.publicKey);
   }
 
-  // Send verification code for registration
   async sendVerificationCode(userEmail, verificationCode, userName) {
     const templateParams = {
       to_email: userEmail,
       to_name: userName,
       verification_code: verificationCode,
       app_name: 'MindfulMe',
-      message: Welcome to MindfulMe! Your verification code is: ,
+      message: `Welcome to MindfulMe! Your verification code is: ${verificationCode}`,
       from_name: 'MindfulMe Team'
     };
 
@@ -35,14 +32,13 @@ class EmailService {
     }
   }
 
-  // Send password reset code
   async sendPasswordReset(userEmail, resetCode, userName) {
     const templateParams = {
       to_email: userEmail,
       to_name: userName,
       reset_code: resetCode,
       app_name: 'MindfulMe',
-      message: Your password reset code is: . This code expires in 10 minutes.,
+      message: `Your password reset code is: ${resetCode}. This code expires in 10 minutes.`,
       from_name: 'MindfulMe Team'
     };
 
@@ -60,14 +56,13 @@ class EmailService {
     }
   }
 
-  // Send settings change notification
   async sendSettingsChangeNotification(userEmail, userName, changedSetting) {
     const templateParams = {
       to_email: userEmail,
       to_name: userName,
       app_name: 'MindfulMe',
       setting_changed: changedSetting,
-      message: Your  settings have been updated successfully.,
+      message: `Your ${changedSetting} settings have been updated successfully.`,
       from_name: 'MindfulMe Team'
     };
 
@@ -85,7 +80,6 @@ class EmailService {
     }
   }
 
-  // Generate random verification code
   generateVerificationCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }

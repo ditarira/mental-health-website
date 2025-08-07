@@ -1,4 +1,3 @@
-﻿// src/components/settings/AppearanceSettings.js
 import React, { useState, useEffect } from 'react';
 
 const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
@@ -10,7 +9,6 @@ const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
     try {
       await saveSettings('appearance');
       
-      // Apply theme changes immediately
       applyTheme(settings.theme);
       
       setSuccess('Appearance settings updated successfully!');
@@ -32,7 +30,9 @@ const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
   };
 
   useEffect(() => {
-    applyTheme(settings.theme);
+    if (settings.theme) {
+      applyTheme(settings.theme);
+    }
   }, [settings.theme]);
 
   const ThemeOption = ({ value, label, description, current, onChange }) => (
@@ -63,6 +63,14 @@ const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
     </div>
   );
 
+  const colorSchemes = [
+    { value: 'default', label: 'Default', colors: ['#667eea', '#764ba2'] },
+    { value: 'ocean', label: 'Ocean', colors: ['#06b6d4', '#0891b2'] },
+    { value: 'forest', label: 'Forest', colors: ['#10b981', '#059669'] },
+    { value: 'sunset', label: 'Sunset', colors: ['#f59e0b', '#d97706'] },
+    { value: 'lavender', label: 'Lavender', colors: ['#8b5cf6', '#7c3aed'] }
+  ];
+
   return (
     <div style={{
       background: 'white',
@@ -79,7 +87,7 @@ const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
         alignItems: 'center',
         gap: '0.5rem'
       }}>
-        🎨 Appearance Settings
+        ?? Appearance Settings
       </h2>
 
       {success && (
@@ -94,13 +102,12 @@ const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
         </div>
       )}
 
-      {/* Theme Selection */}
       <div style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>🌙 Theme</h3>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>?? Theme</h3>
         
         <ThemeOption
           value="light"
-          label="☀️ Light Theme"
+          label="?? Light Theme"
           description="Clean and bright interface for daytime use"
           current={settings.theme}
           onChange={(value) => updateSettings('appearance', { theme: value })}
@@ -108,7 +115,7 @@ const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
         
         <ThemeOption
           value="dark"
-          label="🌙 Dark Theme"
+          label="?? Dark Theme"
           description="Easy on the eyes for nighttime sessions"
           current={settings.theme}
           onChange={(value) => updateSettings('appearance', { theme: value })}
@@ -116,16 +123,15 @@ const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
         
         <ThemeOption
           value="auto"
-          label="🔄 Auto Theme"
+          label="?? Auto Theme"
           description="Automatically switch based on system preference"
           current={settings.theme}
           onChange={(value) => updateSettings('appearance', { theme: value })}
         />
       </div>
 
-      {/* Font Size */}
       <div style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>📝 Font Size</h3>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>?? Font Size</h3>
         
         <select
           value={settings.fontSize}
@@ -145,18 +151,11 @@ const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
         </select>
       </div>
 
-      {/* Color Scheme */}
       <div style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>🎨 Color Scheme</h3>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>?? Color Scheme</h3>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
-          {[
-            { value: 'default', label: 'Default', colors: ['#667eea', '#764ba2'] },
-            { value: 'ocean', label: 'Ocean', colors: ['#06b6d4', '#0891b2'] },
-            { value: 'forest', label: 'Forest', colors: ['#10b981', '#059669'] },
-            { value: 'sunset', label: 'Sunset', colors: ['#f59e0b', '#d97706'] },
-            { value: 'lavender', label: 'Lavender', colors: ['#8b5cf6', '#7c3aed'] }
-          ].map(scheme => (
+          {colorSchemes.map(scheme => (
             <div
               key={scheme.value}
               onClick={() => updateSettings('appearance', { colorScheme: scheme.value })}
@@ -172,7 +171,7 @@ const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
               <div
                 style={{
                   height: '40px',
-                  background: linear-gradient(135deg, , ),
+                  background: `linear-gradient(135deg, ${scheme.colors[0]}, ${scheme.colors[1]})`,
                   borderRadius: '4px',
                   marginBottom: '0.5rem'
                 }}
@@ -197,7 +196,7 @@ const AppearanceSettings = ({ settings, updateSettings, saveSettings }) => {
           cursor: loading ? 'not-allowed' : 'pointer'
         }}
       >
-        {loading ? 'Saving...' : '🎨 Save Appearance'}
+        {loading ? 'Saving...' : '?? Save Appearance'}
       </button>
     </div>
   );

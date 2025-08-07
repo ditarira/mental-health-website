@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import EmailService from '../../services/EmailService';
 
 const SecuritySettings = ({ settings, updateSettings, saveSettings }) => {
@@ -27,11 +27,11 @@ const SecuritySettings = ({ settings, updateSettings, saveSettings }) => {
 
     setLoading(true);
     try {
-      const response = await fetch(${process.env.REACT_APP_API_URL}/api/auth/change-password, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/change-password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': Bearer 
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           currentPassword: settings.currentPassword,
@@ -74,7 +74,7 @@ const SecuritySettings = ({ settings, updateSettings, saveSettings }) => {
         'Two-Factor Authentication'
       );
 
-      setSuccess(Two-factor authentication !);
+      setSuccess(`Two-factor authentication ${settings.twoFactorEnabled ? 'enabled' : 'disabled'}!`);
     } catch (error) {
       setError('Failed to update 2FA settings');
     } finally {
@@ -98,7 +98,7 @@ const SecuritySettings = ({ settings, updateSettings, saveSettings }) => {
         alignItems: 'center',
         gap: '0.5rem'
       }}>
-        🔒 Security Settings
+        ?? Security Settings
       </h2>
 
       {success && (
@@ -199,7 +199,7 @@ const SecuritySettings = ({ settings, updateSettings, saveSettings }) => {
             cursor: loading ? 'not-allowed' : 'pointer'
           }}
         >
-          {loading ? 'Changing...' : '🔑 Change Password'}
+          {loading ? 'Changing...' : '?? Change Password'}
         </button>
       </div>
 
@@ -212,7 +212,7 @@ const SecuritySettings = ({ settings, updateSettings, saveSettings }) => {
               Add an extra layer of security to your account
             </p>
             <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-              {settings.twoFactorEnabled ? '✅ Currently enabled' : '❌ Currently disabled'}
+              {settings.twoFactorEnabled ? '? Currently enabled' : '? Currently disabled'}
             </p>
           </div>
           
@@ -234,7 +234,7 @@ const SecuritySettings = ({ settings, updateSettings, saveSettings }) => {
               cursor: 'pointer'
             }}
           >
-            {settings.twoFactorEnabled ? '🔓 Disable 2FA' : '🔐 Enable 2FA'}
+            {settings.twoFactorEnabled ? '?? Disable 2FA' : '?? Enable 2FA'}
           </button>
         </div>
       </div>

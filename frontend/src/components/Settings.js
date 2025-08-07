@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileSettings from './settings/ProfileSettings';
 import SecuritySettings from './settings/SecuritySettings';
@@ -44,26 +44,25 @@ const Settings = () => {
   });
 
   const settingsMenu = [
-    { id: 'profile', label: 'Profile', icon: '👤' },
-    { id: 'security', label: 'Security', icon: '🔒' },
-    { id: 'notifications', label: 'Notifications', icon: '🔔' },
-    { id: 'appearance', label: 'Appearance', icon: '🎨' },
-    { id: 'privacy', label: 'Data & Privacy', icon: '📊' }
+    { id: 'profile', label: 'Profile', icon: '??' },
+    { id: 'security', label: 'Security', icon: '??' },
+    { id: 'notifications', label: 'Notifications', icon: '??' },
+    { id: 'appearance', label: 'Appearance', icon: '??' },
+    { id: 'privacy', label: 'Data & Privacy', icon: '??' }
   ];
 
-  // Load settings from backend on component mount
   useEffect(() => {
     loadSettings();
-  }, []); // Empty dependency array is intentional
+  }, []);
 
   const loadSettings = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/settings, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/settings`, {
         headers: {
-          'Authorization': Bearer 
+          'Authorization': `Bearer ${token}`
         }
       });
 
@@ -88,11 +87,11 @@ const Settings = () => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token');
 
-      const response = await fetch(${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/settings/, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/settings/${category}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': Bearer 
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(settings[category])
       });
@@ -137,7 +136,6 @@ const Settings = () => {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '2rem'
     }}>
-      {/* Header */}
       <div style={{
         background: 'rgba(255, 255, 255, 0.95)',
         borderRadius: '20px',
@@ -147,7 +145,7 @@ const Settings = () => {
         backdropFilter: 'blur(10px)',
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
       }}>
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚙️</div>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>??</div>
         <h1 style={{
           fontSize: '2.5rem',
           fontWeight: 'bold',
@@ -164,7 +162,6 @@ const Settings = () => {
         </p>
       </div>
 
-      {/* Settings Container */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '300px 1fr',
@@ -172,7 +169,6 @@ const Settings = () => {
         maxWidth: '1200px',
         margin: '0 auto'
       }}>
-        {/* Settings Menu */}
         <div style={{
           background: 'rgba(255, 255, 255, 0.95)',
           borderRadius: '20px',
@@ -220,7 +216,6 @@ const Settings = () => {
           ))}
         </div>
 
-        {/* Settings Content */}
         <div>
           {renderActiveComponent()}
         </div>
