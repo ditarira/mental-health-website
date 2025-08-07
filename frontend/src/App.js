@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './components/Dashboard';
 import Journal from './components/Journal';
+import BreathingExercises from './components/BreathingExercises';
 import Home from './pages/Home';
 import EmailTest from './components/EmailTest';
 import EmailVerification from './components/EmailVerification';
@@ -15,7 +16,7 @@ import './index.css';
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div style={{
@@ -34,14 +35,14 @@ const ProtectedRoute = ({ children }) => {
       </div>
     );
   }
-  
+
   return user ? children : <Navigate to="/login" replace />;
 };
 
 // Public Route component (redirects to dashboard if logged in)
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div style={{
@@ -60,7 +61,7 @@ const PublicRoute = ({ children }) => {
       </div>
     );
   }
-  
+
   return user ? <Navigate to="/dashboard" replace /> : children;
 };
 
@@ -71,79 +72,87 @@ function App() {
         <div className="App">
           <Routes>
             {/* Public Routes */}
-            <Route 
-              path="/" 
+            <Route
+              path="/"
               element={
                 <PublicRoute>
                   <Home />
                 </PublicRoute>
-              } 
+              }
             />
-            <Route 
-              path="/login" 
+            <Route
+              path="/login"
               element={
                 <PublicRoute>
                   <Login />
                 </PublicRoute>
-              } 
+              }
             />
-            <Route 
-              path="/register" 
+            <Route
+              path="/register"
               element={
                 <PublicRoute>
                   <Register />
                 </PublicRoute>
-              } 
+              }
             />
-            <Route 
-              path="/reset-password" 
+            <Route
+              path="/reset-password"
               element={
                 <PublicRoute>
                   <PasswordReset />
                 </PublicRoute>
-              } 
+              }
             />
-            <Route 
-              path="/verify-email" 
+            <Route
+              path="/verify-email"
               element={
                 <PublicRoute>
                   <EmailVerification />
                 </PublicRoute>
-              } 
+              }
             />
 
             {/* Protected Routes */}
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/journal" 
+            <Route
+              path="/journal"
               element={
                 <ProtectedRoute>
                   <Journal />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/settings" 
+            <Route
+              path="/breathing"
+              element={
+                <ProtectedRoute>
+                  <BreathingExercises />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
               element={
                 <ProtectedRoute>
                   <Settings />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/email-test" 
+            <Route
+              path="/email-test"
               element={
                 <ProtectedRoute>
                   <EmailTest />
                 </ProtectedRoute>
-              } 
+              }
             />
 
             {/* Catch all route */}
