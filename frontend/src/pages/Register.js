@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Register = () => {
-  const { register } = useAuth();
+  const { register, user } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -12,58 +12,90 @@ const Register = () => {
     password: '',
     confirmPassword: ''
   });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      console.log('✅ User already logged in, redirecting to dashboard...');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
+  const handleChange = (e) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [e.target.name]: e.target.value
     }));
+    // Clear error when user starts typing
+    if (error) setError('');
+  };
+
+  const validateForm = () => {
+    if (!formData.firstName.trim()) {
+      return 'First name is required';
+    }
+    if (!formData.lastName.trim()) {
+      return 'Last name is required';
+    }
+    if (!formData.email.trim()) {
+      return 'Email is required';
+    }
+    if (!formData.email.includes('@')) {
+      return 'Please enter a valid email address';
+    }
+    if (!formData.password) {
+      return 'Password is required';
+    }
+    if (formData.password.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    if (formData.password !== formData.confirmPassword) {
+      return 'Passwords do not match';
+    }
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
-    // Validation
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      setError('All fields are required');
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+    
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
     setLoading(true);
+    setError('');
 
     try {
+      console.log('📝 Attempting registration...');
       const result = await register({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
         password: formData.password
       });
-
+      
       if (result.success) {
-        navigate('/dashboard');
+        console.log('✅ Registration successful! Redirecting to dashboard...');
+        // The useEffect above will handle the redirect when user state updates
       } else {
         setError(result.error || 'Registration failed');
       }
-    } catch (error) {
-      setError('Registration failed. Please try again.');
+    } catch (err) {
+      console.error('❌ Registration error:', err);
+      setError('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
+
+  // Don't render register form if user is already logged in
+  if (user) {
+    return <div>Redirecting...</div>;
+  }
 
   return (
     <div style={{
@@ -77,201 +109,315 @@ const Register = () => {
       <div style={{
         background: 'rgba(255, 255, 255, 0.95)',
         borderRadius: '20px',
-        padding: '2.5rem',
+        padding: '3rem',
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-        backdropFilter: 'blur(10px)',
         width: '100%',
-        maxWidth: '400px'
+        maxWidth: '450px',
+        backdropFilter: 'blur(10px)'
       }}>
+        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{
             fontSize: '3rem',
-            marginBottom: '1rem',
-            background: 'linear-gradient(135deg, #667eea, #764ba2)',
-            borderRadius: '50%',
-            width: '80px',
-            height: '80px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 1rem'
-          }}>
-            <span style={{ color: 'white' }}>??</span>
-          </div>
+            marginBottom: '1rem'
+          }}>🧠</div>
           <h1 style={{
-            fontSize: '2rem',
+            color: '#2d4654',
+            fontSize: '2.5rem',
             fontWeight: 'bold',
-            background: 'linear-gradient(135deg, #667eea, #764ba2)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
             marginBottom: '0.5rem'
           }}>
             Join MindfulMe
           </h1>
-          <p style={{ color: '#666', fontSize: '1rem' }}>
+          <p style={{
+            color: '#666',
+            fontSize: '1.1rem'
+          }}>
             Start your mental wellness journey today
           </p>
         </div>
 
+        {/* Error Message */}
         {error && (
           <div style={{
-            background: '#fee2e2',
-            color: '#dc2626',
+            background: '#fee',
+            color: '#c53030',
             padding: '1rem',
-            borderRadius: '12px',
+            borderRadius: '10px',
             marginBottom: '1.5rem',
+            border: '1px solid #fecaca',
+            textAlign: 'center',
             fontSize: '0.9rem'
           }}>
             {error}
           </div>
         )}
 
+        {/* Registration Form */}
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              type="text"
-              name="firstName"
-              placeholder="First Name"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              style={{
-                width: '100%',
-                padding: '1rem',
-                border: '2px solid #e5e7eb',
-                borderRadius: '12px',
-                fontSize: '1rem',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-              required
-            />
+          {/* Name Fields Row */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '1rem',
+            marginBottom: '1.5rem'
+          }}>
+            {/* First Name */}
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '0.5rem',
+                color: '#374151',
+                fontWeight: '600'
+              }}>
+                First Name
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '10px',
+                  fontSize: '1rem',
+                  transition: 'all 0.3s ease',
+                  backgroundColor: loading ? '#f9fafb' : 'white',
+                  cursor: loading ? 'not-allowed' : 'text'
+                }}
+                placeholder="First name"
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#7ca5b8';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(124, 165, 184, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
+
+            {/* Last Name */}
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '0.5rem',
+                color: '#374151',
+                fontWeight: '600'
+              }}>
+                Last Name
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '10px',
+                  fontSize: '1rem',
+                  transition: 'all 0.3s ease',
+                  backgroundColor: loading ? '#f9fafb' : 'white',
+                  cursor: loading ? 'not-allowed' : 'text'
+                }}
+                placeholder="Last name"
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#7ca5b8';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(124, 165, 184, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
           </div>
 
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              type="text"
-              name="lastName"
-              placeholder="Last Name"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              style={{
-                width: '100%',
-                padding: '1rem',
-                border: '2px solid #e5e7eb',
-                borderRadius: '12px',
-                fontSize: '1rem',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-              required
-            />
-          </div>
-
-          <div style={{ marginBottom: '1rem' }}>
+          {/* Email Field */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '0.5rem',
+              color: '#374151',
+              fontWeight: '600'
+            }}>
+              Email Address
+            </label>
             <input
               type="email"
               name="email"
-              placeholder="Email Address"
               value={formData.email}
-              onChange={handleInputChange}
+              onChange={handleChange}
+              disabled={loading}
               style={{
                 width: '100%',
                 padding: '1rem',
                 border: '2px solid #e5e7eb',
-                borderRadius: '12px',
+                borderRadius: '10px',
                 fontSize: '1rem',
-                outline: 'none',
-                boxSizing: 'border-box'
+                transition: 'all 0.3s ease',
+                backgroundColor: loading ? '#f9fafb' : 'white',
+                cursor: loading ? 'not-allowed' : 'text'
               }}
-              required
+              placeholder="Enter your email"
+              onFocus={(e) => {
+                e.target.style.borderColor = '#7ca5b8';
+                e.target.style.boxShadow = '0 0 0 3px rgba(124, 165, 184, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
 
-          <div style={{ marginBottom: '1rem' }}>
+          {/* Password Field */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '0.5rem',
+              color: '#374151',
+              fontWeight: '600'
+            }}>
+              Password
+            </label>
             <input
               type="password"
               name="password"
-              placeholder="Password"
               value={formData.password}
-              onChange={handleInputChange}
+              onChange={handleChange}
+              disabled={loading}
               style={{
                 width: '100%',
                 padding: '1rem',
                 border: '2px solid #e5e7eb',
-                borderRadius: '12px',
+                borderRadius: '10px',
                 fontSize: '1rem',
-                outline: 'none',
-                boxSizing: 'border-box'
+                transition: 'all 0.3s ease',
+                backgroundColor: loading ? '#f9fafb' : 'white',
+                cursor: loading ? 'not-allowed' : 'text'
               }}
-              required
+              placeholder="Create a password (min. 6 characters)"
+              onFocus={(e) => {
+                e.target.style.borderColor = '#7ca5b8';
+                e.target.style.boxShadow = '0 0 0 3px rgba(124, 165, 184, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
+          {/* Confirm Password Field */}
+          <div style={{ marginBottom: '2rem' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '0.5rem',
+              color: '#374151',
+              fontWeight: '600'
+            }}>
+              Confirm Password
+            </label>
             <input
               type="password"
               name="confirmPassword"
-              placeholder="Confirm Password"
               value={formData.confirmPassword}
-              onChange={handleInputChange}
+              onChange={handleChange}
+              disabled={loading}
               style={{
                 width: '100%',
                 padding: '1rem',
                 border: '2px solid #e5e7eb',
-                borderRadius: '12px',
+                borderRadius: '10px',
                 fontSize: '1rem',
-                outline: 'none',
-                boxSizing: 'border-box'
+                transition: 'all 0.3s ease',
+                backgroundColor: loading ? '#f9fafb' : 'white',
+                cursor: loading ? 'not-allowed' : 'text'
               }}
-              required
+              placeholder="Confirm your password"
+              onFocus={(e) => {
+                e.target.style.borderColor = '#7ca5b8';
+                e.target.style.boxShadow = '0 0 0 3px rgba(124, 165, 184, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
             style={{
               width: '100%',
-              background: loading ? '#9ca3af' : 'linear-gradient(135deg, #667eea, #764ba2)',
+              background: loading 
+                ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
+                : 'linear-gradient(135deg, #7ca5b8, #4d7a97)',
               color: 'white',
+              padding: '1.2rem',
               border: 'none',
-              padding: '1rem',
-              borderRadius: '12px',
-              fontSize: '1rem',
-              fontWeight: '600',
+              borderRadius: '15px',
+              fontSize: '1.1rem',
+              fontWeight: 'bold',
               cursor: loading ? 'not-allowed' : 'pointer',
-              marginBottom: '1rem'
+              transition: 'all 0.3s ease',
+              marginBottom: '1.5rem'
+            }}
+            onMouseOver={(e) => {
+              if (!loading) {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 10px 25px rgba(124, 165, 184, 0.4)';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (!loading) {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = 'none';
+              }
             }}
           >
-            {loading ? 'Creating Account...' : '? Create Account'}
+            {loading ? 'Creating Account...' : '✨ Create Account'}
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-          <span style={{ color: '#666' }}>Already have an account? </span>
-          <Link 
-            to="/login" 
-            style={{ 
-              color: '#667eea', 
-              textDecoration: 'none', 
-              fontWeight: '600' 
+        {/* Login Link */}
+        <div style={{
+          textAlign: 'center',
+          paddingTop: '1.5rem',
+          borderTop: '1px solid #e5e7eb'
+        }}>
+          <p style={{
+            color: '#666',
+            marginBottom: '1rem'
+          }}>
+            Already have an account?
+          </p>
+          <Link
+            to="/login"
+            style={{
+              color: '#7ca5b8',
+              textDecoration: 'none',
+              fontWeight: '600',
+              fontSize: '1.1rem',
+              transition: 'color 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.color = '#4d7a97';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.color = '#7ca5b8';
             }}
           >
-            Sign In
-          </Link>
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <Link 
-            to="/" 
-            style={{ 
-              color: '#6b7280', 
-              textDecoration: 'none', 
-              fontSize: '0.9rem'
-            }}
-          >
-            ? Back to Home
+            🚀 Sign In Instead
           </Link>
         </div>
       </div>
