@@ -227,3 +227,4 @@ app.get('/api/test-auth', authMiddleware, (req, res) => {
 
 console.log('✅ Test auth endpoint added');
 
+
