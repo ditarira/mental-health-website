@@ -27,9 +27,9 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/resources', require('./routes/resources'));
 // Add other routes as needed
-// app.use('/api/auth', require('./routes/auth'));
-// app.use('/api/journal', require('./routes/journal'));
-// app.use('/api/breathing', require('./routes/breathing'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/journal', require('./routes/journal'));
+app.use('/api/breathing', require('./routes/breathing'));
 
 // 404 handler for API routes
 app.use('/api/*', (req, res) => {
