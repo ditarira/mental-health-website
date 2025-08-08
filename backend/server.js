@@ -1,18 +1,16 @@
-﻿const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
-
 const app = express();
 
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['your-production-domain.com'] 
+    ? ['https://mental-health-website-lyart.vercel.app'] 
     : ['http://localhost:3000'],
   credentials: true
 }));
-
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -28,21 +26,10 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/resources', require('./routes/resources'));
-
 // Add other routes as needed
 // app.use('/api/auth', require('./routes/auth'));
 // app.use('/api/journal', require('./routes/journal'));
 // app.use('/api/breathing', require('./routes/breathing'));
-
-// Serve static files from React build (for production)
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'public')));
-  
-  // Handle React routing - return all requests to React app
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  });
-}
 
 // 404 handler for API routes
 app.use('/api/*', (req, res) => {
@@ -63,7 +50,6 @@ app.use((error, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`🚀 Mental Health API server running on port ${PORT}`);
   console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
