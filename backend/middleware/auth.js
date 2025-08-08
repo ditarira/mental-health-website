@@ -1,60 +1,34 @@
 ﻿const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
 
-const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
+const auth = (req, res, next) => {
+  // Get token from header
+  const token = req.header('Authorization');
 
-const authMiddleware = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Access denied. No token provided.' });
-    }
-    
-    const token = authHeader.substring(7);
-    
-    console.log('🔐 Auth middleware - verifying token...');
-    
-    // Verify the token
-    const decoded = jwt.verify(token, JWT_SECRET);
-    
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        createdAt: true
-      }
+  // Check if no token
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'No token, authorization denied'
     });
+  }
+
+  try {
+    // Remove 'Bearer ' from token
+    const actualToken = token.startsWith('Bearer ') ? token.slice(7) : token;
     
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid token. User not found.' });
-    }
+    // Verify token
+    const decoded = jwt.verify(actualToken, process.env.JWT_SECRET || 'fallback-secret');
     
-    // Add user to request object
-    req.user = user;
-    
-    console.log('✅ Auth middleware - user authenticated:', user.email);
+    // Add user to request
+    req.user = decoded;
     next();
-    
   } catch (error) {
-    console.error('❌ Auth middleware error:', error);
-    
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Invalid token.' });
-    }
-    
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired.' });
-    }
-    
-    res.status(500).json({ error: 'Token verification failed.' });
+    console.error('Auth middleware error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Token is not valid'
+    });
   }
 };
 
-module.exports = authMiddleware;
+module.exports = auth;
