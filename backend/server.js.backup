@@ -1,9 +1,7 @@
 ﻿const express = require('express');
 const cors = require('cors');
-const { PrismaClient } = require('@prisma/client');
 
 const app = express();
-const prisma = new PrismaClient();
 
 // Middleware
 app.use(cors({
@@ -19,99 +17,67 @@ app.get('/', (req, res) => {
   res.json({ 
     message: 'MindfulMe API Server',
     version: '1.0.0',
-    status: 'running',
-    endpoints: [
-      'GET /api/health - Health check',
-      'POST /api/auth/register - User registration',
-      'POST /api/auth/login - User login',
-      'GET /api/admin/stats - Admin statistics',
-      'GET /api/admin/users - Admin user list',
-      'GET /api/journal - Get journal entries',
-      'POST /api/journal - Create journal entry',
-      'GET /api/breathing - Get breathing sessions',
-      'POST /api/breathing - Save breathing session'
-    ]
+    status: 'running'
   });
 });
 
-// Health check endpoint
+// Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'Mental Health API is running',
-    timestamp: new Date().toISOString(),
-    database: 'connected'
+    message: 'API is running',
+    timestamp: new Date().toISOString()
   });
 });
 
-// Import and use routes
+// Load routes one by one to identify the problem
+console.log('Loading routes...');
+
 try {
-  // Auth routes
+  console.log('1. Loading auth routes...');
   const authRoutes = require('./src/routes/auth');
   app.use('/api/auth', authRoutes);
-  console.log('✅ Auth routes loaded');
-
-  // Admin routes
-  const adminRoutes = require('./src/routes/admin');
-  app.use('/api/admin', adminRoutes);
-  console.log('✅ Admin routes loaded');
-
-  // Journal routes
-  const journalRoutes = require('./src/routes/journal');
-  app.use('/api/journal', journalRoutes);
-  console.log('✅ Journal routes loaded');
-
-  // Breathing routes  
-  const breathingRoutes = require('./src/routes/breathing');
-  app.use('/api/breathing', breathingRoutes);
-  console.log('✅ Breathing routes loaded');
-
+  console.log('✅ Auth routes loaded successfully');
 } catch (error) {
-  console.error('❌ Error loading routes:', error.message);
+  console.error('❌ Auth routes error:', error.message);
 }
 
-// 404 handler for API routes only
-app.use('/api/*', (req, res) => {
-  res.status(404).json({ 
-    error: 'API endpoint not found',
-    path: req.path,
-    method: req.method,
-    availableEndpoints: [
-      '/api/health',
-      '/api/auth/register',
-      '/api/auth/login',
-      '/api/admin/stats',
-      '/api/admin/users',
-      '/api/journal',
-      '/api/breathing'
-    ]
-  });
-});
+try {
+  console.log('2. Loading admin routes...');
+  const adminRoutes = require('./src/routes/admin');
+  app.use('/api/admin', adminRoutes);
+  console.log('✅ Admin routes loaded successfully');
+} catch (error) {
+  console.error('❌ Admin routes error:', error.message);
+}
 
-// Error handling middleware
+try {
+  console.log('3. Loading journal routes...');
+  const journalRoutes = require('./src/routes/journal');
+  app.use('/api/journal', journalRoutes);
+  console.log('✅ Journal routes loaded successfully');
+} catch (error) {
+  console.error('❌ Journal routes error:', error.message);
+}
+
+try {
+  console.log('4. Loading breathing routes...');
+  const breathingRoutes = require('./src/routes/breathing');
+  app.use('/api/breathing', breathingRoutes);
+  console.log('✅ Breathing routes loaded successfully');
+} catch (error) {
+  console.error('❌ Breathing routes error:', error.message);
+}
+
+// Error handling
 app.use((error, req, res, next) => {
-  console.error('❌ Server error:', error);
-  res.status(500).json({ 
-    error: 'Internal server error',
-    message: error.message
-  });
+  console.error('Server error:', error);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log('🚀 Mental Health API server running on port', PORT);
-  console.log('🌐 Root: http://localhost:' + PORT);
-  console.log('🔍 Health check: http://localhost:' + PORT + '/api/health');
-  console.log('📊 Admin stats: http://localhost:' + PORT + '/api/admin/stats');
+  console.log('🚀 Server running on port', PORT);
+  console.log('🔗 Test: http://localhost:' + PORT + '/api/health');
 });
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('🔄 Gracefully shutting down...');
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-module.exports = app;
