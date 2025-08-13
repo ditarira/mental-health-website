@@ -1,23 +1,67 @@
-﻿// src/routes/admin.js
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
-const adminController = require('../controllers/adminController');
-const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { PrismaClient } = require('@prisma/client');
 
-// All admin routes require authentication and admin role
-router.use(authMiddleware);
-router.use(adminOnly);
+const prisma = new PrismaClient();
 
-// Get dashboard stats
-router.get('/stats', adminController.getDashboardStats);
+router.get('/stats', async (req, res) => {
+  try {
+    const totalUsers = await prisma.user.count();
+    const totalJournalEntries = await prisma.journalEntry.count();
+    const totalBreathingSessions = await prisma.breathingSession.count();
 
-// Get all users
-router.get('/users', adminController.getAllUsers);
+    const stats = {
+      totalUsers,
+      totalJournalEntries,
+      totalBreathingSessions,
+      activeUsers: 0,
+      lastUpdated: new Date().toISOString()
+    };
 
-// Update user role
-router.put('/users/:id/role', adminController.updateUserRole);
+    res.json({
+      success: true,
+      data: stats,
+      message: 'Admin statistics retrieved successfully'
+    });
 
-// Delete user
-router.delete('/users/:id', adminController.deleteUser);
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch admin statistics',
+      error: error.message
+    });
+  }
+});
+
+router.get('/users', async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        createdAt: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({
+      success: true,
+      data: users,
+      message: 'Users retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch users',
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;

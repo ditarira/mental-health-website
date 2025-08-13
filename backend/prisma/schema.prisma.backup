@@ -15,11 +15,11 @@ model User {
   lastName          String
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  lastLogin         DateTime?
   bio               String?
   role              String             @default("USER")
   breathingSessions BreathingSession[]
   journalEntries    JournalEntry[]
+
   @@map("users")
 }
 
@@ -33,6 +33,7 @@ model JournalEntry {
   updatedAt DateTime @updatedAt
   tags      String[]
   user      User     @relation(fields: [userId], references: [id])
+
   @@map("journal_entries")
 }
 
@@ -44,6 +45,7 @@ model BreathingSession {
   completed Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+
   @@map("breathing_sessions")
 }
 
@@ -62,5 +64,6 @@ model MentalHealthResource {
   imageUrl     String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
   @@map("mental_health_resources")
 }

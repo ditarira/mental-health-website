@@ -1,19 +1,58 @@
-﻿// src/routes/breathing.js
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
-const breathingController = require('../controllers/breathingController');
-const { authMiddleware } = require('../middleware/auth');
+const { PrismaClient } = require('@prisma/client');
 
-// All routes require authentication
-router.use(authMiddleware);
+const prisma = new PrismaClient();
 
-// Get all breathing sessions
-router.get('/', breathingController.getBreathingSessions);
+router.get('/', async (req, res) => {
+  try {
+    const sessions = await prisma.breathingSession.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
 
-// Create new breathing session
-router.post('/', breathingController.createBreathingSession);
+    res.json({
+      success: true,
+      data: sessions,
+      message: 'Breathing sessions retrieved successfully'
+    });
 
-// Get breathing stats
-router.get('/stats', breathingController.getBreathingStats);
+  } catch (error) {
+    console.error('Error fetching breathing sessions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch breathing sessions',
+      error: error.message
+    });
+  }
+});
+
+router.post('/', async (req, res) => {
+  try {
+    const { duration, type, completed } = req.body;
+
+    const session = await prisma.breathingSession.create({
+      data: {
+        duration: parseInt(duration) || 0,
+        type: type || 'unknown',
+        completed: completed || false,
+        userId: "cmdar2tus0000bn3jtjiw8662"
+      }
+    });
+
+    res.json({
+      success: true,
+      data: session,
+      message: 'Breathing session saved successfully'
+    });
+
+  } catch (error) {
+    console.error('Error saving breathing session:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save breathing session',
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;

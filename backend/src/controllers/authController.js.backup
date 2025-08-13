@@ -138,11 +138,11 @@ const login = async (req, res) => {
       });
     }
 
-    // Update user activity (using updatedAt)
+    // SAFE ACTIVITY TRACKING: Update updatedAt to track login activity
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: { 
-        updatedAt: new Date() // This tracks when user was last active
+        updatedAt: new Date() // This safely tracks when user was last active
       },
       select: {
         id: true,
@@ -158,7 +158,7 @@ const login = async (req, res) => {
     // Generate token
     const token = generateToken(user.id);
 
-    console.log('✅ Login successful for user:', user.email, '| Activity updated to:', updatedUser.updatedAt);
+    console.log('✅ Login successful for user:', user.email, '| Last activity updated to:', updatedUser.updatedAt);
 
     res.json({
       success: true,

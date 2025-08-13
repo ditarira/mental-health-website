@@ -1,66 +1,83 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
+
 const app = express();
 
 // Middleware
 app.use(cors({
-  origin: [
-    'https://mental-health-website-lyart.vercel.app',
-    'http://localhost:3000'
-  ],
+  origin: ['http://localhost:3000', 'https://mental-health-frontend.vercel.app'],
   credentials: true
 }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health check endpoint
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'MindfulMe API Server',
+    version: '1.0.0',
+    status: 'running'
+  });
+});
+
+// Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
-    success: true,
-    message: 'Mental Health API is running!', 
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    status: 'OK', 
+    message: 'API is running',
+    timestamp: new Date().toISOString()
   });
 });
 
-// API Routes
-app.use('/api/resources', require('./routes/resources'));
-// Add other routes as needed
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/journal', require('./routes/journal'));
-app.use('/api/breathing', require('./routes/breathing'));
+// Load routes one by one to identify the problem
+console.log('Loading routes...');
 
-// 404 handler for API routes
-app.use('/api/*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'API endpoint not found'
-  });
-});
+try {
+  console.log('1. Loading auth routes...');
+  const authRoutes = require('./src/routes/auth');
+  app.use('/api/auth', authRoutes);
+  console.log('✅ Auth routes loaded successfully');
+} catch (error) {
+  console.error('❌ Auth routes error:', error.message);
+}
 
-// Global error handler
+try {
+  console.log('2. Loading admin routes...');
+  const adminRoutes = require('./src/routes/admin');
+  app.use('/api/admin', adminRoutes);
+  console.log('✅ Admin routes loaded successfully');
+} catch (error) {
+  console.error('❌ Admin routes error:', error.message);
+}
+
+try {
+  console.log('3. Loading journal routes...');
+  const journalRoutes = require('./src/routes/journal');
+  app.use('/api/journal', journalRoutes);
+  console.log('✅ Journal routes loaded successfully');
+} catch (error) {
+  console.error('❌ Journal routes error:', error.message);
+}
+
+try {
+  console.log('4. Loading breathing routes...');
+  const breathingRoutes = require('./src/routes/breathing');
+  app.use('/api/breathing', breathingRoutes);
+  console.log('✅ Breathing routes loaded successfully');
+} catch (error) {
+  console.error('❌ Breathing routes error:', error.message);
+}
+
+// Error handling
 app.use((error, req, res, next) => {
-  console.error('Global error handler:', error);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-  });
+  console.error('Server error:', error);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Mental Health API server running on port ${PORT}`);
-  console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`📚 Resources: http://localhost:${PORT}/api/resources`);
-  console.log(`🌱 Seed data: http://localhost:${PORT}/api/resources/seed`);
-});
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  console.log('Unhandled Promise Rejection:', err.message);
-  // Close server & exit process
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log('🚀 Server running on port', PORT);
+  console.log('🔗 Test: http://localhost:' + PORT + '/api/health');
 });
