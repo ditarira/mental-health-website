@@ -15,32 +15,30 @@ const Dashboard = () => {
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
-  // Simple mood colors for design
-  const moodColors = {
-    '1': '#ef4444', // Red
-    '2': '#f97316', // Orange  
-    '3': '#eab308', // Yellow
-    '4': '#22c55e', // Green
-    '5': '#06b6d4'  // Cyan
-  };
-
-  // Fetch user stats (simplified)
+  // Fetch user's personal stats
   const fetchUserStats = async () => {
     try {
       if (!token) return;
 
       setLoading(true);
 
-      const [journalResponse, breathingResponse] = await Promise.all([
-        fetch(`${API_BASE}/api/journal`, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-        }),
-        fetch(`${API_BASE}/api/breathing`, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-        })
-      ]);
+      // Fetch journal entries
+      const journalResponse = await fetch(`${API_BASE}/api/journal`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Fetch breathing sessions
+      const breathingResponse = await fetch(`${API_BASE}/api/breathing`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
       const journalData = await journalResponse.json();
       const breathingData = await breathingResponse.json();
@@ -49,11 +47,11 @@ const Dashboard = () => {
         const entries = journalData.data || [];
         const sessions = breathingData.data || [];
 
-        // Simple calculations
+        // Calculate stats
         const recentEntries = entries.slice(0, 3);
         const recentSessions = sessions.slice(0, 3);
         
-        // Find favorite exercise
+        // Find favorite breathing exercise
         const exerciseCounts = {};
         sessions.forEach(session => {
           exerciseCounts[session.type] = (exerciseCounts[session.type] || 0) + 1;
@@ -62,10 +60,10 @@ const Dashboard = () => {
           exerciseCounts[a] > exerciseCounts[b] ? a : b, null
         );
 
-        // Simple streak calculation
-        let streak = 0;
+        // Calculate streak (days with activity)
         const today = new Date();
-        for (let i = 0; i < 7; i++) {
+        let streak = 0;
+        for (let i = 0; i < 30; i++) {
           const checkDate = new Date(today);
           checkDate.setDate(today.getDate() - i);
           const dayStart = new Date(checkDate);
@@ -84,7 +82,9 @@ const Dashboard = () => {
           if (hasActivity) {
             if (i === 0 || streak === i) streak++;
             else break;
-          } else if (i === 0) break;
+          } else if (i === 0) {
+            break;
+          }
         }
 
         setStats({
@@ -106,6 +106,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (user && token) {
       fetchUserStats();
+      // Auto-refresh every 30 seconds
       const interval = setInterval(fetchUserStats, 30000);
       return () => clearInterval(interval);
     }
@@ -113,22 +114,31 @@ const Dashboard = () => {
 
   if (!user) {
     return (
-      <div className="stunning-dashboard">
-        <div className="hero-welcome">
-          <div className="hero-gradient"></div>
-          <div className="hero-content">
-            <div className="floating-emojis">
-              <span className="floating-emoji">🌈</span>
-              <span className="floating-emoji">✨</span>
-              <span className="floating-emoji">🦋</span>
-              <span className="floating-emoji">🌸</span>
-              <span className="floating-emoji">💫</span>
+      <div className="user-dashboard">
+        <div className="welcome-guest">
+          <div className="welcome-content">
+            <h1>Welcome to MindfulMe</h1>
+            <p>Your personal mental wellness companion</p>
+            <div className="feature-grid">
+              <div className="feature-card">
+                <div className="feature-icon">📝</div>
+                <h3>Journal</h3>
+                <p>Express your thoughts and track your mood daily</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">🧘‍♀️</div>
+                <h3>Breathing Exercises</h3>
+                <p>Find calm with guided breathing techniques</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">📊</div>
+                <h3>Track Progress</h3>
+                <p>Monitor your mental wellness journey</p>
+              </div>
             </div>
-            <h1 className="hero-title">Welcome to MindfulMe</h1>
-            <p className="hero-subtitle">Your beautiful journey to mental wellness</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Start Your Journey ✨</button>
-              <button className="btn-secondary">Learn More 🌟</button>
+            <div className="auth-buttons">
+              <button className="login-btn">Sign In</button>
+              <button className="signup-btn">Create Account</button>
             </div>
           </div>
         </div>
@@ -138,123 +148,91 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="stunning-dashboard">
-        <div className="loading-beautiful">
-          <div className="loading-rainbow-circle"></div>
-          <h2>Loading your beautiful journey...</h2>
-          <div className="loading-dots">
-            <span style={{backgroundColor: moodColors['1']}}>😢</span>
-            <span style={{backgroundColor: moodColors['2']}}>😞</span>
-            <span style={{backgroundColor: moodColors['3']}}>😐</span>
-            <span style={{backgroundColor: moodColors['4']}}>😊</span>
-            <span style={{backgroundColor: moodColors['5']}}>😄</span>
-          </div>
+      <div className="user-dashboard">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading your wellness journey...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="stunning-dashboard">
-      {/* Beautiful Header */}
-      <div className="dashboard-header-gorgeous">
-        <div className="header-gradient"></div>
-        <div className="header-content">
-          <div className="welcome-section">
-            <h1 className="welcome-title">Hello, {user.firstName}! 👋</h1>
-            <p className="welcome-subtitle">Your wellness journey continues beautifully</p>
-          </div>
-          <div className="streak-badge">
-            <div className="streak-fire">🔥</div>
-            <div className="streak-number">{stats.currentStreak}</div>
-            <div className="streak-label">Day Streak</div>
-          </div>
+    <div className="user-dashboard">
+      {/* Welcome Header */}
+      <div className="dashboard-header">
+        <div className="welcome-message">
+          <h1>Welcome back, {user.firstName}! 👋</h1>
+          <p>Continue your mindfulness journey</p>
+        </div>
+        <div className="streak-counter">
+          <div className="streak-number">{stats.currentStreak}</div>
+          <div className="streak-label">Day Streak 🔥</div>
         </div>
       </div>
 
-      {/* Gorgeous Stats Cards */}
-      <div className="stats-gorgeous-grid">
-        <div className="stat-card-gorgeous journal-gorgeous">
-          <div className="card-gradient journal-gradient"></div>
-          <div className="card-icon">📝</div>
-          <div className="card-content">
-            <div className="card-number">{stats.totalJournalEntries}</div>
-            <div className="card-label">Journal Entries</div>
-            <div className="card-sublabel">Stories written</div>
-          </div>
-          <div className="card-decoration">
-            <div className="decoration-circle circle-1"></div>
-            <div className="decoration-circle circle-2"></div>
+      {/* Quick Stats */}
+      <div className="stats-grid">
+        <div className="stat-card journal-stat">
+          <div className="stat-icon">📝</div>
+          <div className="stat-content">
+            <div className="stat-number">{stats.totalJournalEntries}</div>
+            <div className="stat-label">Journal Entries</div>
+            <div className="stat-sublabel">Total written</div>
           </div>
         </div>
 
-        <div className="stat-card-gorgeous breathing-gorgeous">
-          <div className="card-gradient breathing-gradient"></div>
-          <div className="card-icon">🧘‍♀️</div>
-          <div className="card-content">
-            <div className="card-number">{stats.totalBreathingSessions}</div>
-            <div className="card-label">Breathing Sessions</div>
-            <div className="card-sublabel">Moments of calm</div>
-          </div>
-          <div className="card-decoration">
-            <div className="decoration-circle circle-1"></div>
-            <div className="decoration-circle circle-2"></div>
+        <div className="stat-card breathing-stat">
+          <div className="stat-icon">🧘‍♀️</div>
+          <div className="stat-content">
+            <div className="stat-number">{stats.totalBreathingSessions}</div>
+            <div className="stat-label">Breathing Sessions</div>
+            <div className="stat-sublabel">Completed</div>
           </div>
         </div>
 
-        <div className="stat-card-gorgeous total-gorgeous">
-          <div className="card-gradient total-gradient"></div>
-          <div className="card-icon">⚡</div>
-          <div className="card-content">
-            <div className="card-number">{stats.totalJournalEntries + stats.totalBreathingSessions}</div>
-            <div className="card-label">Total Activities</div>
-            <div className="card-sublabel">Wellness score</div>
-          </div>
-          <div className="card-decoration">
-            <div className="decoration-circle circle-1"></div>
-            <div className="decoration-circle circle-2"></div>
+        <div className="stat-card total-stat">
+          <div className="stat-icon">⚡</div>
+          <div className="stat-content">
+            <div className="stat-number">{stats.totalJournalEntries + stats.totalBreathingSessions}</div>
+            <div className="stat-label">Total Activities</div>
+            <div className="stat-sublabel">Your wellness score</div>
           </div>
         </div>
 
         {stats.favoriteExercise && (
-          <div className="stat-card-gorgeous favorite-gorgeous">
-            <div className="card-gradient favorite-gradient"></div>
-            <div className="card-icon">⭐</div>
-            <div className="card-content">
-              <div className="card-favorite">{stats.favoriteExercise}</div>
-              <div className="card-label">Favorite Exercise</div>
-              <div className="card-sublabel">Most practiced</div>
-            </div>
-            <div className="card-decoration">
-              <div className="decoration-circle circle-1"></div>
-              <div className="decoration-circle circle-2"></div>
+          <div className="stat-card favorite-stat">
+            <div className="stat-icon">⭐</div>
+            <div className="stat-content">
+              <div className="stat-favorite">{stats.favoriteExercise}</div>
+              <div className="stat-label">Favorite Exercise</div>
+              <div className="stat-sublabel">Most practiced</div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Beautiful Recent Activity */}
-      <div className="activity-gorgeous-section">
-        <div className="recent-journals-gorgeous">
-          <h2 className="section-title">📖 Recent Journal Entries</h2>
+      {/* Recent Activity */}
+      <div className="activity-section">
+        <div className="recent-journals">
+          <h2>Recent Journal Entries</h2>
           {stats.recentEntries.length === 0 ? (
-            <div className="empty-gorgeous">
-              <div className="empty-icon">🌱</div>
-              <p>Your journal is waiting for your first beautiful story</p>
-              <button className="btn-gorgeous">Write Your First Entry ✨</button>
+            <div className="empty-state">
+              <p>No journal entries yet</p>
+              <button className="cta-btn">Write Your First Entry</button>
             </div>
           ) : (
-            <div className="activity-gorgeous-list">
-              {stats.recentEntries.map((entry, index) => (
-                <div key={entry.id} className="activity-gorgeous-item" style={{animationDelay: `${index * 0.1}s`}}>
-                  <div className="activity-gorgeous-icon">📝</div>
-                  <div className="activity-gorgeous-content">
-                    <div className="activity-gorgeous-title">{entry.title || 'Untitled Entry'}</div>
-                    <div className="activity-gorgeous-date">
+            <div className="activity-list">
+              {stats.recentEntries.map(entry => (
+                <div key={entry.id} className="activity-item">
+                  <div className="activity-icon">📝</div>
+                  <div className="activity-content">
+                    <div className="activity-title">{entry.title || 'Untitled Entry'}</div>
+                    <div className="activity-date">
                       {new Date(entry.createdAt).toLocaleDateString()}
                     </div>
                   </div>
-                  <div className="activity-gorgeous-mood" style={{backgroundColor: moodColors[entry.mood] + '20', color: moodColors[entry.mood]}}>
+                  <div className="activity-mood">
                     {entry.mood === '1' && '😢'}
                     {entry.mood === '2' && '😞'}
                     {entry.mood === '3' && '😐'}
@@ -267,26 +245,25 @@ const Dashboard = () => {
           )}
         </div>
 
-        <div className="recent-breathing-gorgeous">
-          <h2 className="section-title">🌸 Recent Breathing Sessions</h2>
+        <div className="recent-breathing">
+          <h2>Recent Breathing Sessions</h2>
           {stats.recentSessions.length === 0 ? (
-            <div className="empty-gorgeous">
-              <div className="empty-icon">🧘‍♀️</div>
-              <p>Begin your mindful breathing journey</p>
-              <button className="btn-gorgeous">Start First Session 🌸</button>
+            <div className="empty-state">
+              <p>No breathing sessions yet</p>
+              <button className="cta-btn">Start Your First Session</button>
             </div>
           ) : (
-            <div className="activity-gorgeous-list">
-              {stats.recentSessions.map((session, index) => (
-                <div key={session.id} className="activity-gorgeous-item" style={{animationDelay: `${index * 0.1}s`}}>
-                  <div className="activity-gorgeous-icon">🧘‍♀️</div>
-                  <div className="activity-gorgeous-content">
-                    <div className="activity-gorgeous-title">{session.type}</div>
-                    <div className="activity-gorgeous-date">
+            <div className="activity-list">
+              {stats.recentSessions.map(session => (
+                <div key={session.id} className="activity-item">
+                  <div className="activity-icon">🧘‍♀️</div>
+                  <div className="activity-content">
+                    <div className="activity-title">{session.type}</div>
+                    <div className="activity-date">
                       {new Date(session.createdAt).toLocaleDateString()}
                     </div>
                   </div>
-                  <div className="activity-gorgeous-duration">
+                  <div className="activity-duration">
                     {Math.round(session.duration)}s
                   </div>
                 </div>
@@ -296,24 +273,22 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Gorgeous Action Cards */}
-      <div className="actions-gorgeous">
-        <h2 className="section-title">✨ Continue Your Beautiful Journey</h2>
-        <div className="actions-gorgeous-grid">
-          <div className="action-gorgeous-card journal-action-gorgeous">
-            <div className="action-gorgeous-background"></div>
-            <div className="action-gorgeous-icon">📝</div>
+      {/* Quick Actions */}
+      <div className="quick-actions">
+        <h2>Continue Your Journey</h2>
+        <div className="actions-grid">
+          <div className="action-card journal-action">
+            <div className="action-icon">📝</div>
             <h3>Write in Journal</h3>
-            <p>Express your thoughts with beautiful mood colors</p>
-            <button className="action-gorgeous-btn">Start Writing ✨</button>
+            <p>Express your thoughts and feelings</p>
+            <button className="action-btn">Start Writing</button>
           </div>
           
-          <div className="action-gorgeous-card breathing-action-gorgeous">
-            <div className="action-gorgeous-background"></div>
-            <div className="action-gorgeous-icon">🧘‍♀️</div>
+          <div className="action-card breathing-action">
+            <div className="action-icon">🧘‍♀️</div>
             <h3>Breathing Exercise</h3>
-            <p>Find calm with gorgeous guided animations</p>
-            <button className="action-gorgeous-btn">Start Breathing 🌸</button>
+            <p>Find calm with guided breathing</p>
+            <button className="action-btn">Start Breathing</button>
           </div>
         </div>
       </div>
