@@ -1,4 +1,4 @@
-.App {
+﻿.App {
   text-align: center;
 }
 
@@ -34,5 +34,34 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* MOBILE RESPONSIVE STYLES */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+  
+  .main-content {
+    padding: 0.5rem !important;
+  }
+  
+  .dashboard-container {
+    padding: 0.5rem !important;
+    gap: 1rem !important;
+  }
+  
+  .card, .widget, .dashboard-card, .welcome-card {
+    margin: 0.5rem 0 !important;
+    padding: 1rem !important;
+    width: calc(100% - 1rem) !important;
+  }
+  
+  .stats-grid, .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
   }
 }

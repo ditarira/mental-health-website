@@ -1,0 +1,1068 @@
+﻿import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+
+const AdminDashboard = () => {
+  const { user, isAdmin } = useAuth();
+  const [stats, setStats] = useState({});
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const API_BASE = 'http://localhost:5000';
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchAdminData();
+      
+      // Real-time updates every 30 seconds
+      const interval = setInterval(() => {
+        fetchAdminData(true);
+      }, 30000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin]);
+
+  const fetchAdminData = async (silent = false) => {
+    try {
+      if (!silent) {
+        setLoading(true);
+        setError('');
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No authentication token found');
+        return;
+      }
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
+      };
+
+      // Fetch stats and users in parallel
+      const [statsResponse, usersResponse] = await Promise.allSettled([
+        fetch(`${API_BASE}/api/admin/stats`, config).then(res => res.json()),
+        fetch(`${API_BASE}/api/admin/users`, config).then(res => res.json())
+      ]);
+
+      // Handle responses
+      if (statsResponse.status === 'fulfilled') {
+        setStats(statsResponse.value);
+      } else {
+        console.error('Stats error:', statsResponse.reason);
+        if (!silent) setError('Failed to load statistics');
+      }
+
+      if (usersResponse.status === 'fulfilled') {
+        setUsers(usersResponse.value.users || []);
+      } else {
+        console.error('Users error:', usersResponse.reason);
+        if (!silent) setError(prev => prev ? prev + ' and users data' : 'Failed to load users data');
+      }
+
+      setLastUpdated(new Date());
+
+    } catch (error) {
+      console.error('Admin data fetch failed:', error);
+      if (!silent) {
+        setError('Failed to load admin data: ' + error.message);
+      }
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  const getActivityLevelInfo = (level) => {
+    const levels = {
+      high: { color: '#10b981', emoji: '🔥', label: 'High Activity', bgColor: 'rgba(16, 185, 129, 0.1)' },
+      medium: { color: '#f59e0b', emoji: '⚡', label: 'Medium Activity', bgColor: 'rgba(245, 158, 11, 0.1)' },
+      low: { color: '#ef4444', emoji: '📈', label: 'Low Activity', bgColor: 'rgba(239, 68, 68, 0.1)' },
+      inactive: { color: '#6b7280', emoji: '💤', label: 'Inactive', bgColor: 'rgba(107, 114, 128, 0.1)' }
+    };
+    return levels[level] || levels.inactive;
+  };
+
+  const formatNumber = (num) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num?.toString() || '0';
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return `${Math.floor(diffDays / 30)} months ago`;
+  };
+
+  // Check admin access
+  if (!isAdmin) {
+    return (
+      <div style={{
+        paddingTop: '100px',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <div style={{
+          background: 'white',
+          padding: '3rem',
+          borderRadius: '25px',
+          textAlign: 'center',
+          boxShadow: '0 25px 80px rgba(0, 0, 0, 0.15)'
+        }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🚫</div>
+          <h2 style={{ color: '#1f2937', marginBottom: '1rem' }}>Access Denied</h2>
+          <p style={{ color: '#6b7280' }}>You need admin privileges to access this dashboard.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div style={{
+        paddingTop: '100px',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <div style={{ color: 'white', textAlign: 'center' }}>
+          <div style={{ 
+            fontSize: '4rem', 
+            marginBottom: '2rem',
+            animation: 'pulse 2s infinite'
+          }}>👑</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: '600' }}>Loading Admin Dashboard...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      paddingTop: '100px',
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      fontFamily: "'Inter', sans-serif"
+    }}>
+      <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+
+        {/* Beautiful Header */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '25px',
+          padding: '3rem',
+          marginBottom: '2rem',
+          boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
+          backdropFilter: 'blur(20px)',
+          textAlign: 'center',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+            borderRadius: '20px',
+            padding: '1.5rem',
+            display: 'inline-block',
+            marginBottom: '1.5rem',
+            boxShadow: '0 15px 40px rgba(102, 126, 234, 0.3)'
+          }}>
+            <span style={{ fontSize: '3rem', color: 'white' }}>👑</span>
+          </div>
+          
+          <h1 style={{
+            fontSize: '3.5rem',
+            fontWeight: '800',
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            margin: '0 0 1rem 0',
+            letterSpacing: '-0.02em'
+          }}>
+            Admin Dashboard
+          </h1>
+          
+          <p style={{
+            color: '#6b7280',
+            fontSize: '1.2rem',
+            margin: '0 0 2rem 0',
+            lineHeight: '1.6'
+          }}>
+            Welcome back, {user?.firstName}! Monitor your MindfulMe platform 🌟
+          </p>
+
+          {/* Status Indicators */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '2rem',
+            flexWrap: 'wrap',
+            alignItems: 'center'
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: 'white',
+              padding: '0.8rem 1.5rem',
+              borderRadius: '50px',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <span>🟢</span>
+              <span>System Online</span>
+            </div>
+            
+            <div style={{
+              background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+              color: 'white',
+              padding: '0.8rem 1.5rem',
+              borderRadius: '50px',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <span>🕒</span>
+              <span>Updated: {lastUpdated.toLocaleTimeString()}</span>
+            </div>
+            
+            <div style={{
+              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+              color: 'white',
+              padding: '0.8rem 1.5rem',
+              borderRadius: '50px',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <span>👤</span>
+              <span>{user?.email}</span>
+            </div>
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <div style={{
+              background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+              color: 'white',
+              padding: '1rem 1.5rem',
+              borderRadius: '15px',
+              marginTop: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
+            }}>
+              <span>⚠️ {error}</span>
+              <button
+                onClick={() => fetchAdminData()}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseOver={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.3)'}
+                onMouseOut={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
+              >
+                🔄 Retry
+              </button>
+            </div>
+          )}
+
+          {/* Tab Navigation */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '1rem',
+            marginTop: '2rem',
+            flexWrap: 'wrap'
+          }}>
+            {[
+              { id: 'overview', label: '📊 Overview', icon: '📊' },
+              { id: 'analytics', label: '📈 Analytics', icon: '📈' },
+              { id: 'users', label: `👥 Users (${users.length})`, icon: '👥' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  background: activeTab === tab.id
+                    ? 'linear-gradient(135deg, #667eea, #764ba2)'
+                    : 'rgba(102, 126, 234, 0.1)',
+                  color: activeTab === tab.id ? 'white' : '#667eea',
+                  border: activeTab === tab.id ? 'none' : '2px solid rgba(102, 126, 234, 0.3)',
+                  padding: '1rem 2rem',
+                  borderRadius: '15px',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: activeTab === tab.id ? '0 10px 30px rgba(102, 126, 234, 0.3)' : 'none'
+                }}
+                onMouseOver={(e) => {
+                  if (activeTab !== tab.id) {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.2)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (activeTab !== tab.id) {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = 'none';
+                  }
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
+          <>
+            {/* Main Stats Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '2rem',
+              marginBottom: '2rem'
+            }}>
+              {/* Total Users */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '25px',
+                padding: '2.5rem',
+                textAlign: 'center',
+                boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '0',
+                  left: '0',
+                  right: '0',
+                  height: '4px',
+                  background: 'linear-gradient(135deg, #667eea, #764ba2)'
+                }}></div>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</div>
+                <h3 style={{ color: '#2d4654', marginBottom: '1rem', fontSize: '1.2rem' }}>Total Users</h3>
+                <div style={{
+                  fontSize: '3.5rem',
+                  fontWeight: '800',
+                  background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  marginBottom: '0.5rem'
+                }}>
+                  {formatNumber(stats.totalUsers || 0)}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+                  Registered members
+                </div>
+              </div>
+
+              {/* Active Users */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '25px',
+                padding: '2.5rem',
+                textAlign: 'center',
+                boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '0',
+                  left: '0',
+                  right: '0',
+                  height: '4px',
+                  background: 'linear-gradient(135deg, #10b981, #059669)'
+                }}></div>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚡</div>
+                <h3 style={{ color: '#2d4654', marginBottom: '1rem', fontSize: '1.2rem' }}>Active Users</h3>
+                <div style={{
+                  fontSize: '3.5rem',
+                  fontWeight: '800',
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  marginBottom: '0.5rem'
+                }}>
+                  {formatNumber(stats.activeUsers?.last30Days || 0)}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+                  Last 30 days
+                </div>
+              </div>
+
+              {/* Journal Entries */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '25px',
+                padding: '2.5rem',
+                textAlign: 'center',
+                boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '0',
+                  left: '0',
+                  right: '0',
+                  height: '4px',
+                  background: 'linear-gradient(135deg, #f59e0b, #d97706)'
+                }}></div>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
+                <h3 style={{ color: '#2d4654', marginBottom: '1rem', fontSize: '1.2rem' }}>Journal Entries</h3>
+                <div style={{
+                  fontSize: '3.5rem',
+                  fontWeight: '800',
+                  background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  marginBottom: '0.5rem'
+                }}>
+                  {formatNumber(stats.journalEntries || 0)}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+                  Total entries
+                </div>
+              </div>
+
+              {/* Breathing Sessions */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '25px',
+                padding: '2.5rem',
+                textAlign: 'center',
+                boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '0',
+                  left: '0',
+                  right: '0',
+                  height: '4px',
+                  background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)'
+                }}></div>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🫁</div>
+                <h3 style={{ color: '#2d4654', marginBottom: '1rem', fontSize: '1.2rem' }}>Breathing Sessions</h3>
+                <div style={{
+                  fontSize: '3.5rem',
+                  fontWeight: '800',
+                  background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  marginBottom: '0.5rem'
+                }}>
+                  {formatNumber(stats.breathingSessions || 0)}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+                  Completed sessions
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '25px',
+              padding: '2.5rem',
+              textAlign: 'center',
+              marginBottom: '2rem',
+              boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}>
+              <h3 style={{ 
+                marginBottom: '2rem', 
+                fontSize: '1.8rem',
+                fontWeight: '700',
+                color: '#1f2937'
+              }}>
+                ⚡ Quick Actions
+              </h3>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '1.5rem',
+                flexWrap: 'wrap'
+              }}>
+                <button
+                  onClick={() => setActiveTab('users')}
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '1.2rem 2.5rem',
+                    borderRadius: '15px',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.8rem'
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.transform = 'translateY(-3px)';
+                    e.target.style.boxShadow = '0 15px 40px rgba(102, 126, 234, 0.4)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 10px 30px rgba(102, 126, 234, 0.3)';
+                  }}
+                >
+                  <span style={{ fontSize: '1.2rem' }}>👥</span>
+                  <span>Manage Users</span>
+                </button>
+                
+                <button
+                  onClick={() => fetchAdminData()}
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '1.2rem 2.5rem',
+                    borderRadius: '15px',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.8rem'
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.transform = 'translateY(-3px)';
+                    e.target.style.boxShadow = '0 15px 40px rgba(16, 185, 129, 0.4)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 10px 30px rgba(16, 185, 129, 0.3)';
+                  }}
+                >
+                  <span style={{ fontSize: '1.2rem' }}>🔄</span>
+                  <span>Refresh Data</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('analytics')}
+                  style={{
+                    background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '1.2rem 2.5rem',
+                    borderRadius: '15px',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.8rem'
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.transform = 'translateY(-3px)';
+                    e.target.style.boxShadow = '0 15px 40px rgba(139, 92, 246, 0.4)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 10px 30px rgba(139, 92, 246, 0.3)';
+                  }}
+                >
+                  <span style={{ fontSize: '1.2rem' }}>📈</span>
+                  <span>View Analytics</span>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Analytics Tab */}
+        {activeTab === 'analytics' && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '25px',
+            padding: '2.5rem',
+            marginBottom: '2rem',
+            boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <h2 style={{ 
+              textAlign: 'center', 
+              marginBottom: '3rem', 
+              fontSize: '2.5rem',
+              fontWeight: '700',
+              color: '#1f2937'
+            }}>
+              📈 Platform Analytics
+            </h2>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+              gap: '2rem',
+              marginBottom: '3rem'
+            }}>
+              {/* Engagement Metrics */}
+              <div style={{
+                background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                color: 'white',
+                padding: '2.5rem',
+                borderRadius: '20px',
+                textAlign: 'center',
+                boxShadow: '0 15px 40px rgba(102, 126, 234, 0.3)'
+              }}>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>📊 Engagement Rate</h3>
+                <div style={{ 
+                  fontSize: '4rem', 
+                  fontWeight: '800', 
+                  marginBottom: '1rem',
+                  textShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
+                }}>
+                  {stats.analytics?.engagementRate || 0}%
+                </div>
+                <div style={{ fontSize: '1rem', opacity: 0.9 }}>
+                  Active users / Total users
+                </div>
+              </div>
+
+              {/* Average Activity */}
+              <div style={{
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+                color: 'white',
+                padding: '2.5rem',
+                borderRadius: '20px',
+                textAlign: 'center',
+                boxShadow: '0 15px 40px rgba(16, 185, 129, 0.3)'
+              }}>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>🎯 Avg. Activities</h3>
+                <div style={{ 
+                  fontSize: '4rem', 
+                  fontWeight: '800', 
+                  marginBottom: '1rem',
+                  textShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
+                }}>
+                  {stats.analytics?.avgActivitiesPerUser || 0}
+                </div>
+                <div style={{ fontSize: '1rem', opacity: 0.9 }}>
+                  Activities per user
+                </div>
+              </div>
+
+              {/* System Health */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+               color: 'white',
+               padding: '2.5rem',
+               borderRadius: '20px',
+               textAlign: 'center',
+               boxShadow: '0 15px 40px rgba(245, 158, 11, 0.3)'
+             }}>
+               <h3 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>📈 Platform Health</h3>
+               <div style={{ 
+                 fontSize: '4rem', 
+                 fontWeight: '800', 
+                 marginBottom: '1rem',
+                 textShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
+               }}>
+                 {stats.systemHealth?.status === 'healthy' ? '🟢' : '🟡'}
+               </div>
+               <div style={{ fontSize: '1rem', opacity: 0.9 }}>
+                 {stats.systemHealth?.status === 'healthy' ? 'Healthy & Active' : 'Growing Platform'}
+               </div>
+             </div>
+           </div>
+
+           {/* Activity Timeline */}
+           {stats.analytics?.dailyGrowth && (
+             <div style={{
+               background: 'rgba(102, 126, 234, 0.05)',
+               border: '2px solid rgba(102, 126, 234, 0.1)',
+               borderRadius: '20px',
+               padding: '2rem',
+               marginBottom: '2rem'
+             }}>
+               <h3 style={{ 
+                 marginBottom: '2rem', 
+                 fontSize: '1.5rem',
+                 color: '#1f2937',
+                 textAlign: 'center'
+               }}>
+                 📊 7-Day Activity Trends
+               </h3>
+               <div style={{
+                 display: 'grid',
+                 gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                 gap: '1rem'
+               }}>
+                 {stats.analytics.dailyGrowth.map((day, index) => (
+                   <div key={index} style={{
+                     background: 'white',
+                     padding: '1.5rem',
+                     borderRadius: '15px',
+                     textAlign: 'center',
+                     boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
+                     border: '1px solid rgba(102, 126, 234, 0.1)'
+                   }}>
+                     <div style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                       {new Date(day.date).toLocaleDateString('en-US', { 
+                         month: 'short', 
+                         day: 'numeric' 
+                       })}
+                     </div>
+                     <div style={{
+                       fontSize: '1.5rem',
+                       fontWeight: '700',
+                       color: '#667eea',
+                       marginBottom: '0.5rem'
+                     }}>
+                       {day.totalActivity}
+                     </div>
+                     <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                       Activities
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             </div>
+           )}
+
+           {/* Most Active Users Preview */}
+           {stats.mostActiveUsers && stats.mostActiveUsers.length > 0 && (
+             <div style={{
+               background: 'rgba(16, 185, 129, 0.05)',
+               border: '2px solid rgba(16, 185, 129, 0.1)',
+               borderRadius: '20px',
+               padding: '2rem'
+             }}>
+               <h3 style={{ 
+                 marginBottom: '2rem', 
+                 fontSize: '1.5rem',
+                 color: '#1f2937',
+                 textAlign: 'center'
+               }}>
+                 🏆 Top 5 Most Active Users
+               </h3>
+               <div style={{
+                 display: 'grid',
+                 gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                 gap: '1rem'
+               }}>
+                 {stats.mostActiveUsers.slice(0, 5).map((user, index) => (
+                   <div key={user.id} style={{
+                     background: 'white',
+                     padding: '1.5rem',
+                     borderRadius: '15px',
+                     textAlign: 'center',
+                     boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
+                     position: 'relative',
+                     border: index === 0 ? '2px solid #fbbf24' : '1px solid rgba(16, 185, 129, 0.1)'
+                   }}>
+                     {index === 0 && (
+                       <div style={{
+                         position: 'absolute',
+                         top: '-10px',
+                         left: '50%',
+                         transform: 'translateX(-50%)',
+                         background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                         color: 'white',
+                         padding: '0.3rem 0.8rem',
+                         borderRadius: '15px',
+                         fontSize: '0.7rem',
+                         fontWeight: '600'
+                       }}>
+                         👑 #1
+                       </div>
+                     )}
+                     <div style={{
+                       fontSize: '1.8rem',
+                       marginBottom: '0.5rem'
+                     }}>
+                       {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '⭐'}
+                     </div>
+                     <h4 style={{ 
+                       margin: '0 0 0.5rem 0', 
+                       fontSize: '1rem',
+                       color: '#1f2937'
+                     }}>
+                       {user.firstName} {user.lastName}
+                     </h4>
+                     <div style={{
+                       fontSize: '1.2rem',
+                       fontWeight: '700',
+                       color: '#10b981',
+                       marginBottom: '0.5rem'
+                     }}>
+                       {user.totalActivities}
+                     </div>
+                     <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                       Total Activities
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             </div>
+           )}
+         </div>
+       )}
+
+       {/* Users Tab */}
+       {activeTab === 'users' && (
+         <div style={{
+           background: 'rgba(255, 255, 255, 0.95)',
+           borderRadius: '25px',
+           padding: '2.5rem',
+           marginBottom: '2rem',
+           boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
+           backdropFilter: 'blur(20px)',
+           border: '1px solid rgba(255, 255, 255, 0.2)'
+         }}>
+           <h2 style={{ 
+             textAlign: 'center', 
+             marginBottom: '3rem', 
+             fontSize: '2.5rem',
+             fontWeight: '700',
+             color: '#1f2937'
+           }}>
+             👥 User Management ({users.length} Users)
+           </h2>
+
+           <div style={{
+             display: 'grid',
+             gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+             gap: '2rem'
+           }}>
+             {users.map((user) => {
+               const activityInfo = getActivityLevelInfo(user.metrics?.activityLevel);
+               const isCurrentAdmin = user.email === 'admin@mindfulme.com';
+               
+               return (
+                 <div
+                   key={user.id}
+                   style={{
+                     background: activityInfo.bgColor,
+                     borderRadius: '20px',
+                     padding: '2rem',
+                     border: isCurrentAdmin ? '3px solid #fbbf24' : `2px solid ${activityInfo.color}20`,
+                     transition: 'all 0.3s ease',
+                     position: 'relative',
+                     overflow: 'hidden'
+                   }}
+                   onMouseOver={(e) => {
+                     e.currentTarget.style.transform = 'translateY(-5px)';
+                     e.currentTarget.style.boxShadow = `0 15px 40px ${activityInfo.color}30`;
+                   }}
+                   onMouseOut={(e) => {
+                     e.currentTarget.style.transform = 'translateY(0)';
+                     e.currentTarget.style.boxShadow = 'none';
+                   }}
+                 >
+                   {/* Top border indicator */}
+                   <div style={{
+                     position: 'absolute',
+                     top: '0',
+                     left: '0',
+                     right: '0',
+                     height: '4px',
+                     background: `linear-gradient(135deg, ${activityInfo.color}, ${activityInfo.color}dd)`
+                   }}></div>
+
+                   {/* User Header */}
+                   <div style={{
+                     display: 'flex',
+                     justifyContent: 'space-between',
+                     alignItems: 'flex-start',
+                     marginBottom: '1.5rem'
+                   }}>
+                     <div>
+                       <h4 style={{ 
+                         margin: '0 0 0.5rem 0', 
+                         fontSize: '1.3rem',
+                         fontWeight: '700',
+                         color: '#1f2937'
+                       }}>
+                         {user.firstName} {user.lastName}
+                         {isCurrentAdmin && (
+                           <span style={{
+                             marginLeft: '0.8rem',
+                             background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                             color: 'white',
+                             padding: '0.3rem 0.8rem',
+                             borderRadius: '15px',
+                             fontSize: '0.7rem',
+                             fontWeight: '600'
+                           }}>
+                             👑 YOU
+                           </span>
+                         )}
+                       </h4>
+                       <div style={{ 
+                         color: '#6b7280', 
+                         marginBottom: '0.5rem', 
+                         fontSize: '0.9rem',
+                         display: 'flex',
+                         alignItems: 'center',
+                         gap: '0.5rem'
+                       }}>
+                         <span>📧</span>
+                         <span>{user.email}</span>
+                       </div>
+                     </div>
+                     
+                     <span style={{
+                       background: activityInfo.color,
+                       color: 'white',
+                       padding: '0.5rem 1rem',
+                       borderRadius: '20px',
+                       fontSize: '0.8rem',
+                       fontWeight: '600',
+                       display: 'flex',
+                       alignItems: 'center',
+                       gap: '0.5rem'
+                     }}>
+                       <span>{activityInfo.emoji}</span>
+                       <span>{activityInfo.label}</span>
+                     </span>
+                   </div>
+
+                   {/* Activity Stats */}
+                   <div style={{
+                     display: 'grid',
+                     gridTemplateColumns: '1fr 1fr',
+                     gap: '1rem',
+                     marginBottom: '1.5rem'
+                   }}>
+                     <div style={{
+                       background: 'rgba(255, 255, 255, 0.8)',
+                       padding: '1.2rem',
+                       borderRadius: '15px',
+                       textAlign: 'center',
+                       boxShadow: '0 5px 15px rgba(0, 0, 0, 0.08)'
+                     }}>
+                       <div style={{ 
+                         fontSize: '1.8rem', 
+                         fontWeight: '700',
+                         color: '#667eea',
+                         marginBottom: '0.3rem'
+                       }}>
+                         {user._count?.journalEntries || 0}
+                       </div>
+                       <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                         📝 Journal Entries
+                       </div>
+                     </div>
+                     
+                     <div style={{
+                       background: 'rgba(255, 255, 255, 0.8)',
+                       padding: '1.2rem',
+                       borderRadius: '15px',
+                       textAlign: 'center',
+                       boxShadow: '0 5px 15px rgba(0, 0, 0, 0.08)'
+                     }}>
+                       <div style={{ 
+                         fontSize: '1.8rem', 
+                         fontWeight: '700',
+                         color: '#8b5cf6',
+                         marginBottom: '0.3rem'
+                       }}>
+                         {user._count?.breathingSessions || 0}
+                       </div>
+                       <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                         🫁 Breathing Sessions
+                       </div>
+                     </div>
+                   </div>
+
+                   {/* User Metrics */}
+                   <div style={{
+                     background: 'rgba(255, 255, 255, 0.6)',
+                     padding: '1.2rem',
+                     borderRadius: '15px',
+                     fontSize: '0.85rem',
+                     color: '#6b7280'
+                   }}>
+                     <div style={{ 
+                       display: 'grid', 
+                       gridTemplateColumns: '1fr 1fr', 
+                       gap: '0.8rem' 
+                     }}>
+                       <div>
+                         <span style={{ fontWeight: '600', color: '#374151' }}>Joined:</span><br/>
+                         {formatDate(user.createdAt)}
+                       </div>
+                       <div>
+                         <span style={{ fontWeight: '600', color: '#374151' }}>Last Active:</span><br/>
+                         {formatDate(user.updatedAt)}
+                       </div>
+                       <div>
+                         <span style={{ fontWeight: '600', color: '#374151' }}>Total Activities:</span><br/>
+                         {user.metrics?.totalActivities || 0}
+                       </div>
+                       <div>
+                         <span style={{ fontWeight: '600', color: '#374151' }}>Daily Avg:</span><br/>
+                         {user.metrics?.avgActivitiesPerDay || 0}
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               );
+             })}
+           </div>
+         </div>
+       )}
+
+     </div>
+   </div>
+ );
+};
+
+export default AdminDashboard;
+
+

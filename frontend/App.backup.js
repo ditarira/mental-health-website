@@ -1,7 +1,6 @@
 ﻿import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Navigation from './components/Navigation';
 import Settings from './components/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -9,16 +8,15 @@ import Dashboard from './components/Dashboard';
 import Journal from './components/Journal';
 import BreathingExercises from './components/BreathingExercises';
 import Resources from './components/Resources';
-import AdminDashboard from './components/AdminDashboard';
 import Home from './pages/Home';
 import EmailTest from './components/EmailTest';
 import EmailVerification from './components/EmailVerification';
 import PasswordReset from './components/PasswordReset';
 import './index.css';
 
+// Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
   if (loading) {
     return (
       <div style={{
@@ -37,13 +35,12 @@ const ProtectedRoute = ({ children }) => {
       </div>
     );
   }
-  
   return user ? children : <Navigate to="/login" replace />;
 };
 
+// Public Route component
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
   if (loading) {
     return (
       <div style={{
@@ -62,7 +59,6 @@ const PublicRoute = ({ children }) => {
       </div>
     );
   }
-  
   return user ? <Navigate to="/dashboard" replace /> : children;
 };
 
@@ -72,7 +68,7 @@ function App() {
       <Router>
         <div className="App">
           <Routes>
-            {/* Public routes - NO Navigation */}
+            {/* Public Routes */}
             <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
             <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
@@ -80,45 +76,14 @@ function App() {
             <Route path="/reset-password" element={<PasswordReset />} />
             <Route path="/email-test" element={<EmailTest />} />
             
-            {/* Protected routes - WITH Navigation */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Navigation />
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/journal" element={
-              <ProtectedRoute>
-                <Navigation />
-                <Journal />
-              </ProtectedRoute>
-            } />
-            <Route path="/breathing" element={
-              <ProtectedRoute>
-                <Navigation />
-                <BreathingExercises />
-              </ProtectedRoute>
-            } />
-            <Route path="/resources" element={
-              <ProtectedRoute>
-                <Navigation />
-                <Resources />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Navigation />
-                <Settings />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute>
-                <Navigation />
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
+            {/* Protected Routes - RESOURCES MUST BE BEFORE CATCH-ALL */}
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
+            <Route path="/breathing" element={<ProtectedRoute><BreathingExercises /></ProtectedRoute>} />
+            <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             
-            {/* Catch all */}
+            {/* Catch all route - MUST BE LAST */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>

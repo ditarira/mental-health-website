@@ -1,788 +1,684 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import Navbar from './Navbar';
 
 const BreathingExercises = () => {
   const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [currentTechnique, setCurrentTechnique] = useState('478');
   const [isActive, setIsActive] = useState(false);
   const [phase, setPhase] = useState('ready');
   const [countdown, setCountdown] = useState(0);
   const [cycle, setCycle] = useState(0);
   const [sessionTime, setSessionTime] = useState(0);
-  const [showRecommendations, setShowRecommendations] = useState(false);
-  const [userMood, setUserMood] = useState('');
-  const [sessionStartTime, setSessionStartTime] = useState(null);
 
   const intervalRef = useRef(null);
   const sessionRef = useRef(null);
-  const phaseTimeoutRef = useRef(null);
 
   const techniques = {
     '478': {
-      name: '4-7-8 Relaxation',
+      name: '4-7-8 Deep Relaxation',
       description: 'Inhale 4, hold 7, exhale 8',
-      category: 'anxiety',
-      benefits: 'Perfect for anxiety and sleep',
+      category: 'Sleep & Anxiety',
+      emoji: '🌙',
+      benefits: 'Perfect for falling asleep and reducing anxiety',
+      color: '#6366f1',
+      bgColor: 'rgba(99, 102, 241, 0.1)',
       phases: [
-        { name: 'inhale', duration: 4, instruction: 'Breathe in slowly through your nose...', color: '#4CAF50' },
-        { name: 'hold', duration: 7, instruction: 'Hold your breath gently...', color: '#FF9800' },
-        { name: 'exhale', duration: 8, instruction: 'Exhale slowly through your mouth...', color: '#2196F3' }
+        { name: 'inhale', duration: 4, instruction: 'Breathe in slowly through your nose...', color: '#10b981' },
+        { name: 'hold', duration: 7, instruction: 'Hold your breath gently...', color: '#f59e0b' },
+        { name: 'exhale', duration: 8, instruction: 'Exhale slowly through your mouth...', color: '#06b6d4' }
       ]
     },
     'box': {
       name: 'Box Breathing',
       description: 'Equal 4-4-4-4 rhythm',
-      category: 'stress',
-      benefits: 'Great for focus and stress relief',
+      category: 'Focus & Stress',
+      emoji: '📦',
+      benefits: 'Navy SEALs technique for focus and stress relief',
+      color: '#059669',
+      bgColor: 'rgba(5, 150, 105, 0.1)',
       phases: [
-        { name: 'inhale', duration: 4, instruction: 'Breathe in...', color: '#4CAF50' },
-        { name: 'hold', duration: 4, instruction: 'Hold...', color: '#FF9800' },
-        { name: 'exhale', duration: 4, instruction: 'Breathe out...', color: '#2196F3' },
-        { name: 'pause', duration: 4, instruction: 'Pause and rest...', color: '#9C27B0' }
+        { name: 'inhale', duration: 4, instruction: 'Breathe in slowly...', color: '#10b981' },
+        { name: 'hold', duration: 4, instruction: 'Hold with control...', color: '#f59e0b' },
+        { name: 'exhale', duration: 4, instruction: 'Breathe out steadily...', color: '#06b6d4' },
+        { name: 'pause', duration: 4, instruction: 'Rest and prepare...', color: '#8b5cf6' }
       ]
     },
     'triangle': {
-      name: 'Triangle',
+      name: 'Triangle Breathing',
       description: 'Simple 4-4-4 pattern',
-      category: 'calm',
-      benefits: 'Easy technique for beginners',
+      category: 'Beginner Friendly',
+      emoji: '🔺',
+      benefits: 'Easy technique perfect for beginners',
+      color: '#0891b2',
+      bgColor: 'rgba(8, 145, 178, 0.1)',
       phases: [
-        { name: 'inhale', duration: 4, instruction: 'Breathe in...', color: '#4CAF50' },
-        { name: 'hold', duration: 4, instruction: 'Hold...', color: '#FF9800' },
-        { name: 'exhale', duration: 4, instruction: 'Breathe out...', color: '#2196F3' }
-      ]
-    },
-    'calm': {
-      name: 'Calm & Focus',
-      description: 'Breathe 6, hold 2, exhale 6',
-      category: 'focus',
-      benefits: 'Enhanced concentration',
-      phases: [
-        { name: 'inhale', duration: 6, instruction: 'Deep breath in...', color: '#4CAF50' },
-        { name: 'hold', duration: 2, instruction: 'Brief hold...', color: '#FF9800' },
-        { name: 'exhale', duration: 6, instruction: 'Long exhale...', color: '#2196F3' }
-      ]
-    },
-    'energize': {
-      name: 'Energizing',
-      description: 'Quick 3-3-3 rhythm',
-      category: 'energy',
-      benefits: 'Boost energy and alertness',
-      phases: [
-        { name: 'inhale', duration: 3, instruction: 'Quick inhale...', color: '#4CAF50' },
-        { name: 'hold', duration: 3, instruction: 'Hold briefly...', color: '#FF9800' },
-        { name: 'exhale', duration: 3, instruction: 'Quick exhale...', color: '#2196F3' }
+        { name: 'inhale', duration: 4, instruction: 'Breathe in gently...', color: '#10b981' },
+        { name: 'hold', duration: 4, instruction: 'Hold peacefully...', color: '#f59e0b' },
+        { name: 'exhale', duration: 4, instruction: 'Release slowly...', color: '#06b6d4' }
       ]
     },
     'coherent': {
       name: 'Coherent Breathing',
-      description: '5 seconds in, 5 seconds out',
-      category: 'balance',
-      benefits: 'Balances nervous system',
+      description: 'Balanced 5-5 pattern',
+      category: 'Heart Rate Variability',
+      emoji: '💓',
+      benefits: 'Balances nervous system and improves heart health',
+      color: '#dc2626',
+      bgColor: 'rgba(220, 38, 38, 0.1)',
       phases: [
-        { name: 'inhale', duration: 5, instruction: 'Smooth inhale for 5...', color: '#4CAF50' },
-        { name: 'exhale', duration: 5, instruction: 'Smooth exhale for 5...', color: '#2196F3' }
+        { name: 'inhale', duration: 5, instruction: 'Breathe in with your heart...', color: '#10b981' },
+        { name: 'exhale', duration: 5, instruction: 'Breathe out with gratitude...', color: '#06b6d4' }
       ]
     },
-    'belly': {
-      name: 'Belly Breathing',
-      description: 'Deep diaphragmatic breathing',
-      category: 'relaxation',
-      benefits: 'Activates relaxation response',
+    'wim': {
+      name: 'Wim Hof Technique',
+      description: '30 breaths + retention',
+      category: 'Energy & Cold',
+      emoji: '❄️',
+      benefits: 'Boosts energy, immune system, and cold tolerance',
+      color: '#7c3aed',
+      bgColor: 'rgba(124, 58, 237, 0.1)',
       phases: [
-        { name: 'inhale', duration: 6, instruction: 'Breathe deep into your belly...', color: '#4CAF50' },
-        { name: 'hold', duration: 2, instruction: 'Gentle pause...', color: '#FF9800' },
-        { name: 'exhale', duration: 8, instruction: 'Slowly deflate your belly...', color: '#2196F3' }
+        { name: 'inhale', duration: 2, instruction: 'Deep belly breath in...', color: '#10b981' },
+        { name: 'exhale', duration: 1, instruction: 'Let go naturally...', color: '#06b6d4' }
+      ]
+    },
+    'ujjayi': {
+      name: 'Ujjayi (Ocean Breath)',
+      description: 'Deep ocean-like breathing',
+      category: 'Yoga & Meditation',
+      emoji: '🌊',
+      benefits: 'Calms mind and generates internal heat',
+      color: '#0d9488',
+      bgColor: 'rgba(13, 148, 136, 0.1)',
+      phases: [
+        { name: 'inhale', duration: 6, instruction: 'Breathe deeply through nose...', color: '#10b981' },
+        { name: 'exhale', duration: 6, instruction: 'Exhale with ocean sound...', color: '#06b6d4' }
+      ]
+    },
+    'bellows': {
+      name: 'Bellows Breath',
+      description: 'Rapid energizing breaths',
+      category: 'Energy & Alertness',
+      emoji: '🔥',
+      benefits: 'Increases energy and mental alertness',
+      color: '#ea580c',
+      bgColor: 'rgba(234, 88, 12, 0.1)',
+      phases: [
+        { name: 'inhale', duration: 1, instruction: 'Quick breath in...', color: '#10b981' },
+        { name: 'exhale', duration: 1, instruction: 'Quick breath out...', color: '#06b6d4' }
+      ]
+    },
+    'alternate': {
+      name: 'Alternate Nostril',
+      description: 'Left-right nostril breathing',
+      category: 'Balance & Harmony',
+      emoji: '⚖️',
+      benefits: 'Balances left and right brain hemispheres',
+      color: '#9333ea',
+      bgColor: 'rgba(147, 51, 234, 0.1)',
+      phases: [
+        { name: 'inhale', duration: 4, instruction: 'Breathe through left nostril...', color: '#10b981' },
+        { name: 'hold', duration: 2, instruction: 'Pause between nostrils...', color: '#f59e0b' },
+        { name: 'exhale', duration: 4, instruction: 'Breathe through right nostril...', color: '#06b6d4' },
+        { name: 'pause', duration: 2, instruction: 'Switch and prepare...', color: '#8b5cf6' }
       ]
     }
   };
 
-  const getMoodRecommendation = (mood) => {
-    const recommendations = {
-      stressed: {
-        technique: 'box',
-        reason: 'Box breathing helps regulate your nervous system and reduces stress hormones.'
-      },
-      anxious: {
-        technique: '478',
-        reason: '4-7-8 breathing activates your parasympathetic nervous system, promoting calm.'
-      },
-      tired: {
-        technique: 'energize',
-        reason: 'Energizing breath work increases oxygen flow and alertness.'
-      },
-      unfocused: {
-        technique: 'calm',
-        reason: 'This technique enhances concentration and mental clarity.'
-      },
-      angry: {
-        technique: 'coherent',
-        reason: 'Coherent breathing helps balance emotions and restore inner peace.'
-      },
-      sad: {
-        technique: 'belly',
-        reason: 'Belly breathing activates the relaxation response and promotes comfort.'
-      },
-      overwhelmed: {
-        technique: 'box',
-        reason: 'This balancing technique helps organize scattered thoughts and emotions.'
-      },
-      restless: {
-        technique: 'coherent',
-        reason: 'Coherent breathing provides a meditative focus to calm restless energy.'
-      }
-    };
-    return recommendations[mood] || { technique: 'triangle', reason: 'A gentle, beginner-friendly technique.' };
-  };
-
-  const handleMoodSelection = (mood) => {
-    const recommendation = getMoodRecommendation(mood);
-    setCurrentTechnique(recommendation.technique);
-    setUserMood(mood);
-    setShowRecommendations(false);
-  };
-
-  // Session timer
   useEffect(() => {
-    if (isActive) {
-      sessionRef.current = setInterval(() => {
-        setSessionTime(prev => prev + 1);
-      }, 1000);
-    } else {
-      if (sessionRef.current) {
-        clearInterval(sessionRef.current);
-      }
-    }
-
-    return () => {
-      if (sessionRef.current) clearInterval(sessionRef.current);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
     };
-  }, [isActive]);
 
-  // Cleanup on unmount
-  useEffect(() => {
+    window.addEventListener('resize', handleResize);
     return () => {
+      window.removeEventListener('resize', handleResize);
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (sessionRef.current) clearInterval(sessionRef.current);
-      if (phaseTimeoutRef.current) clearTimeout(phaseTimeoutRef.current);
     };
   }, []);
 
-  const playSound = (frequency) => {
-    try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = frequency;
-      oscillator.type = 'sine';
-
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.05, audioContext.currentTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
-
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.3);
-    } catch (e) {
-      console.log('Audio not available');
-    }
-  };
-
-  const startBreathing = () => {
-    console.log('🚀 Starting breathing session...');
-    
-    // Clear any existing timers first
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (phaseTimeoutRef.current) clearTimeout(phaseTimeoutRef.current);
-    
+  const startSession = () => {
     setIsActive(true);
+    setPhase('inhale');
     setCycle(1);
     setSessionTime(0);
-    setSessionStartTime(new Date());
-    
-    // Small delay to ensure state is set, then start
-    setTimeout(() => {
-      startPhase(0, 1);
-    }, 100);
-  };
 
-  const startPhase = (phaseIndex, currentCycle) => {
     const technique = techniques[currentTechnique];
-    const phaseData = technique.phases[phaseIndex];
+    let currentPhaseIndex = 0;
+    let phaseTime = 0;
 
-    if (!phaseData) {
-      console.error('❌ No phase data found for index:', phaseIndex);
-      return;
-    }
+    setCountdown(technique.phases[0].duration);
 
-    console.log(`🔄 Starting ${phaseData.name} - Cycle ${currentCycle} - Phase ${phaseIndex + 1}/${technique.phases.length}`);
+    sessionRef.current = setInterval(() => {
+      setSessionTime(prev => prev + 1);
+    }, 1000);
 
-    // Update UI immediately
-    setPhase(phaseData.name);
-    setCountdown(phaseData.duration);
-    setCycle(currentCycle);
+    intervalRef.current = setInterval(() => {
+      phaseTime++;
+      setCountdown(technique.phases[currentPhaseIndex].duration - phaseTime);
 
-    // Play sound for phase
-    const sounds = { inhale: 220, hold: 330, exhale: 165, pause: 110 };
-    playSound(sounds[phaseData.name]);
+      if (phaseTime >= technique.phases[currentPhaseIndex].duration) {
+        phaseTime = 0;
+        currentPhaseIndex = (currentPhaseIndex + 1) % technique.phases.length;
 
-    // Clear any existing timers
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (phaseTimeoutRef.current) clearTimeout(phaseTimeoutRef.current);
-
-    let timeRemaining = phaseData.duration;
-    console.log(`⏱️ Starting countdown from ${timeRemaining} seconds`);
-
-    // Start countdown timer
-    intervalRef.current = setInterval(async () => {
-      timeRemaining--;
-      console.log(`⏱️ ${phaseData.name}: ${timeRemaining}s left`);
-      setCountdown(timeRemaining);
-
-      if (timeRemaining <= 0) {
-        console.log(`✅ ${phaseData.name} complete!`);
-        clearInterval(intervalRef.current);
-        
-        // Move to next phase or cycle
-        const nextPhaseIndex = phaseIndex + 1;
-        
-        if (nextPhaseIndex >= technique.phases.length) {
-          // Cycle complete
-          console.log(`🎯 Cycle ${currentCycle} complete!`);
-          const nextCycle = currentCycle + 1;
-          
-          if (nextCycle > 5) {
-            // All cycles complete
-            console.log('🎉 All cycles complete! Session finished!');
-            await stopBreathing();
-            playSound(523); // Success sound
-            return;
-          } else {
-            // Start next cycle
-            console.log(`🔄 Starting cycle ${nextCycle}`);
-            phaseTimeoutRef.current = setTimeout(() => {
-              startPhase(0, nextCycle);
-            }, 800);
-          }
-        } else {
-          // Continue to next phase in same cycle
-          console.log(`➡️ Moving to next phase: ${technique.phases[nextPhaseIndex].name}`);
-          phaseTimeoutRef.current = setTimeout(() => {
-            startPhase(nextPhaseIndex, currentCycle);
-          }, 800);
+        if (currentPhaseIndex === 0) {
+          setCycle(prev => prev + 1);
         }
+
+        setPhase(technique.phases[currentPhaseIndex].name);
+        setCountdown(technique.phases[currentPhaseIndex].duration);
       }
     }, 1000);
   };
 
-  const stopBreathing = async () => {
-    console.log('⏹️ Stopping breathing session');
+    const stopSession = () => {
+    // Save session data before stopping (only if session was meaningful)
+    if (sessionTime > 10) { // Only save if session lasted more than 10 seconds
+      saveSession(sessionTime, techniques[currentTechnique].name, true);
+    }
+
     setIsActive(false);
     setPhase('ready');
     setCountdown(0);
 
-    // Clear all timers
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (phaseTimeoutRef.current) clearTimeout(phaseTimeoutRef.current);
+    if (sessionRef.current) clearInterval(sessionRef.current);
+  };
 
-    // Save session data if user is logged in
-    if (user && sessionStartTime && sessionTime > 0) {
-      try {
-        const sessionData = {
-          technique: currentTechnique,
-          duration: sessionTime,
-          cycles_completed: cycle,
-          mood_before: userMood || null,
-          mood_after: null
-        };
-
-        console.log('💾 Saving breathing session:', sessionData);
-        
-        // API call to save session
-        const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
-        const token = localStorage.getItem('token');
-
-        const response = await fetch(`${API_BASE}/api/breathing/session`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(sessionData)
-        });
-        
-        if (response.ok) {
-          console.log('✅ Breathing session saved successfully!');
-        }
-      } catch (error) {
-        console.error('❌ Error saving breathing session:', error);
-        // Save to localStorage as fallback
-        const localSessions = JSON.parse(localStorage.getItem('breathingSessions') || '[]');
-        localSessions.push({
-          id: Date.now().toString(),
-          technique: currentTechnique,
-          duration: sessionTime,
-          cycles_completed: cycle,
-          mood_before: userMood || null,
-          createdAt: new Date().toISOString()
-        });
-        localStorage.setItem('breathingSessions', JSON.stringify(localSessions));
-        console.log('💾 Session saved locally as fallback');
+  const saveSession = async (duration, technique, completed = true) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token found, skipping session save');
+        return;
       }
-    }
-  };
 
-  const getCurrentPhaseData = () => {
-    if (phase === 'ready') {
-      return { instruction: 'Press start to begin your breathing session', color: '#7ca5b8' };
-    }
+      const sessionData = {
+        duration: Math.floor(duration), // session time in seconds
+        type: technique,
+        completed
+      };
 
-    const technique = techniques[currentTechnique];
-    const phaseData = technique.phases.find(p => p.name === phase);
-    return phaseData || { instruction: 'Get ready...', color: '#7ca5b8' };
-  };
+      const response = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/breathing`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sessionData)
+      });
 
-  const getCircleStyle = () => {
-    const baseSize = window.innerWidth > 768 ? 200 : 160;
-    let scale = 1;
-    let opacity = 0.5;
-
-    if (isActive) {
-      switch (phase) {
-        case 'inhale':
-          scale = 1.5;
-          opacity = 0.9;
-          break;
-        case 'hold':
-          scale = 1.6;
-          opacity = 1.0;
-          break;
-        case 'exhale':
-          scale = 0.7;
-          opacity = 0.6;
-          break;
-        case 'pause':
-          scale = 1.0;
-          opacity = 0.5;
-          break;
-        default:
-          scale = 1.0;
-          opacity = 0.5;
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Breathing session saved:', result);
+      } else {
+        console.error('❌ Failed to save breathing session');
       }
+    } catch (error) {
+      console.error('❌ Error saving breathing session:', error);
     }
-
-    const currentPhaseData = getCurrentPhaseData();
-
-    return {
-      width: `${baseSize}px`,
-      height: `${baseSize}px`,
-      transform: `translate(-50%, -50%) scale(${scale})`,
-      opacity: opacity,
-      background: `radial-gradient(circle, ${currentPhaseData.color}60, ${currentPhaseData.color}20)`,
-      transition: 'all 2s cubic-bezier(0.4, 0, 0.2, 1)',
-      borderRadius: '50%',
-      position: 'absolute',
-      top: '50%',
-      left: '50%'
-    };
   };
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const currentPhaseData = getCurrentPhaseData();
+  const currentPhase = techniques[currentTechnique].phases.find(p => p.name === phase) || techniques[currentTechnique].phases[0];
 
   return (
-    <div>
-      <Navbar />
-      <div style={{
-        paddingTop: '100px',
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8f1f5 0%, #c8e6c9 50%, #bbdefb 100%)',
-        padding: '100px 1rem 2rem 1rem'
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto'
-        }}>
-          {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <h1 style={{
-              color: '#2d4654',
-              fontSize: window.innerWidth > 768 ? '3rem' : '2.2rem',
-              fontWeight: 'bold',
-              marginBottom: '0.5rem'
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #a7f3d0 0%, #34d399 25%, #06b6d4 50%, #3b82f6 75%, #8b5cf6 100%)',
+      fontFamily: "'Inter', sans-serif"
+    }}>
+      <div style={{ padding: isMobile ? '1rem' : '2rem' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          
+          {/* Beautiful Header */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '25px',
+            padding: isMobile ? '2rem' : '3rem',
+            marginBottom: '2rem',
+            boxShadow: '0 25px 80px rgba(59, 130, 246, 0.15)',
+            backdropFilter: 'blur(20px)',
+            textAlign: 'center',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+              borderRadius: '20px',
+              padding: '1.5rem',
+              display: 'inline-block',
+              marginBottom: '1.5rem',
+              boxShadow: '0 15px 40px rgba(6, 182, 212, 0.3)'
             }}>
-              🫁 Breathing Studio
+              <span style={{ fontSize: '3rem', color: 'white' }}>🧘‍♀️</span>
+            </div>
+            <h1 style={{
+              fontSize: isMobile ? '2.5rem' : '3.5rem',
+              fontWeight: '800',
+              background: 'linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6)',
+              backgroundSize: '200% 200%',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: '0 0 1rem 0',
+              letterSpacing: '-0.02em'
+            }}>
+              Mindful Breathing
             </h1>
             <p style={{
-              color: '#5a6c7d',
-              fontSize: window.innerWidth > 768 ? '1.2rem' : '1rem',
-              marginBottom: '1rem'
+              color: '#64748b',
+              fontSize: '1.3rem',
+              margin: 0,
+              lineHeight: '1.6',
+              maxWidth: '600px',
+              margin: '0 auto'
             }}>
-              Professional breathing techniques for wellness
+              Discover the power of breath to calm your mind, reduce stress, and find inner peace ✨
             </p>
+          </div>
+
+          {/* Technique Selection Grid */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '25px',
+            padding: isMobile ? '2rem' : '2.5rem',
+            marginBottom: '2rem',
+            boxShadow: '0 25px 80px rgba(59, 130, 246, 0.15)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <h2 style={{
+              color: '#1f2937',
+              fontSize: '2rem',
+              fontWeight: '700',
+              marginBottom: '2rem',
+              textAlign: 'center'
+            }}>
+              🌈 Choose Your Breathing Technique
+            </h2>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '1.5rem'
+            }}>
+              {Object.entries(techniques).map(([key, technique]) => (
+                <button
+                  key={key}
+                  style={{
+                    background: currentTechnique === key
+                      ? `linear-gradient(135deg, ${technique.color}, ${technique.color}dd)`
+                      : 'rgba(255, 255, 255, 0.9)',
+                    color: currentTechnique === key ? 'white' : '#1f2937',
+                    border: currentTechnique === key ? 'none' : '2px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '20px',
+                    padding: '2rem',
+                    cursor: isActive ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.3s ease',
+                    textAlign: 'left',
+                    boxShadow: currentTechnique === key 
+                      ? `0 15px 40px ${technique.color}40`
+                      : '0 8px 25px rgba(0, 0, 0, 0.1)',
+                    opacity: isActive && currentTechnique !== key ? 0.6 : 1,
+                    transform: currentTechnique === key ? 'translateY(-5px)' : 'translateY(0)'
+                  }}
+                  onClick={() => !isActive && setCurrentTechnique(key)}
+                  disabled={isActive}
+                  onMouseOver={(e) => {
+                    if (!isActive && currentTechnique !== key) {
+                      e.target.style.transform = 'translateY(-3px)';
+                      e.target.style.boxShadow = '0 12px 35px rgba(0, 0, 0, 0.15)';
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (currentTechnique !== key) {
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.1)';
+                    }
+                  }}
+                >
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    marginBottom: '1rem'
+                  }}>
+                    <span style={{ fontSize: '2.5rem' }}>{technique.emoji}</span>
+                    <div>
+                      <div style={{
+                        fontSize: '1.3rem',
+                        fontWeight: '700',
+                        marginBottom: '0.25rem'
+                      }}>
+                        {technique.name}
+                      </div>
+                      <div style={{
+                        fontSize: '0.9rem',
+                        opacity: 0.8,
+                        fontWeight: '500'
+                      }}>
+                        {technique.category}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: '1rem',
+                    opacity: 0.9,
+                    marginBottom: '1rem',
+                    fontWeight: '500'
+                  }}>
+                    {technique.description}
+                  </div>
+                  <div style={{
+                    fontSize: '0.9rem',
+                    opacity: 0.8,
+                    lineHeight: '1.4'
+                  }}>
+                    {technique.benefits}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Breathing Animation Circle */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '25px',
+            padding: isMobile ? '3rem 2rem' : '4rem 3rem',
+            marginBottom: '2rem',
+            boxShadow: '0 25px 80px rgba(59, 130, 246, 0.15)',
+            backdropFilter: 'blur(20px)',
+            textAlign: 'center',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
             
-            {/* Mood-Based Recommendations */}
+            {/* Current Technique Info */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '1rem',
+              marginBottom: '2rem'
+            }}>
+              <span style={{ fontSize: '2rem' }}>{techniques[currentTechnique].emoji}</span>
+              <div style={{ textAlign: 'left' }}>
+                <h3 style={{
+                  fontSize: '1.5rem',
+                  fontWeight: '700',
+                  color: techniques[currentTechnique].color,
+                  margin: '0 0 0.25rem 0'
+                }}>
+                  {techniques[currentTechnique].name}
+                </h3>
+                <p style={{
+                  fontSize: '1rem',
+                  color: '#64748b',
+                  margin: 0
+                }}>
+                  {techniques[currentTechnique].category}
+                </p>
+              </div>
+            </div>
+
+            {/* Breathing Circle */}
+            <div style={{
+              width: isMobile ? '250px' : '350px',
+              height: isMobile ? '250px' : '350px',
+              margin: '0 auto 2rem',
+              borderRadius: '50%',
+              background: `radial-gradient(circle, ${isActive ? currentPhase.color : techniques[currentTechnique].color}, transparent)`,
+              border: `6px solid ${isActive ? currentPhase.color : techniques[currentTechnique].color}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
+              transform: isActive ? (
+                phase === 'inhale' ? 'scale(1.3)' : 
+                phase === 'hold' ? 'scale(1.3)' : 
+                'scale(0.8)'
+              ) : 'scale(1)',
+              opacity: isActive ? (phase === 'hold' ? '0.9' : '1') : '1',
+              boxShadow: `0 20px 60px ${isActive ? currentPhase.color : techniques[currentTechnique].color}40`,
+              position: 'relative'
+            }}>
+              {/* Inner glow effect */}
+              <div style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                background: `radial-gradient(circle, ${isActive ? currentPhase.color : techniques[currentTechnique].color}20, transparent)`,
+                animation: isActive ? 'pulse 2s infinite' : 'none'
+              }}></div>
+              
+              <div style={{
+                color: 'white',
+                fontSize: isMobile ? '2.5rem' : '3.5rem',
+                fontWeight: '800',
+                textShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                zIndex: 2
+              }}>
+                {isActive ? countdown : '🫁'}
+              </div>
+            </div>
+
+            {/* Phase Instructions */}
+            <div style={{
+              fontSize: isMobile ? '1.3rem' : '1.6rem',
+              fontWeight: '600',
+              color: '#1f2937',
+              marginBottom: '1.5rem',
+              minHeight: '2.5rem',
+              lineHeight: '1.4'
+            }}>
+              {isActive ? currentPhase.instruction : `Ready to begin ${techniques[currentTechnique].name}?`}
+            </div>
+
+            {/* Session Stats */}
+            {isActive && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: isMobile ? '2rem' : '3rem',
+                marginBottom: '2rem',
+                fontSize: '1.1rem',
+                fontWeight: '600'
+              }}>
+                <div style={{
+                  background: 'rgba(6, 182, 212, 0.1)',
+                  padding: '1rem 1.5rem',
+                  borderRadius: '15px',
+                  color: '#0891b2'
+                }}>
+                  <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.25rem' }}>Cycle</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{cycle}</div>
+                </div>
+                <div style={{
+                  background: 'rgba(139, 92, 246, 0.1)',
+                  padding: '1rem 1.5rem',
+                  borderRadius: '15px',
+                  color: '#8b5cf6'
+                }}>
+                  <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.25rem' }}>Time</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>
+                    {Math.floor(sessionTime / 60)}:{(sessionTime % 60).toString().padStart(2, '0')}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Control Button */}
             <button
-              onClick={() => setShowRecommendations(!showRecommendations)}
-              disabled={isActive}
               style={{
-                background: 'linear-gradient(135deg, #98c1d9, #7ca5b8)',
+                background: isActive
+                  ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+                  : `linear-gradient(135deg, ${techniques[currentTechnique].color}, ${techniques[currentTechnique].color}dd)`,
                 color: 'white',
                 border: 'none',
                 borderRadius: '20px',
-                padding: '0.8rem 1.5rem',
-                fontSize: '1rem',
-                fontWeight: '600',
-                cursor: isActive ? 'not-allowed' : 'pointer',
-                opacity: isActive ? 0.6 : 1,
-                marginBottom: showRecommendations ? '1rem' : '0',
-                transition: 'all 0.3s ease'
+                padding: '1.5rem 3rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontWeight: '700',
+                fontSize: '1.2rem',
+                boxShadow: `0 15px 40px ${isActive ? '#ef4444' : techniques[currentTechnique].color}40`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                margin: '0 auto'
+              }}
+              onClick={isActive ? stopSession : startSession}
+              onMouseOver={(e) => {
+                e.target.style.transform = 'translateY(-3px)';
+                e.target.style.boxShadow = `0 20px 50px ${isActive ? '#ef4444' : techniques[currentTechnique].color}50`;
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = `0 15px 40px ${isActive ? '#ef4444' : techniques[currentTechnique].color}40`;
               }}
             >
-              🎯 How are you feeling? Get personalized recommendation
+              <span style={{ fontSize: '1.5rem' }}>
+                {isActive ? '⏹️' : '▶️'}
+              </span>
+              {isActive ? 'Stop Session' : 'Start Breathing'}
             </button>
-
-            {showRecommendations && (
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.95)',
-                borderRadius: '15px',
-                padding: '1.5rem',
-                marginTop: '1rem',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                maxWidth: '600px',
-                margin: '1rem auto 0'
-              }}>
-                <h3 style={{ color: '#2d4654', marginBottom: '1rem' }}>
-                  How are you feeling right now?
-                </h3>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: window.innerWidth > 768 ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)',
-                  gap: '0.8rem'
-                }}>
-                  {[
-                    { mood: 'stressed', emoji: '😰', label: 'Stressed' },
-                    { mood: 'anxious', emoji: '😟', label: 'Anxious' },
-                    { mood: 'tired', emoji: '😴', label: 'Tired' },
-                    { mood: 'unfocused', emoji: '🤯', label: 'Unfocused' },
-                    { mood: 'angry', emoji: '😠', label: 'Angry' },
-                    { mood: 'sad', emoji: '😢', label: 'Sad' },
-                    { mood: 'overwhelmed', emoji: '🤪', label: 'Overwhelmed' },
-                    { mood: 'restless', emoji: '😤', label: 'Restless' }
-                  ].map(({ mood, emoji, label }) => (
-                    <button
-                      key={mood}
-                      onClick={() => handleMoodSelection(mood)}
-                      style={{
-                        background: userMood === mood ? '#7ca5b8' : 'white',
-                        color: userMood === mood ? 'white' : '#2d4654',
-                        border: `2px solid ${userMood === mood ? '#7ca5b8' : '#ddd'}`,
-                        borderRadius: '10px',
-                        padding: '0.8rem',
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease'
-                      }}
-                    >
-                      <div style={{ fontSize: '1.5rem', marginBottom: '0.3rem' }}>{emoji}</div>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                
-                {userMood && (
-                  <div style={{
-                    marginTop: '1rem',
-                    padding: '1rem',
-                    background: '#7ca5b815',
-                    borderRadius: '10px',
-                    border: '2px solid #7ca5b830'
-                  }}>
-                    <p style={{ color: '#2d4654', margin: '0', fontSize: '0.9rem' }}>
-                      💡 <strong>Recommended:</strong> {techniques[getMoodRecommendation(userMood).technique].name} - {getMoodRecommendation(userMood).reason}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Main Content */}
+          {/* Enhanced Benefits Section */}
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: window.innerWidth > 1024 ? '300px 1fr 300px' :
-                               window.innerWidth > 768 ? '1fr 1fr' : '1fr',
-            gap: '2rem',
-            alignItems: 'start'
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '25px',
+            padding: isMobile ? '2rem' : '2.5rem',
+            boxShadow: '0 25px 80px rgba(59, 130, 246, 0.15)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
           }}>
-            {/* Techniques */}
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.9)',
-              borderRadius: '20px',
-              padding: '1.5rem',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-              order: window.innerWidth <= 768 ? 2 : 1
+            <h2 style={{
+              color: '#1f2937',
+              fontSize: '2rem',
+              fontWeight: '700',
+              marginBottom: '2rem',
+              textAlign: 'center'
             }}>
-              <h3 style={{
-                textAlign: 'center',
-                marginBottom: '1rem',
-                color: '#2d4654'
-              }}>
-                Select Technique
-              </h3>
+              🌟 The Science of Breathing
+            </h2>
 
-              <div style={{
-                display: window.innerWidth <= 768 ? 'grid' : 'block',
-                gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fit, minmax(140px, 1fr))' : 'none',
-                gap: '0.5rem',
-                maxHeight: window.innerWidth <= 768 ? 'none' : '400px',
-                overflowY: window.innerWidth <= 768 ? 'visible' : 'auto'
-              }}>
-                {Object.entries(techniques).map(([key, technique]) => (
-                  <button
-                    key={key}
-                    onClick={() => !isActive && setCurrentTechnique(key)}
-                    disabled={isActive}
-                    style={{
-                      width: '100%',
-                      padding: '1rem',
-                      marginBottom: window.innerWidth > 768 ? '0.5rem' : '0',
-                      border: currentTechnique === key ? '2px solid #7ca5b8' : '1px solid #ddd',
-                      borderRadius: '10px',
-                      background: currentTechnique === key ? '#7ca5b8' : 'white',
-                      color: currentTechnique === key ? 'white' : '#2d4654',
-                      cursor: isActive ? 'not-allowed' : 'pointer',
-                      opacity: isActive ? 0.6 : 1,
-                      fontSize: '0.85rem',
-                      fontWeight: '600',
-                      textAlign: 'center',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    <div style={{ fontWeight: 'bold', marginBottom: '0.2rem' }}>
-                      {technique.name}
-                    </div>
-                    {window.innerWidth > 768 && (
-                      <>
-                        <div style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '0.2rem' }}>
-                          {technique.description}
-                        </div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.9, fontStyle: 'italic' }}>
-                          {technique.benefits}
-                        </div>
-                      </>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Main Breathing Circle */}
             <div style={{
-              background: 'rgba(255, 255, 255, 0.9)',
-              borderRadius: '25px',
-              padding: window.innerWidth > 768 ? '3rem' : '2rem',
-              textAlign: 'center',
-              boxShadow: '0 15px 40px rgba(0,0,0,0.15)',
-              minHeight: '500px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              order: 1
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '2rem'
             }}>
-              {/* Breathing Circle Container */}
-              <div style={{
-                position: 'relative',
-                width: window.innerWidth > 768 ? '250px' : '200px',
-                height: window.innerWidth > 768 ? '250px' : '200px',
-                margin: '0 auto 2rem'
-              }}>
-                {/* Animated Outer Circle */}
-                <div style={getCircleStyle()} />
-
-                {/* Inner Display Circle */}
-                <div style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: window.innerWidth > 768 ? '150px' : '120px',
-                  height: window.innerWidth > 768 ? '150px' : '120px',
-                  borderRadius: '50%',
-                  backgroundColor: 'white',
-                  transform: 'translate(-50%, -50%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: `0 10px 25px rgba(0,0,0,0.1), inset 0 0 0 3px ${currentPhaseData.color}`,
-                  zIndex: 10
+              {[
+                {
+                  emoji: '😌',
+                  title: 'Activates Parasympathetic System',
+                  desc: 'Deep breathing triggers your body\'s natural relaxation response, reducing cortisol and stress hormones.',
+                  color: '#06b6d4',
+                  bg: 'rgba(6, 182, 212, 0.1)'
+                },
+                {
+                  emoji: '🎯',
+                  title: 'Enhances Mental Clarity',
+                  desc: 'Controlled breathing increases oxygen to the brain, improving focus, concentration, and decision-making.',
+                  color: '#10b981',
+                  bg: 'rgba(16, 185, 129, 0.1)'
+                },
+                {
+                  emoji: '😴',
+                  title: 'Improves Sleep Quality',
+                  desc: 'Evening breathing practices calm the nervous system, preparing your body for deeper, more restful sleep.',
+                  color: '#8b5cf6',
+                  bg: 'rgba(139, 92, 246, 0.1)'
+                },
+                {
+                  emoji: '❤️',
+                  title: 'Supports Heart Health',
+                  desc: 'Regular practice helps lower blood pressure, improves heart rate variability, and strengthens cardiovascular health.',
+                  color: '#ef4444',
+                  bg: 'rgba(239, 68, 68, 0.1)'
+                },
+                {
+                  emoji: '🧠',
+                  title: 'Balances Brain Hemispheres',
+                  desc: 'Techniques like alternate nostril breathing harmonize left and right brain activity for better emotional regulation.',
+                  color: '#f59e0b',
+                  bg: 'rgba(245, 158, 11, 0.1)'
+                },
+                {
+                  emoji: '💪',
+                  title: 'Boosts Immune Function',
+                  desc: 'Deep breathing increases lymphatic circulation and oxygenation, strengthening your body\'s natural defenses.',
+                  color: '#0891b2',
+                  bg: 'rgba(8, 145, 178, 0.1)'
+                }
+              ].map((benefit, index) => (
+                <div key={index} style={{
+                  background: benefit.bg,
+                  padding: '2rem',
+                  borderRadius: '20px',
+                  border: `2px solid ${benefit.color}20`,
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.boxShadow = `0 15px 40px ${benefit.color}20`;
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}>
                   <div style={{
-                    fontSize: window.innerWidth > 768 ? '1.3rem' : '1.1rem',
-                    fontWeight: 'bold',
-                    color: currentPhaseData.color,
-                    marginBottom: '0.3rem',
-                    textTransform: 'capitalize'
+                    fontSize: '3rem',
+                    marginBottom: '1rem',
+                    textAlign: 'center'
                   }}>
-                    {phase}
+                    {benefit.emoji}
                   </div>
-
-                  {isActive && countdown > 0 && (
-                    <div style={{
-                      fontSize: window.innerWidth > 768 ? '2.2rem' : '1.8rem',
-                      fontWeight: 'bold',
-                      color: currentPhaseData.color
-                    }}>
-                      {countdown}
-                    </div>
-                  )}
+                  <h3 style={{
+                    color: benefit.color,
+                    fontSize: '1.3rem',
+                    fontWeight: '700',
+                    marginBottom: '1rem',
+                    textAlign: 'center'
+                  }}>
+                    {benefit.title}
+                  </h3>
+                  <p style={{
+                    color: '#64748b',
+                    lineHeight: '1.6',
+                    textAlign: 'center',
+                    margin: 0
+                  }}>
+                    {benefit.desc}
+                  </p>
                 </div>
-              </div>
-
-              {/* Instructions */}
-              <div style={{
-                padding: '1rem',
-                background: `${currentPhaseData.color}15`,
-                borderRadius: '15px',
-                marginBottom: '2rem',
-                border: `2px solid ${currentPhaseData.color}30`
-              }}>
-                <p style={{
-                  fontSize: window.innerWidth > 768 ? '1.2rem' : '1rem',
-                  color: '#2d4654',
-                  margin: '0',
-                  fontWeight: '500'
-                }}>
-                  {currentPhaseData.instruction}
-                </p>
-              </div>
-
-              {/* Control Button */}
-              {!isActive ? (
-                <button
-                  onClick={startBreathing}
-                  style={{
-                    background: 'linear-gradient(135deg, #7ca5b8, #4d7a97)',
-                    padding: window.innerWidth > 768 ? '1.2rem 2.5rem' : '1rem 2rem',
-                    fontSize: window.innerWidth > 768 ? '1.2rem' : '1rem',
-                    fontWeight: 'bold',
-                    border: 'none',
-                    borderRadius: '25px',
-                    color: 'white',
-                    cursor: 'pointer',
-                    boxShadow: '0 8px 20px rgba(124, 165, 184, 0.3)',
-                    transition: 'all 0.3s ease',
-                    width: window.innerWidth <= 480 ? '100%' : 'auto'
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = '0 12px 25px rgba(124, 165, 184, 0.4)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 8px 20px rgba(124, 165, 184, 0.3)';
-                  }}
-                >
-                  🚀 Start Breathing
-                </button>
-              ) : (
-                <button
-                  onClick={stopBreathing}
-                  style={{
-                    background: 'linear-gradient(135deg, #e74c3c, #c0392b)',
-                    padding: window.innerWidth > 768 ? '1.2rem 2.5rem' : '1rem 2rem',
-                    fontSize: window.innerWidth > 768 ? '1.2rem' : '1rem',
-                    fontWeight: 'bold',
-                    border: 'none',
-                    borderRadius: '25px',
-                    color: 'white',
-                    cursor: 'pointer',
-                    width: window.innerWidth <= 480 ? '100%' : 'auto'
-                  }}
-                >
-                  ⏹️ Stop Session
-                </button>
-              )}
-            </div>
-
-            {/* Stats Panel */}
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.9)',
-              borderRadius: '20px',
-              padding: '1.5rem',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-              order: 3
-            }}>
-              <h3 style={{
-                textAlign: 'center',
-                marginBottom: '1rem',
-                color: '#2d4654'
-              }}>
-                Session Stats
-              </h3>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: window.innerWidth <= 768 ? '1fr 1fr' : '1fr',
-                gap: '1rem',                                       
-marginBottom: '1rem'
-              }}>
-                <div style={{
-                  background: 'linear-gradient(135deg, #e3f2fd, #bbdefb)',
-                  padding: '1rem',
-                  borderRadius: '10px',
-                  textAlign: 'center'
-                }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1976d2' }}>
-                    {cycle}/5
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: '#666' }}>Cycles</div>
-                </div>
-
-                <div style={{
-                  background: 'linear-gradient(135deg, #f3e5f5, #e1bee7)',
-                  padding: '1rem',
-                  borderRadius: '10px',
-                  textAlign: 'center'
-                }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#7b1fa2' }}>
-                    {formatTime(sessionTime)}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: '#666' }}>Time</div>
-                </div>
-              </div>
-
-              {/* Current Technique Info */}
-              <div style={{
-                background: `${currentPhaseData.color}15`,
-                padding: '1rem',
-                borderRadius: '10px',
-                border: `2px solid ${currentPhaseData.color}30`,
-                textAlign: 'center'
-              }}>
-                <h4 style={{ color: '#2d4654', marginBottom: '0.5rem' }}>
-                  {techniques[currentTechnique].name}
-                </h4>
-                <p style={{ color: '#666', fontSize: '0.9rem', margin: '0' }}>
-                  {techniques[currentTechnique].description}
-                </p>
-              </div>
+              ))}
             </div>
           </div>
+
         </div>
       </div>
+      
+      {/* Add CSS for pulse animation */}
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.05);
+          }
+        }
+      `}</style>
     </div>
   );
 };
 
 export default BreathingExercises;
+
+

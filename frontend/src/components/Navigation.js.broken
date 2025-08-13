@@ -1,0 +1,1463 @@
+﻿import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
+
+const Navigation = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showResourcesModal, setShowResourcesModal] = useState(false);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+      }
+      @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-10px); }
+        60% { transform: translateY(-5px); }
+      }
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .modal-content {
+        animation: slideIn 0.3s ease-out;
+      }
+      .modal-backdrop {
+        animation: fadeIn 0.3s ease-out;
+      }
+      .nav-button {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      .nav-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+      }
+      .nav-button:hover::before {
+        left: 100%;
+      }
+      .resource-card {
+        transition: all 0.3s ease;
+      }      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
+  const navigationItems = [
+    { id: "dashboard", name: "Dashboard", icon: "🏠", path: "/dashboard" },
+    { id: "journal", name: "Journal", icon: "📝", path: "/journal" },
+    { id: "breathing", name: "Breathing", icon: "🧘", path: "/breathing" },
+    { id: "settings", name: "Settings", icon: "⚙️", path: "/settings" }
+  ];
+
+  if (user?.role === "ADMIN") {
+    navigationItems.push({ id: "admin", name: "Admin", icon: "👑", path: "/admin" });
+  }
+
+  // Professional mental health resources with calming colors
+  const resources = [
+    {
+      id: 1,
+      category: "crisis",
+      title: "📞 988 Suicide & Crisis Lifeline",
+      description: "🌟 Free, confidential emotional support 24/7 for people in suicidal crisis or emotional distress. Trained crisis counselors provide immediate help.",
+      contact: "988",
+      website: "https://988lifeline.org",
+      type: "hotline",
+      urgent: true,
+      color: "#5f7c8a",
+      details: "Available in English and Spanish • Deaf/Hard of Hearing support • Completely free"
+    },
+    {
+      id: 2,
+      category: "crisis",
+      title: "💬 Crisis Text Line",
+      description: "💝 Free, 24/7 crisis support via text message. Text with trained crisis counselors for depression, anxiety, self-harm, and suicidal thoughts.",
+      contact: "Text HOME to 741741",
+      website: "https://crisistextline.org",
+      type: "text",
+      urgent: true,
+      color: "#6b8e8e",
+      details: "Response within 5 minutes • Completely confidential • Text-based support"
+    },
+    {
+      id: 3,
+      category: "crisis",
+      title: "🛡️ National Domestic Violence Hotline",
+      description: "Confidential support for domestic violence survivors and their loved ones. Available 24/7 with trained advocates.",
+      contact: "1-800-799-7233",
+      website: "https://thehotline.org",
+      type: "hotline",
+      urgent: true,
+      color: "#7a8aa0",
+      details: "Available in 200+ languages • Text HELP to 233733 • Safe & confidential"
+    },
+    {
+      id: 4,
+      category: "professional",
+      title: "🔍 Psychology Today Therapist Directory",
+      description: "✨ Comprehensive directory to find licensed therapists, psychiatrists, and mental health professionals in your area.",
+      website: "https://psychologytoday.com",
+      type: "directory",
+      color: "#4a6fa5",
+      details: "Filter by insurance coverage • Read therapist profiles • Book online appointments"
+    },
+    {
+      id: 5,
+      category: "professional",
+      title: "💻 BetterHelp Online Therapy",
+      description: "🌐 Professional online counseling with licensed, accredited therapists. Convenient therapy through video, phone, and messaging.",
+      website: "https://betterhelp.com",
+      type: "online-therapy",
+      color: "#5b9aa0",
+      cost: "$60-90/week",
+      details: "Financial aid available • Match with therapists • Message anytime • Video sessions"
+    },
+    {
+      id: 6,
+      category: "professional",
+      title: "💙 Open Path Collective",
+      description: "💚 Affordable therapy network offering sessions between $30-$60. Non-profit organization connecting people with licensed professionals.",
+      website: "https://openpathcollective.org",
+      type: "organization",
+      color: "#6b9bd1",
+      cost: "$30-60/session",
+      details: "Sliding scale fees • In-person and online • No insurance needed • Nonprofit"
+    },
+    {
+      id: 7,
+      category: "support",
+      title: "🤝 National Alliance on Mental Illness (NAMI)",
+      description: "Largest grassroots mental health organization providing education, support groups, and advocacy for mental health.",
+      contact: "1-800-950-6264",
+      website: "https://nami.org",
+      type: "organization",
+      color: "#8ba3c7",
+      details: "Free support groups • Family programs • Educational resources • Community events"
+    },
+    {
+      id: 8,
+      category: "youth",
+      title: "🌈 The Trevor Project",
+      description: "Leading national organization providing crisis intervention and suicide prevention services to LGBTQ+ young people under 25.",
+      contact: "1-866-488-7386",
+      website: "https://thetrevorproject.org",
+      type: "youth-crisis",
+      urgent: true,
+      color: "#9bb7d4",
+      details: "LGBTQ+ focused • Text START to 678678 • Online chat available • Youth support"
+    },
+    {
+      id: 9,
+      category: "specialized",
+      title: "📋 SAMHSA National Helpline",
+      description: "Free, confidential treatment referral service for mental health and substance use disorders. Information and referrals 24/7.",
+      contact: "1-800-662-4357",
+      website: "https://samhsa.gov",
+      type: "helpline",
+      color: "#7ba7a7",
+      details: "24/7 treatment referrals • Multiple languages • Insurance guidance • Substance abuse help"
+    }
+  ];
+
+  // Calming categories
+  const categories = [
+    { id: "all", name: "📚 All Resources", color: "#6b7280" },
+    { id: "crisis", name: "🚨 Crisis Support", color: "#5f7c8a" },
+    { id: "professional", name: "👩‍⚕️ Professional Help", color: "#4a6fa5" },
+    { id: "support", name: "🤝 Support Groups", color: "#8ba3c7" },
+    { id: "youth", name: "👥 Youth Support", color: "#9bb7d4" },
+    { id: "specialized", name: "🎯 Specialized Care", color: "#7ba7a7" }
+  ];
+
+  const filteredResources = resources.filter(resource => {
+    const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         resource.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || resource.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleNavigation = (path) => {
+    setShowMobileMenu(false);
+    navigate(path);
+        .nav-desktop { display: flex !important; }
+      }
+
+  const handleResourcesClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowResourcesModal(true);      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+
+  const handleEmergencyClick = () => {
+    setShowEmergencyModal(true);
+    setShowMobileMenu(false);      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+
+  const handleProfileClick = () => {
+    navigate("/settings");      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+
+  const handleEmergencyCall = () => {
+    window.open("tel:988", "_self");
+    setShowEmergencyModal(false);      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+
+  const handleCrisisText = () => {
+    window.open("sms:741741?body=HOME", "_self");
+    setShowEmergencyModal(false);      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+
+  const handleBreathingExercise = () => {
+    setShowEmergencyModal(false);
+    navigate("/breathing");      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+
+  const handleResourceCall = (contact) => {
+    if (contact.includes("Text")) {
+      const parts = contact.split(" to ");
+      if (parts.length === 2) {
+        window.open("sms:" + parts[1] + "?body=" + parts[0], "_self");
+      }
+    } else if (contact.match(/\d/)) {
+      window.open("tel:" + contact.replace(/\D/g, ""), "_self");
+    }      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+
+  const handleResourceWebsite = (url) => {
+    window.open(url, "_blank");      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+
+  const isActive = (path) => location.pathname === path;
+
+  return (
+    <>
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: window.innerWidth <= 768 ? "0.5rem 1rem" : "1rem 2.5rem",
+        background: "rgba(255, 255, 255, 0.95)",
+        backdropFilter: "blur(25px)",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.12)",
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+        borderBottom: "1px solid rgba(102, 126, 234, 0.15)"
+      }}>
+        {/* Enhanced Logo */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.75rem",
+          fontWeight: "800",
+          color: "#667eea",
+          fontSize: "2rem",
+          cursor: "pointer",
+          transition: "all 0.4s ease",
+          padding: "0.5rem 1rem",
+          borderRadius: "20px"
+        }}
+        onClick={() => handleNavigation("/dashboard")}
+        onMouseOver={(e) => {
+          e.currentTarget.style.transform = "scale(1.08)";
+          e.currentTarget.style.background = "rgba(102, 126, 234, 0.08)";
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.background = "transparent";
+        }}>
+          <span style={{
+            animation: "bounce 2s infinite",
+            fontSize: "2.5rem",
+            filter: "drop-shadow(0 4px 8px rgba(102, 126, 234, 0.3))"
+          }}>🧠</span>
+          <span style={{
+            background: "linear-gradient(135deg, #667eea, #764ba2)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            letterSpacing: "0.5px"
+          }}>MindfulMe</span>
+        </div>        {/* Desktop Navigation */}
+        <div className="nav-desktop" style={{
+          display: "flex",
+          gap: "0.75rem",
+          alignItems: "center"
+        }}>
+          {navigationItems.map(item => (
+            <button
+              key={item.id}
+              className="nav-button"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                padding: "1rem 2rem",
+                background: isActive(item.path)
+                  ? "linear-gradient(135deg, #667eea, #764ba2)"
+                  : "rgba(255, 255, 255, 0.8)",
+                color: isActive(item.path) ? "white" : "#667eea",
+                border: isActive(item.path)
+                  ? "2px solid transparent"
+                  : "2px solid rgba(102, 126, 234, 0.3)",
+                borderRadius: "30px",
+                cursor: "pointer",
+                fontSize: "1.1rem",
+                fontWeight: "700",
+                transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: isActive(item.path)
+                  ? "0 8px 25px rgba(102, 126, 234, 0.4)"
+                  : "0 4px 15px rgba(0,0,0,0.08)",
+                textTransform: "capitalize",
+                letterSpacing: "0.3px"
+              }}
+              onClick={() => handleNavigation(item.path)}
+            >
+              <span style={{ fontSize: "1.3rem" }}>{item.icon}</span>
+              <span>{item.name}</span>
+            </button>
+          ))}
+
+          {/* Resources Button */}
+          <button
+            className="nav-button"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              padding: "1rem 2rem",
+              background: showResourcesModal
+                ? "linear-gradient(135deg, #667eea, #764ba2)"
+                : "rgba(255, 255, 255, 0.8)",
+              color: showResourcesModal ? "white" : "#667eea",
+              border: showResourcesModal
+                ? "2px solid transparent"
+                : "2px solid rgba(102, 126, 234, 0.3)",
+              borderRadius: "30px",
+              cursor: "pointer",
+              fontSize: "1.1rem",
+              fontWeight: "700",
+              transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+              boxShadow: showResourcesModal
+                ? "0 8px 25px rgba(102, 126, 234, 0.4)"
+                : "0 4px 15px rgba(0,0,0,0.08)",
+              textTransform: "capitalize",
+              letterSpacing: "0.3px"
+            }}
+            onClick={handleResourcesClick}
+          >
+            <span style={{ fontSize: "1.3rem" }}>📚</span>
+            <span>Resources</span>
+          </button>
+        </div>
+
+        {/* Mobile Navigation */}
+        <div className="nav-mobile" style={{
+          display: "none",
+          alignItems: "center",
+          gap: "0.5rem"
+        }}>
+          {/* Mobile Menu Button */}
+          <button
+            style={{
+              background: "none",
+              border: "2px solid #667eea",
+              borderRadius: "8px",
+              padding: "0.5rem",
+              cursor: "pointer",
+              color: "#667eea",
+              fontSize: "1.2rem"
+            }}
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+          >
+            ☰
+          </button>
+
+          {/* Resources Button (Mobile) */}
+          <button
+            style={{
+              background: showResourcesModal ? "#667eea" : "rgba(255, 255, 255, 0.8)",
+              color: showResourcesModal ? "white" : "#667eea",
+              border: "2px solid #667eea",
+              borderRadius: "20px",
+              padding: "0.5rem 1rem",
+              cursor: "pointer",
+              fontSize: "0.9rem",
+              fontWeight: "600"
+            }}
+            onClick={handleResourcesClick}
+          >
+            📚
+          </button>
+        </div>
+
+        {/* Enhanced User Section */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "1.2rem"
+        }}>
+          {/* Emergency Alarm Button */}
+          <button
+            style={{
+              background: "linear-gradient(135deg, #ef4444, #dc2626)",
+              color: "white",
+              border: "none",
+              borderRadius: "50%",
+              width: "65px",
+              height: "65px",
+              cursor: "pointer",
+              transition: "all 0.4s ease",
+              fontSize: "1.8rem",
+              fontWeight: "700",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 8px 25px rgba(239, 68, 68, 0.4)",
+              animation: "pulse 2s infinite",
+              position: "relative"
+            }}
+            onClick={handleEmergencyClick}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = "scale(1.15)";
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(239, 68, 68, 0.7)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "0 8px 25px rgba(239, 68, 68, 0.4)";
+            }}
+            title="Emergency Support - Get Help Now"
+          >
+            🚨
+          </button>
+
+          {/* Clickable User Profile */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              padding: "0.8rem 1.5rem",
+              background: "linear-gradient(135deg, #667eea, #764ba2)",
+              borderRadius: "30px",
+              color: "white",
+              boxShadow: "0 6px 20px rgba(102, 126, 234, 0.3)",
+              cursor: "pointer",
+              transition: "all 0.4s ease",
+              border: "2px solid rgba(255, 255, 255, 0.2)"
+            }}
+            onClick={handleProfileClick}
+          >
+            <div style={{
+              width: "50px",
+              height: "50px",
+              borderRadius: "50%",
+              background: "rgba(255, 255, 255, 0.25)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "800",
+              fontSize: "1.2rem",
+              border: "2px solid rgba(255, 255, 255, 0.3)",
+              boxShadow: "0 4px 15px rgba(0,0,0,0.1)"
+            }}>
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            </div>
+            <div>
+              <div style={{
+                fontSize: "1rem",
+                fontWeight: "700",
+                letterSpacing: "0.3px"
+              }}>
+                {user?.firstName} {user?.lastName}
+              </div>
+              <div style={{
+                fontSize: "0.8rem",
+                opacity: 0.85,
+                fontWeight: "500"
+              }}>
+                {user?.role === "ADMIN" ? "Administrator" : "Wellness Member"}
+              </div>
+            </div>
+          </div>
+
+          {/* Logout Button */}
+          <button
+            style={{
+              background: "linear-gradient(135deg, #ef4444, #dc2626)",
+              color: "white",
+              border: "none",
+              borderRadius: "15px",
+              padding: "0.6rem 1rem",
+              cursor: "pointer",
+              fontSize: "0.85rem",
+              fontWeight: "600",
+              transition: "all 0.4s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              boxShadow: "0 4px 15px rgba(239, 68, 68, 0.3)",
+              letterSpacing: "0.2px",
+              minWidth: "fit-content"
+            }}
+            onClick={handleLogout}
+          >
+            <span>Logout</span>
+          </button>
+        </div>
+            {/* Mobile Menu Dropdown */}
+      {showMobileMenu && (
+        <div style={{
+          position: "absolute",
+          top: "100%",
+          left: "1rem",
+          right: "1rem",
+          background: "white",
+          borderRadius: "15px",
+          boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
+          border: "1px solid #e5e7eb",
+          padding: "1rem",
+          zIndex: 50
+        }}>
+          {navigationItems.map(item => (
+            <button
+              key={item.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                width: "100%",
+                padding: "0.75rem 1rem",
+                background: isActive(item.path) ? "#667eea" : "transparent",
+                color: isActive(item.path) ? "white" : "#667eea",
+                border: "none",
+                borderRadius: "10px",
+                cursor: "pointer",
+                fontSize: "1rem",
+                fontWeight: "600",
+                marginBottom: "0.5rem",
+                textAlign: "left"
+              }}
+              onClick={() => handleNavigation(item.path)}
+            >
+              <span>{item.icon}</span>
+              <span>{item.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {showResourcesModal && (
+        <div
+          className="modal-backdrop"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(95, 124, 138, 0.85)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "1rem"
+          }}
+          onClick={() => setShowResourcesModal(false)}
+        >
+          <div
+            className="modal-content"
+            style={{
+              background: "white",
+              borderRadius: "20px",
+              padding: window.innerWidth <= 768 ? "1.5rem" : "2.5rem",
+              maxWidth: window.innerWidth <= 768 ? "95vw" : "800px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 80px rgba(0,0,0,0.2)",
+              position: "relative",
+              border: "1px solid #e2e8f0"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              textAlign: "center",
+              marginBottom: "2rem",
+              paddingBottom: "1.5rem",
+              borderBottom: "2px solid #f1f5f9"
+            }}>
+              <h2 style={{
+                color: "#2d3748",
+                fontSize: "2rem",
+                fontWeight: "700",
+                margin: "0 0 0.5rem 0"
+              }}>🧠 Mental Health Resources</h2>
+              <p style={{
+                color: "#64748b",
+                fontSize: "1.1rem",
+                margin: 0,
+                lineHeight: "1.6"
+              }}>
+                Professional support and evidence-based resources for your mental wellness
+              </p>
+            </div>
+
+            {/* Categories */}
+            <div style={{
+              display: "flex",
+              gap: "0.5rem",
+              marginBottom: "2rem",
+              flexWrap: "wrap",
+              justifyContent: "center"
+            }}>
+              {categories.map(category => (
+                <button
+                  key={category.id}
+                  style={{
+                    background: selectedCategory === category.id
+                      ? category.color
+                      : "rgba(255, 255, 255, 0.8)",
+                    color: selectedCategory === category.id ? "white" : category.color,
+                    border: "2px solid " + category.color + "",
+                    borderRadius: "20px",
+                    padding: "0.75rem 1.5rem",
+                    cursor: "pointer",
+                    fontSize: "0.9rem",
+                    fontWeight: "600",
+                    transition: "all 0.3s ease"
+                  }}
+                  onClick={() => setSelectedCategory(category.id)}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Search */}
+            <div style={{ marginBottom: "2rem" }}>
+              <input
+                type="text"
+                placeholder="🔍 Search for mental health resources..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "1rem",
+                  border: "2px solid #e5e7eb",
+                  borderRadius: "15px",
+                  fontSize: "1rem",
+                  outline: "none",
+                  transition: "border-color 0.3s ease"
+                }}
+                onFocus={(e) => e.target.style.borderColor = "#667eea"}
+                onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+              />
+            </div>
+
+            {/* Resources List */}
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.5rem"
+            }}>
+              {filteredResources.map(resource => (
+                <div
+                  key={resource.id}
+                  className="resource-card"
+                  style={{
+                    padding: "1.5rem",
+                    background: "linear-gradient(135deg, #f8fafc, #f1f5f9)",
+                    borderRadius: "15px",
+                    border: "3px solid " + resource.color + "",
+                    transition: "all 0.3s ease"
+                  }}
+                >
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    marginBottom: "1rem"
+                  }}>
+                    <h3 style={{
+                      color: resource.color,
+                      fontSize: "1.3rem",
+                      fontWeight: "700",
+                      margin: 0
+                    }}>
+                      {resource.title}
+                    </h3>
+                    {resource.urgent && (
+                      <div style={{
+                        background: "#ef4444",
+                        color: "white",
+                        padding: "0.25rem 0.75rem",
+                        borderRadius: "15px",
+                        fontSize: "0.8rem",
+                        fontWeight: "600"
+                      }}>
+                        24/7 Crisis
+                      </div>
+                    )}
+                  </div>
+
+                  <p style={{
+                    color: "#4b5563",
+                    fontSize: "1rem",
+                    margin: "0 0 1rem 0",
+                    lineHeight: "1.5"
+                  }}>
+                    {resource.description}
+                  </p>
+
+                  {resource.details && (
+                    <div style={{
+                      background: "" + resource.color + "15",
+                      padding: "0.75rem",
+                      borderRadius: "10px",
+                      marginBottom: "1rem",
+                      borderLeft: "3px solid " + resource.color + ""
+                    }}>
+                      <p style={{
+                        color: "#4b5563",
+                        fontSize: "0.9rem",
+                        margin: 0,
+                        fontWeight: "500"
+                      }}>
+                        {resource.details}
+                      </p>
+                    </div>
+                  )}
+
+                  {resource.cost && (
+                    <div style={{
+                      background: "#f59e0b",
+                      color: "white",
+                      padding: "0.5rem 1rem",
+                      borderRadius: "10px",
+                      fontSize: "0.9rem",
+                      display: "inline-block",
+                      marginBottom: "1rem",
+                      fontWeight: "600"
+                    }}>
+                      Cost: {resource.cost}
+                    </div>
+                  )}
+
+                  <div style={{
+                    display: "flex",
+                    gap: "1rem",
+                    flexWrap: "wrap"
+                  }}>
+                    {resource.contact && (
+                      <button
+                        style={{
+                          background: resource.color,
+                          color: "white",
+                          border: "none",
+                          borderRadius: "10px",
+                          padding: "0.75rem 1.5rem",
+                          cursor: "pointer",
+                          fontSize: "1rem",
+                          fontWeight: "600",
+                          transition: "all 0.3s ease"
+                        }}
+                        onClick={() => handleResourceCall(resource.contact)}
+                      >
+                        {resource.contact}
+                      </button>
+                    )}
+
+                    <button
+                      style={{
+                        background: "rgba(255, 255, 255, 0.8)",
+                        color: resource.color,
+                        border: "2px solid " + resource.color + "",
+                        borderRadius: "10px",
+                        padding: "0.75rem 1.5rem",
+                        cursor: "pointer",
+                        fontSize: "1rem",
+                        fontWeight: "600",
+                        transition: "all 0.3s ease"
+                      }}
+                      onClick={() => handleResourceWebsite(resource.website)}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.background = resource.color;
+                        e.currentTarget.style.color = "white";
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.8)";
+                        e.currentTarget.style.color = resource.color;
+                      }}
+                    >
+                      Visit Website
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {filteredResources.length === 0 && (
+                <div style={{
+                  textAlign: "center",
+                  padding: "3rem",
+                  background: "#f9fafb",
+                  borderRadius: "15px",
+                  border: "2px solid #e5e7eb"
+                }}>
+                  <h3 style={{
+                    color: "#374151",
+                    fontSize: "1.5rem",
+                    fontWeight: "700",
+                    margin: "0 0 0.5rem 0"
+                  }}>
+                    No resources found
+                  </h3>
+                  <p style={{
+                    color: "#6b7280",
+                    fontSize: "1.1rem",
+                    margin: 0
+                  }}>
+                    Try adjusting your search or category filter
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <button
+              style={{
+                position: "absolute",
+                top: "1rem",
+                right: "1rem",
+                background: "none",
+                border: "none",
+                fontSize: "1.5rem",
+                cursor: "pointer",
+                color: "#6b7280",
+                padding: "0.5rem",
+                borderRadius: "50%",
+                transition: "all 0.3s ease"
+              }}
+              onClick={() => setShowResourcesModal(false)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "#f3f4f6";
+                e.currentTarget.style.color = "#374151";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "none";
+                e.currentTarget.style.color = "#6b7280";
+              }}
+            >
+              ✕
+            </button>
+
+            {/* Professional Footer */}
+            <div style={{
+              textAlign: "center",
+              marginTop: "2rem",
+              padding: "1.5rem",
+              background: "#f8fafc",
+              borderRadius: "15px",
+              border: "1px solid #e5e7eb"
+            }}>
+              <p style={{
+                color: "#4b5563",
+                fontSize: "1rem",
+                margin: 0,
+                fontWeight: "500",
+                lineHeight: "1.5"
+              }}>
+                💙 If you're experiencing a mental health emergency, please call 988 or go to your nearest emergency room.
+              </p>
+             </div>
+         </div>
+       </div>
+     )}
+
+     {/* Emergency Modal */}
+     {showEmergencyModal && (
+       <div style={{
+         position: "fixed",
+         top: 0,
+         left: 0,
+         right: 0,
+         bottom: 0,
+         background: "rgba(239, 68, 68, 0.9)",
+         display: "flex",
+         alignItems: "center",
+         justifyContent: "center",
+         zIndex: 1001,
+         animation: "fadeIn 0.3s ease-out"
+       }}
+       onClick={() => setShowEmergencyModal(false)}>
+         <div style={{
+           background: "white",
+           borderRadius: "20px",
+           padding: window.innerWidth <= 768 ? "1.5rem" : "2.5rem",
+           maxWidth: "500px",
+           width: "90%",
+           textAlign: "center",
+           boxShadow: "0 25px 80px rgba(0,0,0,0.3)",
+           border: "3px solid #dc2626"
+         }}
+         onClick={(e) => e.stopPropagation()}>
+           <div style={{ fontSize: "4rem", marginBottom: "1rem", animation: "pulse 1s infinite" }}>🚨</div>
+           <h2 style={{
+             color: "#dc2626",
+             fontSize: "2rem",
+             fontWeight: "800",
+             marginBottom: "1rem"
+           }}>
+             Need Help Right Now?
+           </h2>
+           <p style={{
+             color: "#4b5563",
+             fontSize: "1.1rem",
+             marginBottom: "2rem",
+             lineHeight: "1.5"
+           }}>
+             If you're in crisis or having thoughts of self-harm, please reach out immediately:
+           </p>
+
+           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+             <button
+               style={{
+                 background: "#dc2626",
+                 color: "white",
+                 border: "none",
+                 borderRadius: "10px",
+                 padding: "1rem 2rem",
+                 fontSize: "1.2rem",
+                 fontWeight: "700",
+                 cursor: "pointer",
+                 display: "flex",
+                 alignItems: "center",
+                 justifyContent: "center",
+                 gap: "0.8rem",
+                 boxShadow: "0 4px 15px rgba(220, 38, 38, 0.3)",
+                 transition: "all 0.3s ease"
+               }}
+               onClick={handleEmergencyCall}
+             >
+               Call 988 - Crisis Lifeline
+             </button>
+
+             <button
+               style={{
+                 background: "#059669",
+                 color: "white",
+                 border: "none",
+                 borderRadius: "10px",
+                 padding: "1rem 2rem",
+                 fontSize: "1.2rem",
+                 fontWeight: "700",
+                 cursor: "pointer",
+                 display: "flex",
+                 alignItems: "center",
+                 justifyContent: "center",
+                 gap: "0.8rem",
+                 boxShadow: "0 4px 15px rgba(5, 150, 105, 0.3)",
+                 transition: "all 0.3s ease"
+               }}
+               onClick={handleCrisisText}
+             >
+               Text HOME to 741741
+             </button>
+
+             <button
+               style={{
+                 background: "#667eea",
+                 color: "white",
+                 border: "none",
+                 borderRadius: "10px",
+                 padding: "1rem 2rem",
+                 fontSize: "1.2rem",
+                 fontWeight: "700",
+                 cursor: "pointer",
+                 display: "flex",
+                 alignItems: "center",
+                 justifyContent: "center",
+                 gap: "0.8rem",
+                 boxShadow: "0 4px 15px rgba(102, 126, 234, 0.3)",
+                 transition: "all 0.3s ease"
+               }}
+               onClick={handleBreathingExercise}
+             >
+               Try Breathing Exercise
+             </button>
+           </div>
+
+           <button
+             style={{
+               position: "absolute",
+               top: "1rem",
+               right: "1rem",
+               background: "none",
+               border: "none",
+               fontSize: "1.5rem",
+               cursor: "pointer",
+               color: "#6b7280",
+               padding: "0.5rem",
+               borderRadius: "50%"
+             }}
+             onClick={() => setShowEmergencyModal(false)}
+           >
+             ✕
+           </button>
+         </div>
+       </div>
+     )}
+   </>
+ );      @media (max-width: 768px) {
+        .nav-desktop { display: none !important; }
+        .nav-mobile { display: flex !important; }
+        .user-profile-mobile { 
+          padding: 0.5rem 1rem !important;
+          gap: 0.5rem !important;
+        }
+        .user-profile-mobile .user-avatar {
+          width: 35px !important;
+          height: 35px !important;
+          font-size: 0.9rem !important;
+        }
+        .user-profile-mobile .user-text {
+          font-size: 0.8rem !important;
+        }
+        .emergency-btn-mobile {
+          width: 45px !important;
+          height: 45px !important;
+          font-size: 1.2rem !important;
+        }
+        .modal-content {
+          margin: 0.5rem !important;
+          padding: 1.5rem !important;
+          max-height: 95vh !important;
+        }
+        .resource-card {
+          padding: 1rem !important;
+        }
+        .category-buttons {
+          gap: 0.3rem !important;
+        }
+        .category-buttons button {
+          padding: 0.5rem 1rem !important;
+          font-size: 0.8rem !important;
+        }
+      }
+      @media (min-width: 769px) {
+        .nav-mobile { display: none !important; }
+        .nav-desktop { display: flex !important; }
+      }
+
+export default Navigation;
+
+
+
+

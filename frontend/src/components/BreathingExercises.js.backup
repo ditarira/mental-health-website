@@ -1,0 +1,456 @@
+﻿import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+const BreathingExercises = () => {
+  const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [currentTechnique, setCurrentTechnique] = useState('478');
+  const [isActive, setIsActive] = useState(false);
+  const [phase, setPhase] = useState('ready');
+  const [countdown, setCountdown] = useState(0);
+  const [cycle, setCycle] = useState(0);
+  const [sessionTime, setSessionTime] = useState(0);
+
+  const intervalRef = useRef(null);
+  const sessionRef = useRef(null);
+
+  const techniques = {
+    '478': {
+      name: '4-7-8 Relaxation',
+      description: 'Inhale 4, hold 7, exhale 8',
+      category: 'anxiety',
+      benefits: 'Perfect for anxiety and sleep',
+      phases: [
+        { name: 'inhale', duration: 4, instruction: 'Breathe in slowly through your nose...', color: '#4CAF50' },
+        { name: 'hold', duration: 7, instruction: 'Hold your breath gently...', color: '#FF9800' },
+        { name: 'exhale', duration: 8, instruction: 'Exhale slowly through your mouth...', color: '#2196F3' }
+      ]
+    },
+    'box': {
+      name: 'Box Breathing',
+      description: 'Equal 4-4-4-4 rhythm',
+      category: 'stress',
+      benefits: 'Great for focus and stress relief',
+      phases: [
+        { name: 'inhale', duration: 4, instruction: 'Breathe in...', color: '#4CAF50' },
+        { name: 'hold', duration: 4, instruction: 'Hold...', color: '#FF9800' },
+        { name: 'exhale', duration: 4, instruction: 'Breathe out...', color: '#2196F3' },
+        { name: 'pause', duration: 4, instruction: 'Pause and rest...', color: '#9C27B0' }
+      ]
+    },
+    'triangle': {
+      name: 'Triangle',
+      description: 'Simple 4-4-4 pattern',
+      category: 'calm',
+      benefits: 'Easy technique for beginners',
+      phases: [
+        { name: 'inhale', duration: 4, instruction: 'Breathe in...', color: '#4CAF50' },
+        { name: 'hold', duration: 4, instruction: 'Hold...', color: '#FF9800' },
+        { name: 'exhale', duration: 4, instruction: 'Breathe out...', color: '#2196F3' }
+      ]
+    }
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (sessionRef.current) clearInterval(sessionRef.current);
+    };
+  }, []);
+
+  const startSession = () => {
+    setIsActive(true);
+    setPhase('inhale');
+    setCycle(1);
+    setSessionTime(0);
+    
+    const technique = techniques[currentTechnique];
+    let currentPhaseIndex = 0;
+    let phaseTime = 0;
+    
+    setCountdown(technique.phases[0].duration);
+    
+    sessionRef.current = setInterval(() => {
+      setSessionTime(prev => prev + 1);
+    }, 1000);
+    
+    intervalRef.current = setInterval(() => {
+      phaseTime++;
+      setCountdown(technique.phases[currentPhaseIndex].duration - phaseTime);
+      
+      if (phaseTime >= technique.phases[currentPhaseIndex].duration) {
+        phaseTime = 0;
+        currentPhaseIndex = (currentPhaseIndex + 1) % technique.phases.length;
+        
+        if (currentPhaseIndex === 0) {
+          setCycle(prev => prev + 1);
+        }
+        
+        setPhase(technique.phases[currentPhaseIndex].name);
+        setCountdown(technique.phases[currentPhaseIndex].duration);
+      }
+    }, 1000);
+  };
+
+  const stopSession = () => {
+    setIsActive(false);
+    setPhase('ready');
+    setCountdown(0);
+    
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (sessionRef.current) clearInterval(sessionRef.current);
+  };
+
+  const currentPhase = techniques[currentTechnique].phases.find(p => p.name === phase) || techniques[currentTechnique].phases[0];
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    }}>
+      
+      
+      <div style={{ padding: isMobile ? '1rem' : '2rem' }}>
+        <div style={{
+          maxWidth: '1000px',
+          margin: '0 auto'
+        }}>
+          {/* Header */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '20px',
+            padding: isMobile ? '1.5rem' : '2rem',
+            marginBottom: '2rem',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+            backdropFilter: 'blur(10px)',
+            textAlign: 'center'
+          }}>
+            <h1 style={{
+              fontSize: isMobile ? '2rem' : '2.5rem',
+              fontWeight: 'bold',
+              background: 'linear-gradient(135deg, #667eea, #764ba2)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: '0 0 0.5rem 0'
+            }}>
+              ðŸ§˜ Breathing Exercises
+            </h1>
+            <p style={{
+              color: '#64748b',
+              fontSize: '1.1rem',
+              margin: 0
+            }}>
+              Practice mindful breathing to reduce stress and find calm
+            </p>
+          </div>
+
+          {/* Technique Selection */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '20px',
+            padding: isMobile ? '1.5rem' : '2rem',
+            marginBottom: '2rem',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <h2 style={{
+              color: '#2d3748',
+              fontSize: '1.5rem',
+              marginBottom: '1.5rem',
+              textAlign: 'center'
+            }}>
+              Choose Your Technique
+            </h2>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gap: '1rem'
+            }}>
+              {Object.entries(techniques).map(([key, technique]) => (
+                <button
+                  key={key}
+                  style={{
+                    background: currentTechnique === key 
+                      ? 'linear-gradient(135deg, #667eea, #764ba2)' 
+                      : 'rgba(255, 255, 255, 0.8)',
+                    color: currentTechnique === key ? 'white' : '#2d3748',
+                    border: 'none',
+                    borderRadius: '15px',
+                    padding: '1.5rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    textAlign: 'center'
+                  }}
+                  onClick={() => !isActive && setCurrentTechnique(key)}
+                  disabled={isActive}
+                >
+                  <div style={{
+                    fontSize: '1.2rem',
+                    fontWeight: 'bold',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {technique.name}
+                  </div>
+                  <div style={{
+                    fontSize: '0.9rem',
+                    opacity: 0.8,
+                    marginBottom: '0.5rem'
+                  }}>
+                    {technique.description}
+                  </div>
+                  <div style={{
+                    fontSize: '0.8rem',
+                    opacity: 0.7
+                  }}>
+                    {technique.benefits}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Breathing Animation */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '20px',
+            padding: isMobile ? '2rem' : '3rem',
+            marginBottom: '2rem',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+            backdropFilter: 'blur(10px)',
+            textAlign: 'center'
+          }}>
+            {/* Breathing Circle */}
+            <div style={{
+              width: isMobile ? '200px': '300px',
+             height: isMobile ? '200px' : '300px',
+             margin: '0 auto 2rem',
+             borderRadius: '50%',
+             background: `radial-gradient(circle, ${isActive ? currentPhase.color : '#667eea'}, transparent)`,
+             border: `4px solid ${isActive ? currentPhase.color : '#667eea'}`,
+             display: 'flex',
+             alignItems: 'center',
+             justifyContent: 'center',
+             transition: 'all 1s ease',
+             transform: isActive && phase === 'inhale' ? 'scale(1.2)' : 'scale(1)',
+             opacity: isActive && phase === 'hold' ? '0.8' : '1'
+           }}>
+             <div style={{
+               color: 'white',
+               fontSize: isMobile ? '1.5rem' : '2rem',
+               fontWeight: 'bold',
+               textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+             }}>
+               {isActive ? countdown : 'ðŸ§˜'}
+             </div>
+           </div>
+
+           {/* Instructions */}
+           <div style={{
+             fontSize: isMobile ? '1.2rem' : '1.5rem',
+             fontWeight: 'bold',
+             color: '#2d3748',
+             marginBottom: '1rem',
+             minHeight: '2rem'
+           }}>
+             {isActive ? currentPhase.instruction : `Ready to begin ${techniques[currentTechnique].name}?`}
+           </div>
+
+           {/* Session Info */}
+           {isActive && (
+             <div style={{
+               display: 'flex',
+               justifyContent: 'center',
+               gap: '2rem',
+               marginBottom: '2rem',
+               fontSize: '1rem',
+               color: '#64748b'
+             }}>
+               <div>
+                 <strong>Cycle:</strong> {cycle}
+               </div>
+               <div>
+                 <strong>Time:</strong> {Math.floor(sessionTime / 60)}:{(sessionTime % 60).toString().padStart(2, '0')}
+               </div>
+             </div>
+           )}
+
+           {/* Control Button */}
+           <button
+             style={{
+               background: isActive 
+                 ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
+                 : 'linear-gradient(135deg, #667eea, #764ba2)',
+               color: 'white',
+               border: 'none',
+               borderRadius: '15px',
+               padding: '1rem 2rem',
+               cursor: 'pointer',
+               transition: 'all 0.3s ease',
+               fontWeight: '600',
+               fontSize: '1.1rem',
+               boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)'
+             }}
+             onClick={isActive ? stopSession : startSession}
+             onMouseOver={(e) => {
+               e.currentTarget.style.transform = 'translateY(-3px)';
+               e.currentTarget.style.boxShadow = '0 12px 35px rgba(102, 126, 234, 0.4)';
+             }}
+             onMouseOut={(e) => {
+               e.currentTarget.style.transform = 'translateY(0)';
+               e.currentTarget.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.3)';
+             }}
+           >
+             {isActive ? 'â¹ï¸ Stop Session' : 'â–¶ï¸ Start Breathing'}
+           </button>
+         </div>
+
+         {/* Benefits Section */}
+         <div style={{
+           background: 'rgba(255, 255, 255, 0.95)',
+           borderRadius: '20px',
+           padding: isMobile ? '1.5rem' : '2rem',
+           boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+           backdropFilter: 'blur(10px)'
+         }}>
+           <h2 style={{
+             color: '#2d3748',
+             fontSize: '1.5rem',
+             marginBottom: '1.5rem',
+             textAlign: 'center'
+           }}>
+             ðŸŒŸ Benefits of Breathing Exercises
+           </h2>
+           
+           <div style={{
+             display: 'grid',
+             gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+             gap: '1.5rem'
+           }}>
+             <div style={{
+               background: '#f0f9ff',
+               padding: '1.5rem',
+               borderRadius: '15px',
+               border: '1px solid #e0f2fe'
+             }}>
+               <div style={{
+                 fontSize: '2rem',
+                 marginBottom: '1rem',
+                 textAlign: 'center'
+               }}>ðŸ˜Œ</div>
+               <h3 style={{
+                 color: '#2d3748',
+                 fontSize: '1.2rem',
+                 marginBottom: '0.5rem',
+                 textAlign: 'center'
+               }}>
+                 Reduces Stress
+               </h3>
+               <p style={{
+                 color: '#64748b',
+                 lineHeight: '1.6',
+                 textAlign: 'center'
+               }}>
+                 Deep breathing activates your body's relaxation response, lowering stress hormones.
+               </p>
+             </div>
+
+             <div style={{
+               background: '#f0fdf4',
+               padding: '1.5rem',
+               borderRadius: '15px',
+               border: '1px solid #dcfce7'
+             }}>
+               <div style={{
+                 fontSize: '2rem',
+                 marginBottom: '1rem',
+                 textAlign: 'center'
+               }}>ðŸŽ¯</div>
+               <h3 style={{
+                 color: '#2d3748',
+                 fontSize: '1.2rem',
+                 marginBottom: '0.5rem',
+                 textAlign: 'center'
+               }}>
+                 Improves Focus
+               </h3>
+               <p style={{
+                 color: '#64748b',
+                 lineHeight: '1.6',
+                 textAlign: 'center'
+               }}>
+                 Controlled breathing enhances concentration and mental clarity.
+               </p>
+             </div>
+
+             <div style={{
+               background: '#fefce8',
+               padding: '1.5rem',
+               borderRadius: '15px',
+               border: '1px solid #fef3c7'
+             }}>
+               <div style={{
+                 fontSize: '2rem',
+                 marginBottom: '1rem',
+                 textAlign: 'center'
+               }}>ðŸ˜´</div>
+               <h3 style={{
+                 color: '#2d3748',
+                 fontSize: '1.2rem',
+                 marginBottom: '0.5rem',
+                 textAlign: 'center'
+               }}>
+                 Better Sleep
+               </h3>
+               <p style={{
+                 color: '#64748b',
+                 lineHeight: '1.6',
+                 textAlign: 'center'
+               }}>
+                 Evening breathing exercises can help prepare your body for restful sleep.
+               </p>
+             </div>
+
+             <div style={{
+               background: '#fdf2f8',
+               padding: '1.5rem',
+               borderRadius: '15px',
+               border: '1px solid #fce7f3'
+             }}>
+               <div style={{
+                 fontSize: '2rem',
+                 marginBottom: '1rem',
+                 textAlign: 'center'
+               }}>â¤ï¸</div>
+               <h3 style={{
+                 color: '#2d3748',
+                 fontSize: '1.2rem',
+                 marginBottom: '0.5rem',
+                 textAlign: 'center'
+               }}>
+                 Heart Health
+               </h3>
+               <p style={{
+                 color: '#64748b',
+                 lineHeight: '1.6',
+                 textAlign: 'center'
+               }}>
+                 Regular practice can help lower blood pressure and heart rate.
+               </p>
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
+   </div>
+ );
+};
+
+export default BreathingExercises;
+

@@ -1,0 +1,1014 @@
+﻿import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
+
+const Navigation = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showResourcesModal, setShowResourcesModal] = useState(false);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+      }
+      @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-10px); }
+        60% { transform: translateY(-5px); }
+      }
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .modal-content {
+        animation: slideIn 0.3s ease-out;
+      }
+      .modal-backdrop {
+        animation: fadeIn 0.3s ease-out;
+      }
+      .nav-button {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      .nav-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+      }
+      .nav-button:hover::before {
+        left: 100%;
+      }
+      .resource-card {
+        transition: all 0.3s ease;
+      }
+      .resource-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+      }
+      @media (max-width: 768px) {
+        .mobile-hide { display: none !important; }
+        .nav-items { flex-wrap: wrap; gap: 0.5rem; }
+        .nav-button { padding: 0.5rem 1rem !important; font-size: 0.9rem !important; }
+        .user-profile { padding: 0.5rem !important; }
+        .emergency-btn { width: 45px !important; height: 45px !important; }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
+  const navigationItems = [
+    { id: "dashboard", name: "Dashboard", icon: "🏠", path: "/dashboard" },
+    { id: "journal", name: "Journal", icon: "📝", path: "/journal" },
+    { id: "breathing", name: "Breathing", icon: "🧘", path: "/breathing" },
+    { id: "settings", name: "Settings", icon: "⚙️", path: "/settings" }
+  ];
+
+  if (user?.role === "ADMIN") {
+    navigationItems.push({ id: "admin", name: "Admin", icon: "👑", path: "/admin" });
+  }
+
+  const resources = [
+    {
+      id: 1,
+      category: "crisis",
+      title: "📞 988 Suicide & Crisis Lifeline",
+      description: "🌟 Free, confidential emotional support 24/7 for people in suicidal crisis or emotional distress. Trained crisis counselors provide immediate help.",
+      contact: "988",
+      website: "https://988lifeline.org",
+      type: "hotline",
+      urgent: true,
+      color: "#5f7c8a",
+      details: "Available in English and Spanish • Deaf/Hard of Hearing support • Completely free"
+    },
+    {
+      id: 2,
+      category: "crisis",
+      title: "💬 Crisis Text Line",
+      description: "💝 Free, 24/7 crisis support via text message. Text with trained crisis counselors for depression, anxiety, self-harm, and suicidal thoughts.",
+      contact: "Text HOME to 741741",
+      website: "https://crisistextline.org",
+      type: "text",
+      urgent: true,
+      color: "#6b8e8e",
+      details: "Response within 5 minutes • Completely confidential • Text-based support"
+    },
+    {
+      id: 3,
+      category: "crisis",
+      title: "🛡️ National Domestic Violence Hotline",
+      description: "Confidential support for domestic violence survivors and their loved ones. Available 24/7 with trained advocates.",
+      contact: "1-800-799-7233",
+      website: "https://thehotline.org",
+      type: "hotline",
+      urgent: true,
+      color: "#7a8aa0",
+      details: "Available in 200+ languages • Text HELP to 233733 • Safe & confidential"
+    },
+    {
+      id: 4,
+      category: "professional",
+      title: "🔍 Psychology Today Therapist Directory",
+      description: "✨ Comprehensive directory to find licensed therapists, psychiatrists, and mental health professionals in your area.",
+      website: "https://psychologytoday.com",
+      type: "directory",
+      color: "#4a6fa5",
+      details: "Filter by insurance coverage • Read therapist profiles • Book online appointments"
+    },
+    {
+      id: 5,
+      category: "professional",
+      title: "💻 BetterHelp Online Therapy",
+      description: "🌐 Professional online counseling with licensed, accredited therapists. Convenient therapy through video, phone, and messaging.",
+      website: "https://betterhelp.com",
+      type: "online-therapy",
+      color: "#5b9aa0",
+      cost: "$60-90/week",
+      details: "Financial aid available • Match with therapists • Message anytime • Video sessions"
+    },
+    {
+      id: 6,
+      category: "professional",
+      title: "💙 Open Path Collective",
+      description: "💚 Affordable therapy network offering sessions between $30-$60. Non-profit organization connecting people with licensed professionals.",
+      website: "https://openpathcollective.org",
+      type: "organization",
+      color: "#6b9bd1",
+      cost: "$30-60/session",
+      details: "Sliding scale fees • In-person and online • No insurance needed • Nonprofit"
+    },
+    {
+      id: 7,
+      category: "support",
+      title: "🤝 National Alliance on Mental Illness (NAMI)",
+      description: "Largest grassroots mental health organization providing education, support groups, and advocacy for mental health.",
+      contact: "1-800-950-6264",
+      website: "https://nami.org",
+      type: "organization",
+      color: "#8ba3c7",
+      details: "Free support groups • Family programs • Educational resources • Community events"
+    },
+    {
+      id: 8,
+      category: "youth",
+      title: "🌈 The Trevor Project",
+      description: "Leading national organization providing crisis intervention and suicide prevention services to LGBTQ+ young people under 25.",
+      contact: "1-866-488-7386",
+      website: "https://thetrevorproject.org",
+      type: "youth-crisis",
+      urgent: true,
+      color: "#9bb7d4",
+      details: "LGBTQ+ focused • Text START to 678678 • Online chat available • Youth support"
+    },
+    {
+      id: 9,
+      category: "specialized",
+      title: "📋 SAMHSA National Helpline",
+      description: "Free, confidential treatment referral service for mental health and substance use disorders. Information and referrals 24/7.",
+      contact: "1-800-662-4357",
+      website: "https://samhsa.gov",
+      type: "helpline",
+      color: "#7ba7a7",
+      details: "24/7 treatment referrals • Multiple languages • Insurance guidance • Substance abuse help"
+    }
+  ];
+
+  const categories = [
+    { id: "all", name: "📚 All Resources", color: "#6b7280" },
+    { id: "crisis", name: "🚨 Crisis Support", color: "#5f7c8a" },
+    { id: "professional", name: "👩‍⚕️ Professional Help", color: "#4a6fa5" },
+    { id: "support", name: "🤝 Support Groups", color: "#8ba3c7" },
+    { id: "youth", name: "👥 Youth Support", color: "#9bb7d4" },
+    { id: "specialized", name: "🎯 Specialized Care", color: "#7ba7a7" }
+  ];
+
+  const filteredResources = resources.filter(resource => {
+    const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         resource.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || resource.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleNavigation = (path) => {
+    setShowMobileMenu(false);
+    navigate(path);
+  };
+
+  const handleResourcesClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowResourcesModal(true);
+  };
+
+  const handleEmergencyClick = () => {
+    setShowEmergencyModal(true);
+    setShowMobileMenu(false);
+  };
+
+  const handleProfileClick = () => {
+    navigate("/settings");
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  const handleEmergencyCall = () => {
+    window.open("tel:988", "_self");
+    setShowEmergencyModal(false);
+  };
+
+  const handleCrisisText = () => {
+    window.open("sms:741741?body=HOME", "_self");
+    setShowEmergencyModal(false);
+  };
+
+  const handleBreathingExercise = () => {
+    setShowEmergencyModal(false);
+    navigate("/breathing");
+  };
+
+  const handleResourceCall = (contact) => {
+    if (contact.includes("Text")) {
+      const parts = contact.split(" to ");
+      if (parts.length === 2) {
+        window.open("sms:" + parts[1] + "?body=" + parts[0], "_self");
+      }
+    } else if (contact.match(/\d/)) {
+      window.open("tel:" + contact.replace(/\D/g, ""), "_self");
+    }
+  };
+
+  const handleResourceWebsite = (url) => {
+    window.open(url, "_blank");
+  };
+
+  const isActive = (path) => location.pathname === path;
+
+  return (
+    <>
+           <div style={{
+       display: "flex",
+       justifyContent: "space-between",
+       alignItems: "center",
+       padding: isMobile ? "0.5rem 1rem" : "1rem 2.5rem",
+       background: "rgba(255, 255, 255, 0.95)",
+       backdropFilter: "blur(25px)",
+       boxShadow: "0 10px 40px rgba(0,0,0,0.12)",
+       position: "sticky",
+       top: 0,
+       zIndex: 100,
+       borderBottom: "1px solid rgba(102, 126, 234, 0.15)"
+     }}>
+       {/* Logo */}
+       <div style={{
+         display: "flex",
+         alignItems: "center",
+         gap: "0.75rem",
+         fontWeight: "800",
+         color: "#667eea",
+         fontSize: isMobile ? "1.5rem" : "2rem",
+         cursor: "pointer",
+         transition: "all 0.4s ease",
+         padding: "0.5rem 1rem",
+         borderRadius: "20px"
+       }}
+       onClick={() => handleNavigation("/dashboard")}
+       onMouseOver={(e) => {
+         e.currentTarget.style.transform = "scale(1.08)";
+         e.currentTarget.style.background = "rgba(102, 126, 234, 0.08)";
+       }}
+       onMouseOut={(e) => {
+         e.currentTarget.style.transform = "scale(1)";
+         e.currentTarget.style.background = "transparent";
+       }}>
+         <span style={{
+           animation: "bounce 2s infinite",
+           fontSize: isMobile ? "2rem" : "2.5rem",
+           filter: "drop-shadow(0 4px 8px rgba(102, 126, 234, 0.3))"
+         }}>🧠</span>
+         <span style={{
+           background: "linear-gradient(135deg, #667eea, #764ba2)",
+           WebkitBackgroundClip: "text",
+           WebkitTextFillColor: "transparent",
+           letterSpacing: "0.5px"
+         }}>MindfulMe</span>
+       </div>
+
+       {/* Navigation - Mobile vs Desktop */}
+       {isMobile ? (
+         /* Mobile Navigation */
+         <div style={{
+           display: "flex",
+           alignItems: "center",
+           gap: "0.5rem"
+         }}>
+           <button
+             style={{
+               display: "flex",
+               alignItems: "center",
+               justifyContent: "center",
+               width: "45px",
+               height: "45px",
+               background: showMobileMenu ? "#667eea" : "rgba(255, 255, 255, 0.9)",
+               color: showMobileMenu ? "white" : "#667eea",
+               border: "2px solid #667eea",
+               borderRadius: "12px",
+               cursor: "pointer",
+               fontSize: "1.2rem",
+               fontWeight: "700",
+               transition: "all 0.3s ease",
+               boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+             }}
+             onClick={() => setShowMobileMenu(!showMobileMenu)}
+           >
+             ☰
+           </button>
+           
+           <button
+             style={{
+               display: "flex",
+               alignItems: "center",
+               justifyContent: "center",
+               width: "45px",
+               height: "45px",
+               background: showResourcesModal ? "#667eea" : "rgba(255, 255, 255, 0.9)",
+               color: showResourcesModal ? "white" : "#667eea",
+               border: "2px solid #667eea",
+               borderRadius: "12px",
+               cursor: "pointer",
+               fontSize: "1.1rem",
+               transition: "all 0.3s ease",
+               boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+             }}
+             onClick={handleResourcesClick}
+           >
+             📚
+           </button>
+         </div>
+       ) : (
+         /* Desktop Navigation */
+         <div style={{
+           display: "flex",
+           gap: "0.75rem",
+           alignItems: "center"
+         }}>
+           {navigationItems.map(item => (
+             <button
+               key={item.id}
+               className="nav-button"
+               style={{
+                 display: "flex",
+                 alignItems: "center",
+                 gap: "0.75rem",
+                 padding: "1rem 2rem",
+                 background: isActive(item.path)
+                   ? "linear-gradient(135deg, #667eea, #764ba2)"
+                   : "rgba(255, 255, 255, 0.8)",
+                 color: isActive(item.path) ? "white" : "#667eea",
+                 border: isActive(item.path)
+                   ? "2px solid transparent"
+                   : "2px solid rgba(102, 126, 234, 0.3)",
+                 borderRadius: "30px",
+                 cursor: "pointer",
+                 fontSize: "1.1rem",
+                 fontWeight: "700",
+                 transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                 boxShadow: isActive(item.path)
+                   ? "0 8px 25px rgba(102, 126, 234, 0.4)"
+                   : "0 4px 15px rgba(0,0,0,0.08)",
+                 textTransform: "capitalize",
+                 letterSpacing: "0.3px"
+               }}
+               onClick={() => handleNavigation(item.path)}
+             >
+               <span style={{ fontSize: "1.3rem" }}>{item.icon}</span>
+               <span>{item.name}</span>
+             </button>
+           ))}
+
+           <button
+             className="nav-button"
+             style={{
+               display: "flex",
+               alignItems: "center",
+               gap: "0.75rem",
+               padding: "1rem 2rem",
+               background: showResourcesModal
+                 ? "linear-gradient(135deg, #667eea, #764ba2)"
+                 : "rgba(255, 255, 255, 0.8)",
+               color: showResourcesModal ? "white" : "#667eea",
+               border: showResourcesModal
+                 ? "2px solid transparent"
+                 : "2px solid rgba(102, 126, 234, 0.3)",
+               borderRadius: "30px",
+               cursor: "pointer",
+               fontSize: "1.1rem",
+               fontWeight: "700",
+               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+               boxShadow: showResourcesModal
+                 ? "0 8px 25px rgba(102, 126, 234, 0.4)"
+                 : "0 4px 15px rgba(0,0,0,0.08)",
+               textTransform: "capitalize",
+               letterSpacing: "0.3px"
+             }}
+             onClick={handleResourcesClick}
+           >
+             <span style={{ fontSize: "1.3rem" }}>📚</span>
+             <span>Resources</span>
+           </button>
+         </div>
+       )}
+
+       {/* User Section */}
+       <div style={{
+         display: "flex",
+         alignItems: "center",
+         gap: isMobile ? "0.5rem" : "1.2rem"
+       }}>
+         <button
+           style={{
+             background: "linear-gradient(135deg, #ef4444, #dc2626)",
+             color: "white",
+             border: "none",
+             borderRadius: "50%",
+             width: isMobile ? "45px" : "65px",
+             height: isMobile ? "45px" : "65px",
+             cursor: "pointer",
+             transition: "all 0.4s ease",
+             fontSize: isMobile ? "1.2rem" : "1.8rem",
+             fontWeight: "700",
+             display: "flex",
+             alignItems: "center",
+             justifyContent: "center",
+             boxShadow: "0 8px 25px rgba(239, 68, 68, 0.4)",
+             animation: "pulse 2s infinite",
+             position: "relative"
+           }}
+           onClick={handleEmergencyClick}
+           onMouseOver={(e) => {
+             e.currentTarget.style.transform = "scale(1.15)";
+             e.currentTarget.style.boxShadow = "0 12px 40px rgba(239, 68, 68, 0.7)";
+           }}
+           onMouseOut={(e) => {
+             e.currentTarget.style.transform = "scale(1)";
+             e.currentTarget.style.boxShadow = "0 8px 25px rgba(239, 68, 68, 0.4)";
+           }}
+           title="Emergency Support - Get Help Now"
+         >
+           🚨
+         </button>
+
+         <div
+           style={{
+             display: "flex",
+             alignItems: "center",
+             gap: isMobile ? "0.5rem" : "1rem",
+             padding: isMobile ? "0.5rem 1rem" : "0.8rem 1.5rem",
+             background: "linear-gradient(135deg, #667eea, #764ba2)",
+             borderRadius: "30px",
+             color: "white",
+             boxShadow: "0 6px 20px rgba(102, 126, 234, 0.3)",
+             cursor: "pointer",
+             transition: "all 0.4s ease",
+             border: "2px solid rgba(255, 255, 255, 0.2)"
+           }}
+           onClick={handleProfileClick}
+         >
+           <div style={{
+             width: isMobile ? "35px" : "50px",
+             height: isMobile ? "35px" : "50px",
+             borderRadius: "50%",
+             background: "rgba(255, 255, 255, 0.25)",
+             display: "flex",
+             alignItems: "center",
+             justifyContent: "center",
+             fontWeight: "800",
+             fontSize: isMobile ? "1rem" : "1.2rem",
+             border: "2px solid rgba(255, 255, 255, 0.3)",
+             boxShadow: "0 4px 15px rgba(0,0,0,0.1)"
+           }}>
+             {user?.firstName?.[0]}{user?.lastName?.[0]}
+           </div>
+           {!isMobile && (
+             <div>
+               <div style={{
+                 fontSize: "1rem",
+                 fontWeight: "700",
+                 letterSpacing: "0.3px"
+               }}>
+                 {user?.firstName} {user?.lastName}
+               </div>
+               <div style={{
+                 fontSize: "0.8rem",
+                 opacity: 0.85,
+                 fontWeight: "500"
+               }}>
+                 {user?.role === "ADMIN" ? "Administrator" : "Wellness Member"}
+               </div>
+             </div>
+           )}
+         </div>
+
+         <button
+           style={{
+             background: "linear-gradient(135deg, #ef4444, #dc2626)",
+             color: "white",
+             border: "none",
+             borderRadius: "15px",
+             padding: isMobile ? "0.5rem 0.8rem" : "0.6rem 1rem",
+             cursor: "pointer",
+             fontSize: isMobile ? "0.8rem" : "0.85rem",
+             fontWeight: "600",
+             transition: "all 0.4s ease",
+             display: "flex",
+             alignItems: "center",
+             gap: "0.5rem",
+             boxShadow: "0 4px 15px rgba(239, 68, 68, 0.3)",
+             letterSpacing: "0.2px",
+             minWidth: "fit-content"
+           }}
+           onClick={handleLogout}
+         >
+           <span>{isMobile ? "Out" : "Logout"}</span>
+         </button>
+       </div>
+     </div>
+
+          <button
+            style={{
+              background: "linear-gradient(135deg, #ef4444, #dc2626)",
+              color: "white",
+              border: "none",
+              borderRadius: "15px",
+              padding: "0.6rem 1rem",
+              cursor: "pointer",
+              fontSize: "0.85rem",
+              fontWeight: "600",
+              transition: "all 0.4s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              boxShadow: "0 4px 15px rgba(239, 68, 68, 0.3)",
+              letterSpacing: "0.2px",
+              minWidth: "fit-content"
+            }}
+            onClick={handleLogout}
+          >
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Dropdown Menu */}
+      {showMobileMenu && window.innerWidth <= 768 && (
+             <div style={{
+       display: "flex",
+       justifyContent: "space-between",
+       alignItems: "center",
+       padding: isMobile ? "0.5rem 1rem" : "1rem 2.5rem",
+       background: "rgba(255, 255, 255, 0.95)",
+       backdropFilter: "blur(25px)",
+       boxShadow: "0 10px 40px rgba(0,0,0,0.12)",
+       position: "sticky",
+       top: 0,
+       zIndex: 100,
+       borderBottom: "1px solid rgba(102, 126, 234, 0.15)"
+     }}>
+       {/* Logo */}
+       <div style={{
+         display: "flex",
+         alignItems: "center",
+         gap: "0.75rem",
+         fontWeight: "800",
+         color: "#667eea",
+         fontSize: isMobile ? "1.5rem" : "2rem",
+         cursor: "pointer",
+         transition: "all 0.4s ease",
+         padding: "0.5rem 1rem",
+         borderRadius: "20px"
+       }}
+       onClick={() => handleNavigation("/dashboard")}
+       onMouseOver={(e) => {
+         e.currentTarget.style.transform = "scale(1.08)";
+         e.currentTarget.style.background = "rgba(102, 126, 234, 0.08)";
+       }}
+       onMouseOut={(e) => {
+         e.currentTarget.style.transform = "scale(1)";
+         e.currentTarget.style.background = "transparent";
+       }}>
+         <span style={{
+           animation: "bounce 2s infinite",
+           fontSize: isMobile ? "2rem" : "2.5rem",
+           filter: "drop-shadow(0 4px 8px rgba(102, 126, 234, 0.3))"
+         }}>🧠</span>
+         <span style={{
+           background: "linear-gradient(135deg, #667eea, #764ba2)",
+           WebkitBackgroundClip: "text",
+           WebkitTextFillColor: "transparent",
+           letterSpacing: "0.5px"
+         }}>MindfulMe</span>
+       </div>
+
+       {/* Navigation - Mobile vs Desktop */}
+       {isMobile ? (
+         /* Mobile Navigation */
+         <div style={{
+           display: "flex",
+           alignItems: "center",
+           gap: "0.5rem"
+         }}>
+           <button
+             style={{
+               display: "flex",
+               alignItems: "center",
+               justifyContent: "center",
+               width: "45px",
+               height: "45px",
+               background: showMobileMenu ? "#667eea" : "rgba(255, 255, 255, 0.9)",
+               color: showMobileMenu ? "white" : "#667eea",
+               border: "2px solid #667eea",
+               borderRadius: "12px",
+               cursor: "pointer",
+               fontSize: "1.2rem",
+               fontWeight: "700",
+               transition: "all 0.3s ease",
+               boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+             }}
+             onClick={() => setShowMobileMenu(!showMobileMenu)}
+           >
+             ☰
+           </button>
+           
+           <button
+             style={{
+               display: "flex",
+               alignItems: "center",
+               justifyContent: "center",
+               width: "45px",
+               height: "45px",
+               background: showResourcesModal ? "#667eea" : "rgba(255, 255, 255, 0.9)",
+               color: showResourcesModal ? "white" : "#667eea",
+               border: "2px solid #667eea",
+               borderRadius: "12px",
+               cursor: "pointer",
+               fontSize: "1.1rem",
+               transition: "all 0.3s ease",
+               boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+             }}
+             onClick={handleResourcesClick}
+           >
+             📚
+           </button>
+         </div>
+       ) : (
+         /* Desktop Navigation */
+         <div style={{
+           display: "flex",
+           gap: "0.75rem",
+           alignItems: "center"
+         }}>
+           {navigationItems.map(item => (
+             <button
+               key={item.id}
+               className="nav-button"
+               style={{
+                 display: "flex",
+                 alignItems: "center",
+                 gap: "0.75rem",
+                 padding: "1rem 2rem",
+                 background: isActive(item.path)
+                   ? "linear-gradient(135deg, #667eea, #764ba2)"
+                   : "rgba(255, 255, 255, 0.8)",
+                 color: isActive(item.path) ? "white" : "#667eea",
+                 border: isActive(item.path)
+                   ? "2px solid transparent"
+                   : "2px solid rgba(102, 126, 234, 0.3)",
+                 borderRadius: "30px",
+                 cursor: "pointer",
+                 fontSize: "1.1rem",
+                 fontWeight: "700",
+                 transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                 boxShadow: isActive(item.path)
+                   ? "0 8px 25px rgba(102, 126, 234, 0.4)"
+                   : "0 4px 15px rgba(0,0,0,0.08)",
+                 textTransform: "capitalize",
+                 letterSpacing: "0.3px"
+               }}
+               onClick={() => handleNavigation(item.path)}
+             >
+               <span style={{ fontSize: "1.3rem" }}>{item.icon}</span>
+               <span>{item.name}</span>
+             </button>
+           ))}
+
+           <button
+             className="nav-button"
+             style={{
+               display: "flex",
+               alignItems: "center",
+               gap: "0.75rem",
+               padding: "1rem 2rem",
+               background: showResourcesModal
+                 ? "linear-gradient(135deg, #667eea, #764ba2)"
+                 : "rgba(255, 255, 255, 0.8)",
+               color: showResourcesModal ? "white" : "#667eea",
+               border: showResourcesModal
+                 ? "2px solid transparent"
+                 : "2px solid rgba(102, 126, 234, 0.3)",
+               borderRadius: "30px",
+               cursor: "pointer",
+               fontSize: "1.1rem",
+               fontWeight: "700",
+               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+               boxShadow: showResourcesModal
+                 ? "0 8px 25px rgba(102, 126, 234, 0.4)"
+                 : "0 4px 15px rgba(0,0,0,0.08)",
+               textTransform: "capitalize",
+               letterSpacing: "0.3px"
+             }}
+             onClick={handleResourcesClick}
+           >
+             <span style={{ fontSize: "1.3rem" }}>📚</span>
+             <span>Resources</span>
+           </button>
+         </div>
+       )}
+
+       {/* User Section */}
+       <div style={{
+         display: "flex",
+         alignItems: "center",
+         gap: isMobile ? "0.5rem" : "1.2rem"
+       }}>
+         <button
+           style={{
+             background: "linear-gradient(135deg, #ef4444, #dc2626)",
+             color: "white",
+             border: "none",
+             borderRadius: "50%",
+             width: isMobile ? "45px" : "65px",
+             height: isMobile ? "45px" : "65px",
+             cursor: "pointer",
+             transition: "all 0.4s ease",
+             fontSize: isMobile ? "1.2rem" : "1.8rem",
+             fontWeight: "700",
+             display: "flex",
+             alignItems: "center",
+             justifyContent: "center",
+             boxShadow: "0 8px 25px rgba(239, 68, 68, 0.4)",
+             animation: "pulse 2s infinite",
+             position: "relative"
+           }}
+           onClick={handleEmergencyClick}
+           onMouseOver={(e) => {
+             e.currentTarget.style.transform = "scale(1.15)";
+             e.currentTarget.style.boxShadow = "0 12px 40px rgba(239, 68, 68, 0.7)";
+           }}
+           onMouseOut={(e) => {
+             e.currentTarget.style.transform = "scale(1)";
+             e.currentTarget.style.boxShadow = "0 8px 25px rgba(239, 68, 68, 0.4)";
+           }}
+           title="Emergency Support - Get Help Now"
+         >
+           🚨
+         </button>
+
+         <div
+           style={{
+             display: "flex",
+             alignItems: "center",
+             gap: isMobile ? "0.5rem" : "1rem",
+             padding: isMobile ? "0.5rem 1rem" : "0.8rem 1.5rem",
+             background: "linear-gradient(135deg, #667eea, #764ba2)",
+             borderRadius: "30px",
+             color: "white",
+             boxShadow: "0 6px 20px rgba(102, 126, 234, 0.3)",
+             cursor: "pointer",
+             transition: "all 0.4s ease",
+             border: "2px solid rgba(255, 255, 255, 0.2)"
+           }}
+           onClick={handleProfileClick}
+         >
+           <div style={{
+             width: isMobile ? "35px" : "50px",
+             height: isMobile ? "35px" : "50px",
+             borderRadius: "50%",
+             background: "rgba(255, 255, 255, 0.25)",
+             display: "flex",
+             alignItems: "center",
+             justifyContent: "center",
+             fontWeight: "800",
+             fontSize: isMobile ? "1rem" : "1.2rem",
+             border: "2px solid rgba(255, 255, 255, 0.3)",
+             boxShadow: "0 4px 15px rgba(0,0,0,0.1)"
+           }}>
+             {user?.firstName?.[0]}{user?.lastName?.[0]}
+           </div>
+           {!isMobile && (
+             <div>
+               <div style={{
+                 fontSize: "1rem",
+                 fontWeight: "700",
+                 letterSpacing: "0.3px"
+               }}>
+                 {user?.firstName} {user?.lastName}
+               </div>
+               <div style={{
+                 fontSize: "0.8rem",
+                 opacity: 0.85,
+                 fontWeight: "500"
+               }}>
+                 {user?.role === "ADMIN" ? "Administrator" : "Wellness Member"}
+               </div>
+             </div>
+           )}
+         </div>
+
+         <button
+           style={{
+             background: "linear-gradient(135deg, #ef4444, #dc2626)",
+             color: "white",
+             border: "none",
+             borderRadius: "15px",
+             padding: isMobile ? "0.5rem 0.8rem" : "0.6rem 1rem",
+             cursor: "pointer",
+             fontSize: isMobile ? "0.8rem" : "0.85rem",
+             fontWeight: "600",
+             transition: "all 0.4s ease",
+             display: "flex",
+             alignItems: "center",
+             gap: "0.5rem",
+             boxShadow: "0 4px 15px rgba(239, 68, 68, 0.3)",
+             letterSpacing: "0.2px",
+             minWidth: "fit-content"
+           }}
+           onClick={handleLogout}
+         >
+           <span>{isMobile ? "Out" : "Logout"}</span>
+         </button>
+       </div>
+     </div>
+     )}
+
+     {/* Emergency Modal */}
+     {showEmergencyModal && (
+       <div style={{
+         position: "fixed",
+         top: 0,
+         left: 0,
+         right: 0,
+         bottom: 0,
+         background: "rgba(239, 68, 68, 0.9)",
+         display: "flex",
+         alignItems: "center",
+         justifyContent: "center",
+         zIndex: 1001,
+         animation: "fadeIn 0.3s ease-out"
+       }}
+       onClick={() => setShowEmergencyModal(false)}>
+         <div style={{
+           background: "white",
+           borderRadius: "20px",
+           padding: "2.5rem",
+           maxWidth: "500px",
+           width: "90%",
+           textAlign: "center",
+           boxShadow: "0 25px 80px rgba(0,0,0,0.3)",
+           border: "3px solid #dc2626"
+         }}
+         onClick={(e) => e.stopPropagation()}>
+           <div style={{ fontSize: "4rem", marginBottom: "1rem", animation: "pulse 1s infinite" }}>🚨</div>
+           <h2 style={{
+             color: "#dc2626",
+             fontSize: "2rem",
+             fontWeight: "800",
+             marginBottom: "1rem"
+           }}>
+             Need Help Right Now?
+           </h2>
+           <p style={{
+             color: "#4b5563",
+             fontSize: "1.1rem",
+             marginBottom: "2rem",
+             lineHeight: "1.5"
+           }}>
+             If you're in crisis or having thoughts of self-harm, please reach out immediately:
+           </p>
+
+           <div style={{ display: "flex", flexDirection: "column", gap: window.innerWidth <= 768 ? "0.5rem" : "1rem" }}>
+             <button
+               style={{
+                 background: "#dc2626",
+                 color: "white",
+                 border: "none",
+                 borderRadius: "10px",
+                 padding: "1rem 2rem",
+                 fontSize: "1.2rem",
+                 fontWeight: "700",
+                 cursor: "pointer",
+                 display: "flex",
+                 alignItems: "center",
+                 justifyContent: "center",
+                 gap: "0.8rem",
+                 boxShadow: "0 4px 15px rgba(220, 38, 38, 0.3)",
+                 transition: "all 0.3s ease"
+               }}
+               onClick={handleEmergencyCall}
+             >
+               📞 Call 988 - Crisis Lifeline
+             </button>
+
+             <button
+               style={{
+                 background: "#059669",
+                 color: "white",
+                 border: "none",
+                 borderRadius: "10px",
+                 padding: "1rem 2rem",
+                 fontSize: "1.2rem",
+                 fontWeight: "700",
+                 cursor: "pointer",
+                 display: "flex",
+                 alignItems: "center",
+                 justifyContent: "center",
+                 gap: "0.8rem",
+                 boxShadow: "0 4px 15px rgba(5, 150, 105, 0.3)",
+                 transition: "all 0.3s ease"
+               }}
+               onClick={handleCrisisText}
+             >
+               💬 Text HOME to 741741
+             </button>
+
+             <button
+               style={{
+                 background: "#667eea",
+                 color: "white",
+                 border: "none",
+                 borderRadius: "10px",
+                 padding: "1rem 2rem",
+                 fontSize: "1.2rem",
+                 fontWeight: "700",
+                 cursor: "pointer",
+                 display: "flex",
+                 alignItems: "center",
+                 justifyContent: "center",
+                 gap: "0.8rem",
+                 boxShadow: "0 4px 15px rgba(102, 126, 234, 0.3)",
+                 transition: "all 0.3s ease"
+               }}
+               onClick={handleBreathingExercise}
+             >
+               🧘 Try Breathing Exercise
+             </button>
+           </div>
+
+           <button
+             style={{
+               position: "absolute",
+               top: "1rem",
+               right: "1rem",
+               background: "none",
+               border: "none",
+               fontSize: "1.5rem",
+               cursor: "pointer",
+               color: "#6b7280",
+               padding: "0.5rem",
+               borderRadius: "50%"
+             }}
+             onClick={() => setShowEmergencyModal(false)}
+           >
+             ✕
+           </button>
+         </div>
+       </div>
+     )}
+   </>
+ );
+};
+
+export default Navigation;
+
+
+

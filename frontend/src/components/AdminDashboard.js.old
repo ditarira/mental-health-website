@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+﻿import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-
+import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const { user, token } = useContext(AuthContext);
@@ -15,6 +15,7 @@ const AdminDashboard = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Use environment variable with fallback
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
   const fetchAdminData = async () => {
@@ -34,14 +35,19 @@ const AdminDashboard = () => {
         }
       };
 
+      console.log('Fetching admin data from:', API_BASE);
+
+      // Fetch stats
       try {
         const statsResponse = await fetch(`${API_BASE}/api/admin/stats`, config);
+        console.log('Stats response status:', statsResponse.status);
         
         if (!statsResponse.ok) {
-          throw new Error(`Stats request failed: ${statsResponse.status}`);
+          throw new Error(`Stats request failed: ${statsResponse.status} ${statsResponse.statusText}`);
         }
         
         const statsData = await statsResponse.json();
+        console.log('Stats data received:', statsData);
         
         if (statsData.success && statsData.data) {
           setStats({
@@ -50,28 +56,40 @@ const AdminDashboard = () => {
             totalBreathingSessions: statsData.data.totalBreathingSessions || 0,
             activeUsers: statsData.data.activeUsers || 0
           });
+        } else {
+          console.error('Invalid stats data structure:', statsData);
+          setError('Invalid stats data received');
         }
       } catch (err) {
+        console.error('Stats fetch error:', err);
         setError(`Failed to fetch stats: ${err.message}`);
       }
 
+      // Fetch users
       try {
         const usersResponse = await fetch(`${API_BASE}/api/admin/users`, config);
+        console.log('Users response status:', usersResponse.status);
         
         if (!usersResponse.ok) {
-          throw new Error(`Users request failed: ${usersResponse.status}`);
+          throw new Error(`Users request failed: ${usersResponse.status} ${usersResponse.statusText}`);
         }
         
         const usersData = await usersResponse.json();
+        console.log('Users data received:', usersData);
         
         if (usersData.success && Array.isArray(usersData.data)) {
           setUsers(usersData.data);
+        } else {
+          console.error('Invalid users data structure:', usersData);
+          setError('Invalid users data received');
         }
       } catch (err) {
+        console.error('Users fetch error:', err);
         setError(`Failed to fetch users: ${err.message}`);
       }
 
     } catch (error) {
+      console.error('Admin data fetch error:', error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -81,6 +99,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (user && token) {
       fetchAdminData();
+      
+      // Auto-refresh every 30 seconds
       const interval = setInterval(fetchAdminData, 30000);
       return () => clearInterval(interval);
     }
@@ -121,22 +141,23 @@ const AdminDashboard = () => {
             <p>Welcome back, Admin! Monitor your MindfulMe platform</p>
           </div>
           <button onClick={handleRefresh} className="refresh-button">
-            ?? Refresh Data
+            🔄 Refresh Data
           </button>
         </div>
       </div>
 
       {error && (
         <div className="error-banner">
-          <span>?? {error}</span>
+          <span>⚠️ {error}</span>
           <button onClick={handleRefresh}>Retry</button>
         </div>
       )}
 
       <div className="dashboard-container">
+        {/* System Status Cards */}
         <div className="status-cards">
           <div className="status-card success">
-            <div className="status-icon">?</div>
+            <div className="status-icon">✅</div>
             <div className="status-content">
               <h3>System Online</h3>
               <p>All services operational</p>
@@ -144,7 +165,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="status-card info">
-            <div className="status-icon">??</div>
+            <div className="status-icon">🕐</div>
             <div className="status-content">
               <h3>Updated: {new Date().toLocaleTimeString()}</h3>
               <p>Last refresh timestamp</p>
@@ -152,7 +173,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="status-card primary">
-            <div className="status-icon">?????</div>
+            <div className="status-icon">👨‍💼</div>
             <div className="status-content">
               <h3>admin@mindfulme.com</h3>
               <p>Logged in as Administrator</p>
@@ -160,27 +181,29 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* Navigation Tabs */}
         <div className="admin-tabs">
           <button 
             className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
             onClick={() => setActiveTab('overview')}
           >
-            ?? Overview
+            📊 Overview
           </button>
           <button 
             className={`tab ${activeTab === 'analytics' ? 'active' : ''}`}
             onClick={() => setActiveTab('analytics')}
           >
-            ?? Analytics
+            📈 Analytics
           </button>
           <button 
             className={`tab ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
-            ?? Users ({users.length})
+            👥 Users ({users.length})
           </button>
         </div>
 
+        {/* Tab Content */}
         <div className="tab-content">
           {activeTab === 'overview' && (
             <div className="overview-tab">
@@ -188,7 +211,7 @@ const AdminDashboard = () => {
                 <div className="stat-card">
                   <div className="stat-header">
                     <h3>Total Users</h3>
-                    <span className="stat-icon">??</span>
+                    <span className="stat-icon">👥</span>
                   </div>
                   <div className="stat-value">{stats.totalUsers}</div>
                   <div className="stat-change positive">+{stats.activeUsers} active</div>
@@ -197,7 +220,7 @@ const AdminDashboard = () => {
                 <div className="stat-card">
                   <div className="stat-header">
                     <h3>Journal Entries</h3>
-                    <span className="stat-icon">??</span>
+                    <span className="stat-icon">📝</span>
                   </div>
                   <div className="stat-value">{stats.totalJournalEntries}</div>
                   <div className="stat-change positive">Total written</div>
@@ -206,7 +229,7 @@ const AdminDashboard = () => {
                 <div className="stat-card">
                   <div className="stat-header">
                     <h3>Breathing Sessions</h3>
-                    <span className="stat-icon">?????</span>
+                    <span className="stat-icon">🧘‍♀️</span>
                   </div>
                   <div className="stat-value">{stats.totalBreathingSessions}</div>
                   <div className="stat-change positive">Sessions completed</div>
@@ -215,7 +238,7 @@ const AdminDashboard = () => {
                 <div className="stat-card">
                   <div className="stat-header">
                     <h3>Active Users</h3>
-                    <span className="stat-icon">??</span>
+                    <span className="stat-icon">🟢</span>
                   </div>
                   <div className="stat-value">{stats.activeUsers}</div>
                   <div className="stat-change positive">Currently active</div>
@@ -286,10 +309,10 @@ const AdminDashboard = () => {
                       </div>
                       <div className="user-stats">
                         <span className="user-stat">
-                          ?? {user.journalEntries || 0} entries
+                          📝 {user.journalEntries?.length || 0} entries
                         </span>
                         <span className="user-stat">
-                          ????? {user.breathingSessions || 0} sessions
+                          🧘‍♀️ {user.breathingSessions?.length || 0} sessions
                         </span>
                       </div>
                       <div className="user-activity">

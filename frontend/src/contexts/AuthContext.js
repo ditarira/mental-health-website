@@ -14,18 +14,22 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Calculate isAdmin property
+  const isAdmin = user?.role === 'ADMIN' || user?.email === 'admin@mindfulme.com';
+
   // Check for existing session on app load
   useEffect(() => {
     const checkAuthStatus = async () => {
       console.log('🔍 Checking authentication status...');
-      
+
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('user');
-      
+
       if (token && userData) {
         try {
           const parsedUser = JSON.parse(userData);
           console.log('✅ Found existing session for user:', parsedUser.email);
+          console.log('👑 Admin status:', parsedUser.role === 'ADMIN' || parsedUser.email === 'admin@mindfulme.com');
           setUser(parsedUser);
         } catch (error) {
           console.error('❌ Error parsing stored user data:', error);
@@ -36,7 +40,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         console.log('ℹ️ No existing session found');
       }
-      
+
       setLoading(false);
     };
 
@@ -45,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     console.log('🔐 AuthContext login attempt for:', email);
-    
+
     try {
       // Admin check first
       if (email === 'admin@mindfulme.com' && password === 'admin123') {
@@ -57,14 +61,14 @@ export const AuthProvider = ({ children }) => {
           lastName: 'User',
           role: 'ADMIN'
         };
-        
+
         const adminToken = 'admin-token-' + Date.now();
-        
+
         // Store admin session
         localStorage.setItem('token', adminToken);
         localStorage.setItem('user', JSON.stringify(adminUser));
         setUser(adminUser);
-        
+
         console.log('✅ Admin login successful');
         return { success: true, user: adminUser };
       }
@@ -92,7 +96,7 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
           setUser(data.user);
-          
+
           return { success: true, user: data.user };
         } else {
           console.error('❌ Invalid API response format:', data);
@@ -101,14 +105,14 @@ export const AuthProvider = ({ children }) => {
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ API login failed:', response.status, errorData);
-        return { 
-          success: false, 
-          error: errorData.message || `Login failed (${response.status})` 
+        return {
+          success: false,
+          error: errorData.message || `Login failed (${response.status})`
         };
       }
     } catch (error) {
       console.error('❌ Login error:', error);
-      
+
       // Fallback for demo purposes
       if (email === 'demo@mindfulme.com' && password === 'demo123') {
         console.log('🎭 Demo login detected - using fallback');
@@ -119,27 +123,27 @@ export const AuthProvider = ({ children }) => {
           lastName: 'User',
           role: 'USER'
         };
-        
+
         localStorage.setItem('token', 'demo-token');
         localStorage.setItem('user', JSON.stringify(demoUser));
         setUser(demoUser);
-        
+
         return { success: true, user: demoUser };
       }
-      
-      return { 
-        success: false, 
-        error: 'Network error. Please check your connection and try again.' 
+
+      return {
+        success: false,
+        error: 'Network error. Please check your connection and try again.'
       };
     }
   };
 
   const register = async (userData) => {
-    console.log('📝 AuthContext register attempt for:', userData.email);
-    
+    console.log('🔐 AuthContext register attempt for:', userData.email);
+
     try {
       const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
-      
+
       const response = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
         headers: {
@@ -157,7 +161,7 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
           setUser(data.user);
-          
+
           return { success: true, user: data.user };
         } else {
           return { success: false, error: 'Invalid response from server' };
@@ -165,23 +169,23 @@ export const AuthProvider = ({ children }) => {
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ Registration failed:', errorData);
-        return { 
-          success: false, 
-          error: errorData.message || 'Registration failed' 
+        return {
+          success: false,
+          error: errorData.message || 'Registration failed'
         };
       }
     } catch (error) {
       console.error('❌ Registration error:', error);
-      return { 
-        success: false, 
-        error: 'Network error. Please check your connection and try again.' 
+      return {
+        success: false,
+        error: 'Network error. Please check your connection and try again.'
       };
     }
   };
 
   const logout = () => {
     console.log('🚪 Logging out user:', user?.email);
-    
+
     // Clear all stored data
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -189,17 +193,24 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('breathingSessions');
     localStorage.removeItem('notificationSettings');
     localStorage.removeItem('appearanceSettings');
-    
+
     setUser(null);
     console.log('✅ Logout complete');
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   const value = {
     user,
+    isAdmin,
     login,
     register,
     logout,
-    loading
+    loading,
+    updateUser
   };
 
   return (

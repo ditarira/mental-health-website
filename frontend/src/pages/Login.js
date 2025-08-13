@@ -53,8 +53,6 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('🔐 Login form submitted:', { email: formData.email, hasPassword: !!formData.password });
-    
     // Validate form before submission
     if (!validateForm()) {
       return;
@@ -64,14 +62,11 @@ const Login = () => {
     setError('');
 
     try {
-      console.log('🔐 Attempting login with:', formData.email);
       const result = await login(formData.email.trim(), formData.password);
       
       if (result && result.success) {
-        console.log('✅ Login successful! User:', result.user);
         // The useEffect above will handle the redirect when user state updates
       } else {
-        console.error('❌ Login failed:', result);
         setError(result?.error || result?.message || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
@@ -309,34 +304,6 @@ const Login = () => {
             </Link>
           </div>
         </form>
-
-        {/* Admin Login Hint */}
-        <div style={{
-          background: '#f0f9ff',
-          border: '2px solid #bae6fd',
-          borderRadius: '10px',
-          padding: '1rem',
-          marginBottom: '1.5rem',
-          textAlign: 'center'
-        }}>
-          <p style={{
-            color: '#0369a1',
-            fontSize: '0.9rem',
-            margin: '0 0 0.5rem 0',
-            fontWeight: '600'
-          }}>
-            👑 Admin Access
-          </p>
-          <p style={{
-            color: '#0c4a6e',
-            fontSize: '0.8rem',
-            margin: 0,
-            lineHeight: '1.4'
-          }}>
-            Use: <strong>admin@mindfulme.com</strong><br/>
-            Password: <strong>admin123</strong>
-          </p>
-        </div>
 
         {/* Register Link */}
         <div style={{
