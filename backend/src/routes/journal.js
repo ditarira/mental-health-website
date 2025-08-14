@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const auth = require('../middleware/auth');
@@ -11,7 +11,7 @@ router.use(auth);
 // Get all journal entries for the authenticated user
 router.get('/', async (req, res) => {
   try {
-    console.log('📝 Fetching journal entries for user:', req.user.email);
+    console.log('?? Fetching journal entries for user:', req.user.email);
 
     const entries = await prisma.journalEntry.findMany({
       where: { userId: req.user.id },
@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
       }
     });
 
-    console.log('✅ Found', entries.length, 'entries for user');
+    console.log('? Found', entries.length, 'entries for user');
     res.json({
       success: true,
       data: entries,
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error fetching journal entries:', error);
+    console.error('? Error fetching journal entries:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch journal entries',
@@ -48,7 +48,7 @@ router.post('/', async (req, res) => {
   try {
     const { title, content, mood, tags } = req.body;
     
-    console.log('📝 Creating journal entry for user:', req.user.email);
+    console.log('?? Creating journal entry for user:', req.user.email);
     console.log('Entry data:', { title, content, mood });
 
     if (!content || !content.trim()) {
@@ -67,7 +67,7 @@ router.post('/', async (req, res) => {
       }
     });
 
-    console.log('✅ Journal entry created with ID:', entry.id);
+    console.log('? Journal entry created with ID:', entry.id);
     res.status(201).json({
       success: true,
       message: 'Journal entry created successfully',
@@ -75,7 +75,7 @@ router.post('/', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error creating journal entry:', error);
+    console.error('? Error creating journal entry:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to create journal entry',
@@ -88,7 +88,7 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const entryId = req.params.id;
-    console.log('📝 Fetching journal entry:', entryId);
+    console.log('?? Fetching journal entry:', entryId);
 
     const entry = await prisma.journalEntry.findFirst({
       where: { 
@@ -104,14 +104,14 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    console.log('✅ Entry found');
+    console.log('? Entry found');
     res.json({
       success: true,
       data: entry
     });
 
   } catch (error) {
-    console.error('❌ Error fetching journal entry:', error);
+    console.error('? Error fetching journal entry:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch journal entry',
@@ -126,7 +126,7 @@ router.put('/:id', async (req, res) => {
     const entryId = req.params.id;
     const { title, content, mood } = req.body;
     
-    console.log('✏️ Updating journal entry:', entryId, 'for user:', req.user.email);
+    console.log('?? Updating journal entry:', entryId, 'for user:', req.user.email);
 
     if (!content || !content.trim()) {
       return res.status(400).json({
@@ -162,7 +162,7 @@ router.put('/:id', async (req, res) => {
       }
     });
 
-    console.log('✅ Entry updated successfully');
+    console.log('? Entry updated successfully');
     res.json({
       success: true,
       message: 'Journal entry updated successfully',
@@ -170,7 +170,7 @@ router.put('/:id', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error updating journal entry:', error);
+    console.error('? Error updating journal entry:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update journal entry',
@@ -184,7 +184,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const entryId = req.params.id;
     
-    console.log('🗑️ Deleting journal entry:', entryId, 'for user:', req.user.email);
+    console.log('??? Deleting journal entry:', entryId, 'for user:', req.user.email);
 
     // First check if entry exists and belongs to user
     const existingEntry = await prisma.journalEntry.findFirst({
@@ -208,14 +208,14 @@ router.delete('/:id', async (req, res) => {
       }
     });
 
-    console.log('✅ Entry deleted successfully');
+    console.log('? Entry deleted successfully');
     res.json({
       success: true,
       message: 'Journal entry deleted successfully'
     });
 
   } catch (error) {
-    console.error('❌ Error deleting journal entry:', error);
+    console.error('? Error deleting journal entry:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete journal entry',
