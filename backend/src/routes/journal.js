@@ -57,3 +57,70 @@ router.post('/', async (req, res) => {
 });
 
 module.exports = router;
+// Update journal entry
+router.put('/:id', async (req, res) => {
+  try {
+    const entryId = req.params.id;
+    const { title, content, mood } = req.body;
+    
+    console.log('Updating journal entry:', entryId, 'for user:', req.user.email);
+
+    const updatedEntry = await prisma.journalEntry.update({
+      where: { 
+        id: entryId,
+        userId: req.user.id // Ensure user can only edit their own entries
+      },
+      data: {
+        title: title || 'Untitled Entry',
+        content,
+        mood: mood || '3'
+      }
+    });
+
+    console.log('Entry updated successfully');
+    res.json({
+      success: true,
+      message: 'Journal entry updated successfully',
+      data: updatedEntry
+    });
+
+  } catch (error) {
+    console.error('Error updating journal entry:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update journal entry',
+      details: error.message
+    });
+  }
+});
+
+// Delete journal entry
+router.delete('/:id', async (req, res) => {
+  try {
+    const entryId = req.params.id;
+    
+    console.log('Deleting journal entry:', entryId, 'for user:', req.user.email);
+
+    await prisma.journalEntry.delete({
+      where: { 
+        id: entryId,
+        userId: req.user.id // Ensure user can only delete their own entries
+      }
+    });
+
+    console.log('Entry deleted successfully');
+    res.json({
+      success: true,
+      message: 'Journal entry deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting journal entry:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete journal entry',
+      details: error.message
+    });
+  }
+});
+
