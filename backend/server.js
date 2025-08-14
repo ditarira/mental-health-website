@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const cors = require('cors');
 
 const app = express();
@@ -43,36 +43,46 @@ try {
   console.log('1. Loading auth routes...');
   const authRoutes = require('./src/routes/auth');
   app.use('/api/auth', authRoutes);
-  console.log('✅ Auth routes loaded successfully');
+  console.log('? Auth routes loaded successfully');
 } catch (error) {
-  console.error('❌ Auth routes error:', error.message);
+  console.error('? Auth routes error:', error.message);
 }
 
 try {
   console.log('2. Loading admin routes...');
   const adminRoutes = require('./src/routes/admin');
   app.use('/api/admin', adminRoutes);
-  console.log('✅ Admin routes loaded successfully');
+  console.log('? Admin routes loaded successfully');
 } catch (error) {
-  console.error('❌ Admin routes error:', error.message);
+  console.error('? Admin routes error:', error.message);
 }
 
 try {
   console.log('3. Loading journal routes...');
   const journalRoutes = require('./src/routes/journal');
   app.use('/api/journal', journalRoutes);
-  console.log('✅ Journal routes loaded successfully');
+  console.log('? Journal routes loaded successfully');
 } catch (error) {
-  console.error('❌ Journal routes error:', error.message);
+  console.error('? Journal routes error:', error.message);
 }
 
 try {
   console.log('4. Loading breathing routes...');
   const breathingRoutes = require('./src/routes/breathing');
   app.use('/api/breathing', breathingRoutes);
-  console.log('✅ Breathing routes loaded successfully');
+  console.log('? Breathing routes loaded successfully');
+
+  } catch (error) {
+    console.error('? Error loading breathing routes:', error);
+  }
+
+  try {
+    console.log('5. Loading dashboard routes...');
+    const dashboardRoutes = require('./src/routes/dashboard');
+    app.use('/api/dashboard', dashboardRoutes);
+    console.log('? Dashboard routes loaded successfully');
 } catch (error) {
-  console.error('❌ Breathing routes error:', error.message);
+  console.error('? Breathing routes error:', error.message);
 }
 
 // Error handling
@@ -84,6 +94,6 @@ app.use((error, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log('🚀 Server running on port', PORT);
-  console.log('🔗 Test: http://localhost:' + PORT + '/api/health');
+  console.log('?? Server running on port', PORT);
+  console.log('?? Test: http://localhost:' + PORT + '/api/health');
 });
