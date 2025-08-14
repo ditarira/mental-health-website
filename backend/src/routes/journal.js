@@ -124,3 +124,47 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// Delete journal entry
+router.delete('/:id', async (req, res) => {
+  try {
+    const entryId = req.params.id;
+    
+    console.log('🗑️ Deleting journal entry:', entryId, 'for user:', req.user.email);
+
+    // First check if entry exists and belongs to user
+    const existingEntry = await prisma.journalEntry.findFirst({
+      where: { 
+        id: entryId,
+        userId: req.user.id 
+      }
+    });
+
+    if (!existingEntry) {
+      return res.status(404).json({
+        success: false,
+        message: 'Journal entry not found or access denied'
+      });
+    }
+
+    // Delete the entry
+    await prisma.journalEntry.delete({
+      where: { 
+        id: entryId
+      }
+    });
+
+    console.log('✅ Entry deleted successfully');
+    res.json({
+      success: true,
+      message: 'Journal entry deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting journal entry:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete journal entry',
+      details: error.message
+    });
+  }
+});
