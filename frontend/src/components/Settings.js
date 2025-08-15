@@ -16,7 +16,7 @@ const Settings = () => {
 
   const loadSettings = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com'}/api/users/settings`, {
+      const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/settings`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -26,28 +26,52 @@ const Settings = () => {
       if (response.ok) {
         const data = await response.json();
         setSettings(data.settings);
-        applySettings(data.settings);
+        applySettingsToWebsite(data.settings);
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
   };
 
-  const applySettings = (settingsData) => {
-    document.documentElement.style.setProperty('--font-size-multiplier', 
-      settingsData.fontSize === 'small' ? '0.9' : 
-      settingsData.fontSize === 'large' ? '1.1' : '1.0'
-    );
-    document.documentElement.setAttribute('data-color-scheme', settingsData.colorScheme);
+  const applySettingsToWebsite = (settingsData) => {
+    console.log('Applying settings:', settingsData);
+    
+    // Apply font size to entire website
+    const fontSize = settingsData.fontSize === 'small' ? '14px' : 
+                    settingsData.fontSize === 'large' ? '18px' : '16px';
+    document.documentElement.style.fontSize = fontSize;
+    
+    // ONLY change the main background color - keep components unchanged
+    const backgroundColors = {
+      purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      blue: 'linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)',
+      green: 'linear-gradient(135deg, #10B981 0%, #047857 100%)',
+      pink: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)'
+    };
+    
+    const background = backgroundColors[settingsData.colorScheme] || backgroundColors.purple;
+    
+    // Apply ONLY to main background
+    document.body.style.background = background;
+    document.body.style.backgroundAttachment = 'fixed';
+    document.body.style.minHeight = '100vh';
+    
+    console.log('Applied background:', background);
+    console.log('Applied font size:', fontSize);
   };
 
   const handleSettingsChange = async (key, value) => {
+    console.log('Changing setting:', key, 'to:', value);
+    
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     
+    // Apply changes immediately
+    applySettingsToWebsite(newSettings);
+    
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com'}/api/users/settings`, {
+      const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/settings`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -57,17 +81,15 @@ const Settings = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setMessage('? Settings saved!');
-        applySettings(data.settings);
-        setTimeout(() => setMessage(''), 2000);
+        setMessage('? Settings saved and applied!');
+        setTimeout(() => setMessage(''), 3000);
       } else {
         throw new Error('Failed to save settings');
       }
     } catch (error) {
       setMessage('? Failed to save');
       console.error('Settings save error:', error);
-      setTimeout(() => setMessage(''), 2000);
+      setTimeout(() => setMessage(''), 3000);
     } finally {
       setLoading(false);
     }
@@ -94,48 +116,50 @@ const Settings = () => {
 
       {message && (
         <div style={{
-          padding: '6px 10px',
+          padding: '8px 12px',
           marginBottom: '12px',
-          borderRadius: '6px',
-          backgroundColor: message.includes('?') ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+          borderRadius: '8px',
+          backgroundColor: message.includes('?') ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)',
           color: 'white',
-          fontSize: '0.85em',
-          textAlign: 'center'
+          fontSize: '0.9em',
+          textAlign: 'center',
+          border: `1px solid ${message.includes('?') ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`
         }}>
           {message}
         </div>
       )}
 
       {/* Font Size */}
-      <div style={{ marginBottom: '15px' }}>
+      <div style={{ marginBottom: '20px' }}>
         <label style={{ 
           display: 'block',
           color: 'white',
-          marginBottom: '6px',
-          fontSize: '0.9em',
+          marginBottom: '8px',
+          fontSize: '0.95em',
           fontWeight: '500'
         }}>
-          ?? Font Size
+          ?? Font Size: {settings.fontSize}
         </label>
-        <div style={{ display: 'flex', gap: '6px' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
           {['small', 'medium', 'large'].map(size => (
             <button
               key={size}
               onClick={() => handleSettingsChange('fontSize', size)}
               disabled={loading}
               style={{
-                padding: '6px 12px',
+                padding: '10px 16px',
                 border: 'none',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 background: settings.fontSize === size 
-                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  ? 'rgba(255, 255, 255, 0.4)'
                   : 'rgba(255, 255, 255, 0.1)',
                 color: 'white',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '0.8em',
-                fontWeight: '500',
+                fontSize: '0.85em',
+                fontWeight: '600',
                 textTransform: 'capitalize',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                border: settings.fontSize === size ? '2px solid white' : '1px solid rgba(255, 255, 255, 0.2)'
               }}
             >
               {size}
@@ -144,39 +168,40 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Color Scheme */}
+      {/* Background Color Only */}
       <div>
         <label style={{ 
           display: 'block',
           color: 'white',
-          marginBottom: '6px',
-          fontSize: '0.9em',
+          marginBottom: '8px',
+          fontSize: '0.95em',
           fontWeight: '500'
         }}>
-          ?? Color Scheme
+          ?? Background Color: {settings.colorScheme}
         </label>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
-            { name: 'purple', color: '#8B5CF6' },
-            { name: 'blue', color: '#3B82F6' },
-            { name: 'green', color: '#10B981' },
-            { name: 'pink', color: '#EC4899' }
+            { name: 'purple', preview: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+            { name: 'blue', preview: 'linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)' },
+            { name: 'green', preview: 'linear-gradient(135deg, #10B981 0%, #047857 100%)' },
+            { name: 'pink', preview: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)' }
           ].map(scheme => (
             <button
               key={scheme.name}
               onClick={() => handleSettingsChange('colorScheme', scheme.name)}
               disabled={loading}
               style={{
-                padding: '6px 12px',
-                border: settings.colorScheme === scheme.name ? '2px solid white' : '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '6px',
-                background: scheme.color,
+                padding: '12px 18px',
+                border: settings.colorScheme === scheme.name ? '3px solid white' : '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '8px',
+                background: scheme.preview,
                 color: 'white',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '0.8em',
-                fontWeight: '500',
+                fontSize: '0.85em',
+                fontWeight: '600',
                 textTransform: 'capitalize',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                minWidth: '80px'
               }}
             >
               {scheme.name}
@@ -188,17 +213,27 @@ const Settings = () => {
       {loading && (
         <div style={{
           textAlign: 'center',
-          color: 'rgba(255, 255, 255, 0.7)',
-          fontSize: '0.8em',
-          marginTop: '8px'
+          color: 'white',
+          fontSize: '0.9em',
+          marginTop: '12px',
+          padding: '8px',
+          background: 'rgba(255, 255, 255, 0.1)',
+          borderRadius: '6px'
         }}>
-          Saving...
+          ?? Saving settings...
         </div>
       )}
+      
+      <div style={{
+        marginTop: '15px',
+        fontSize: '0.8em',
+        color: 'rgba(255, 255, 255, 0.8)',
+        textAlign: 'center'
+      }}>
+        Background color changes instantly, components stay unchanged
+      </div>
     </div>
   );
 };
 
 export default Settings;
-
-
