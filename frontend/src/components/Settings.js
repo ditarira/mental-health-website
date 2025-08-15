@@ -10,12 +10,10 @@ const Settings = () => {
     colorScheme: 'purple'
   });
 
-  // Apply settings immediately when component mounts
   useEffect(() => {
     loadSettings();
   }, []);
 
-  // Also apply settings when user changes
   useEffect(() => {
     if (user) {
       loadSettings();
@@ -54,33 +52,74 @@ const Settings = () => {
   };
 
   const applySettingsToWebsite = (settingsData) => {
-    console.log('Applying settings to website:', settingsData);
+    console.log('?? Applying settings to website:', settingsData);
     
-    // Apply font size to entire website
+    // Apply font size
     const fontSize = settingsData.fontSize === 'small' ? '14px' : 
                     settingsData.fontSize === 'large' ? '18px' : '16px';
     document.documentElement.style.fontSize = fontSize;
     
-    // ONLY change the main background color - keep components unchanged
+    // Background colors - more vibrant and noticeable
     const backgroundColors = {
       purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      blue: 'linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)',
-      green: 'linear-gradient(135deg, #10B981 0%, #047857 100%)',
-      pink: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)'
+      blue: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #1e40af 100%)',
+      green: 'linear-gradient(135deg, #065f46 0%, #10b981 50%, #047857 100%)',
+      pink: 'linear-gradient(135deg, #be185d 0%, #ec4899 50%, #db2777 100%)'
     };
     
     const background = backgroundColors[settingsData.colorScheme] || backgroundColors.purple;
     
-    // Apply ONLY to main background
+    // Apply to multiple elements to ensure visibility
     document.body.style.background = background;
     document.body.style.backgroundAttachment = 'fixed';
     document.body.style.minHeight = '100vh';
-    
-    // Also apply to html element to ensure it persists
     document.documentElement.style.background = background;
     
-    console.log('? Applied background:', settingsData.colorScheme, '->', background);
+    // Also apply to the main app container if it exists
+    const appContainer = document.getElementById('root');
+    if (appContainer) {
+      appContainer.style.background = background;
+      appContainer.style.minHeight = '100vh';
+    }
+    
+    // Apply to any main containers
+    const mainContainers = document.querySelectorAll('main, .main, .app');
+    mainContainers.forEach(container => {
+      container.style.background = background;
+    });
+    
+    console.log('? Applied background to multiple elements:', settingsData.colorScheme);
+    console.log('? Background color:', background);
     console.log('? Applied font size:', fontSize);
+    
+    // Show a visual indicator that settings changed
+    showVisualFeedback(settingsData.colorScheme);
+  };
+
+  const showVisualFeedback = (colorScheme) => {
+    // Create a temporary visual indicator
+    const indicator = document.createElement('div');
+    indicator.innerHTML = `?? Background changed to ${colorScheme}!`;
+    indicator.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      z-index: 10000;
+      font-size: 14px;
+      font-weight: bold;
+    `;
+    
+    document.body.appendChild(indicator);
+    
+    setTimeout(() => {
+      if (indicator.parentNode) {
+        indicator.parentNode.removeChild(indicator);
+      }
+    }, 3000);
   };
 
   const handleSettingsChange = async (key, value) => {
@@ -139,6 +178,19 @@ const Settings = () => {
         ?? Settings
       </h2>
 
+      {/* Current Settings Display */}
+      <div style={{
+        padding: '10px',
+        marginBottom: '15px',
+        background: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: '8px',
+        border: '1px solid rgba(255, 255, 255, 0.1)'
+      }}>
+        <div style={{ color: 'white', fontSize: '0.9em' }}>
+          ?? Current: Font {settings.fontSize} | Background {settings.colorScheme}
+        </div>
+      </div>
+
       {message && (
         <div style={{
           padding: '8px 12px',
@@ -163,7 +215,7 @@ const Settings = () => {
           fontSize: '0.95em',
           fontWeight: '500'
         }}>
-          ?? Font Size: {settings.fontSize}
+          ?? Font Size
         </label>
         <div style={{ display: 'flex', gap: '8px' }}>
           {['small', 'medium', 'large'].map(size => (
@@ -193,7 +245,7 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Background Color Only */}
+      {/* Background Color */}
       <div>
         <label style={{ 
           display: 'block',
@@ -202,14 +254,14 @@ const Settings = () => {
           fontSize: '0.95em',
           fontWeight: '500'
         }}>
-          ?? Background Color: {settings.colorScheme}
+          ?? Background Color (should change the page background)
         </label>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
             { name: 'purple', preview: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-            { name: 'blue', preview: 'linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)' },
-            { name: 'green', preview: 'linear-gradient(135deg, #10B981 0%, #047857 100%)' },
-            { name: 'pink', preview: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)' }
+            { name: 'blue', preview: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' },
+            { name: 'green', preview: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)' },
+            { name: 'pink', preview: 'linear-gradient(135deg, #be185d 0%, #ec4899 100%)' }
           ].map(scheme => (
             <button
               key={scheme.name}
@@ -255,7 +307,7 @@ const Settings = () => {
         color: 'rgba(255, 255, 255, 0.8)',
         textAlign: 'center'
       }}>
-        Settings persist after refresh and apply automatically
+        Look for background changes around the edges of your screen!
       </div>
     </div>
   );
