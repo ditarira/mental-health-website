@@ -10,31 +10,51 @@ const Settings = () => {
     colorScheme: 'purple'
   });
 
+  // Apply settings immediately when component mounts
   useEffect(() => {
     loadSettings();
   }, []);
 
+  // Also apply settings when user changes
+  useEffect(() => {
+    if (user) {
+      loadSettings();
+    }
+  }, [user]);
+
   const loadSettings = async () => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token found, using default settings');
+        applySettingsToWebsite(settings);
+        return;
+      }
+
       const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/settings`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Loaded settings from server:', data.settings);
         setSettings(data.settings);
         applySettingsToWebsite(data.settings);
+      } else {
+        console.log('Failed to load settings, using defaults');
+        applySettingsToWebsite(settings);
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
+      applySettingsToWebsite(settings);
     }
   };
 
   const applySettingsToWebsite = (settingsData) => {
-    console.log('Applying settings:', settingsData);
+    console.log('Applying settings to website:', settingsData);
     
     // Apply font size to entire website
     const fontSize = settingsData.fontSize === 'small' ? '14px' : 
@@ -56,12 +76,15 @@ const Settings = () => {
     document.body.style.backgroundAttachment = 'fixed';
     document.body.style.minHeight = '100vh';
     
-    console.log('Applied background:', background);
-    console.log('Applied font size:', fontSize);
+    // Also apply to html element to ensure it persists
+    document.documentElement.style.background = background;
+    
+    console.log('? Applied background:', settingsData.colorScheme, '->', background);
+    console.log('? Applied font size:', fontSize);
   };
 
   const handleSettingsChange = async (key, value) => {
-    console.log('Changing setting:', key, 'to:', value);
+    console.log('?? Changing setting:', key, 'to:', value);
     
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
@@ -81,6 +104,8 @@ const Settings = () => {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        console.log('? Saved settings to server:', data.settings);
         setMessage('? Settings saved and applied!');
         setTimeout(() => setMessage(''), 3000);
       } else {
@@ -230,7 +255,7 @@ const Settings = () => {
         color: 'rgba(255, 255, 255, 0.8)',
         textAlign: 'center'
       }}>
-        Background color changes instantly, components stay unchanged
+        Settings persist after refresh and apply automatically
       </div>
     </div>
   );
