@@ -1,647 +1,526 @@
-﻿import React, { useState } from "react";
+﻿import React, { useState, useEffect } from 'react';
+
 const Resources = () => {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [notification, setNotification] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   const resources = [
     {
       id: 1,
-      category: "crisis",
-      title: "988 Suicide & Crisis Lifeline",
-      description: "Free, confidential emotional support 24/7 for people in suicidal crisis or emotional distress. Trained crisis counselors provide immediate help and connect you to local resources.",
-      contact: "988",
-      website: "https://988lifeline.org",
+      category: 'crisis',
+      title: '988 Suicide & Crisis Lifeline',
+      shortTitle: 'Crisis Lifeline',
+      description: 'Free, confidential emotional support 24/7 for people in suicidal crisis or emotional distress.',
+      contact: '988',
+      website: 'https://988lifeline.org',
       urgent: true,
-      details: "Available in English and Spanish • Deaf/Hard of Hearing: Use your preferred relay service",
-      color: "#dc2626"
+      emoji: '🆘',
+      bgColor: 'linear-gradient(135deg, #ef4444, #dc2626)',
+      placeholder: '🆘',
+      article: {
+        title: 'Understanding the 988 Suicide & Crisis Lifeline',
+        sections: [
+          {
+            heading: 'What is the 988 Lifeline?',
+            content: 'The 988 Suicide & Crisis Lifeline is a national network of local crisis centers that provides free and confidential emotional support to people in suicidal crisis or emotional distress 24 hours a day, 7 days a week, across the United States.'
+          },
+          {
+            heading: 'How to Handle a Crisis Situation',
+            content: 'If you or someone you know is experiencing thoughts of suicide or severe emotional distress, call 988 immediately. When you call, you will be connected to a trained crisis counselor at a local crisis center in your area.'
+          },
+          {
+            heading: 'Extra Support & Advice',
+            content: '💡 The 988 Lifeline also offers specialized support: Press 1 for Veterans, Press 2 for Spanish language support, and Press 3 for LGBTQ+ youth support. You can also chat online at 988lifeline.org or text 988.'
+          }
+        ]
+      }
     },
     {
       id: 2,
-      category: "crisis",
-      title: "Crisis Text Line",
-      description: "Free, 24/7 crisis support via text message. Text with trained crisis counselors who provide real-time help for depression, anxiety, self-harm, and suicidal thoughts.",
-      contact: "Text HOME to 741741",
-      website: "https://crisistextline.org",
+      category: 'crisis',
+      title: 'Crisis Text Line',
+      shortTitle: 'Text Support',
+      description: 'Free, 24/7 crisis support via text message with trained crisis counselors.',
+      contact: 'Text HOME to 741741',
+      website: 'https://crisistextline.org',
       urgent: true,
-      details: "Text-based support • Response within 5 minutes • Completely confidential",
-      color: "#059669"
+      emoji: '💬',
+      bgColor: 'linear-gradient(135deg, #10b981, #059669)',
+      placeholder: '💬',
+      article: {
+        title: 'Crisis Text Line: Text-Based Mental Health Support',
+        sections: [
+          {
+            heading: 'What is Crisis Text Line?',
+            content: 'Crisis Text Line provides free, 24/7, confidential text-based mental health support and crisis intervention. When you text HOME to 741741, a live, trained Crisis Counselor receives the text and responds quickly.'
+          },
+          {
+            heading: 'How Text-Based Crisis Support Works',
+            content: 'Text messaging can be easier than talking on the phone for many people, especially younger individuals. When you text HOME to 741741, you will be connected to a Crisis Counselor within 5 minutes.'
+          },
+          {
+            heading: 'Tips for Effective Crisis Texting',
+            content: '💡 Be honest about what you are going through - Crisis Counselors are trained to handle any situation without judgment. Use specific words to describe your feelings. Save 741741 in your phone for quick access.'
+          }
+        ]
+      }
     },
     {
       id: 3,
-      category: "crisis",
-      title: "National Domestic Violence Hotline",
-      description: "Confidential support for domestic violence survivors and their loved ones. Available 24/7 with trained advocates providing safety planning and resources.",
-      contact: "1-800-799-7233",
-      website: "https://thehotline.org",
+      category: 'crisis',
+      title: 'National Domestic Violence Hotline',
+      shortTitle: 'Domestic Violence Support',
+      description: 'Confidential support for domestic violence survivors and their loved ones, available 24/7.',
+      contact: '1-800-799-7233',
+      website: 'https://thehotline.org',
       urgent: true,
-      details: "Available in 200+ languages • Text HELP to 233733 • Online chat available",
-      color: "#7c2d12"
+      emoji: '🛡️',
+      bgColor: 'linear-gradient(135deg, #7c2d12, #92400e)',
+      placeholder: '🛡️',
+      article: {
+        title: 'National Domestic Violence Hotline: Safety and Support',
+        sections: [
+          {
+            heading: 'Understanding Domestic Violence Support',
+            content: 'The National Domestic Violence Hotline provides lifesaving tools and immediate support to enable victims to find safety and live lives free of abuse. Trained advocates are available 24/7.'
+          },
+          {
+            heading: 'Creating a Safety Plan',
+            content: 'If you are in an abusive relationship, creating a safety plan is crucial. This includes identifying safe places to go, keeping important documents and emergency money accessible.'
+          },
+          {
+            heading: 'Supporting Someone in an Abusive Relationship',
+            content: '💡 If someone you know is in an abusive relationship: Listen without judgment, believe them, let them know the abuse is not their fault, respect their decisions, help them create a safety plan.'
+          }
+        ]
+      }
     },
     {
       id: 4,
-      category: "professional",
-      title: "Psychology Today Therapist Directory",
-      description: "Comprehensive directory to find licensed therapists, psychiatrists, and mental health professionals in your area. Filter by insurance, specialty, and treatment approach.",
-      website: "https://psychologytoday.com",
-      details: "Filter by insurance coverage • Read therapist profiles • Book appointments online",
-      color: "#1d4ed8"
+      category: 'professional',
+      title: 'Psychology Today Therapist Directory',
+      shortTitle: 'Find a Therapist',
+      description: 'Comprehensive directory to find licensed therapists and mental health professionals.',
+      website: 'https://psychologytoday.com',
+      emoji: '👩‍⚕️',
+      bgColor: 'linear-gradient(135deg, #1d4ed8, #2563eb)',
+      placeholder: '👩‍⚕️',
+      article: {
+        title: 'Finding the Right Therapist: A Complete Guide',
+        sections: [
+          {
+            heading: 'What is Psychology Today?',
+            content: 'Psychology Today is the largest online directory of mental health professionals in the United States, featuring over 200,000 licensed therapists, psychiatrists, psychologists, counselors, and treatment centers.'
+          },
+          {
+            heading: 'How to Choose the Right Therapist',
+            content: 'Finding the right therapist is crucial for successful treatment. Start by identifying what you want to work on - whether it is anxiety, depression, relationship issues, trauma, or personal growth.'
+          },
+          {
+            heading: 'Making the Most of Your Therapy Search',
+            content: '💡 Use the advanced filters to narrow down your search by insurance, specialties, gender, language, and treatment approaches like CBT or EMDR. Read therapist profiles carefully.'
+          }
+        ]
+      }
     },
     {
       id: 5,
-      category: "professional",
-      title: "BetterHelp Online Therapy",
-      description: "Professional online counseling with licensed, accredited therapists. Convenient therapy through video, phone, and messaging at affordable rates.",
-      website: "https://betterhelp.com",
-      cost: "$60-90/week",
-      details: "Financial aid available • Match with therapists • Message anytime",
-      color: "#059669"
+      category: 'professional',
+      title: 'BetterHelp Online Therapy',
+      shortTitle: 'Online Therapy',
+      description: 'Professional online counseling with licensed, accredited therapists.',
+      website: 'https://betterhelp.com',
+      cost: '-90/week',
+      emoji: '💻',
+      bgColor: 'linear-gradient(135deg, #059669, #047857)',
+      placeholder: '💻',
+      article: {
+        title: 'Online Therapy with BetterHelp: Accessible Mental Health Care',
+        sections: [
+          {
+            heading: 'What is BetterHelp?',
+            content: 'BetterHelp is the world largest therapy service, providing professional counseling online through video, phone, and messaging. All BetterHelp therapists are licensed, trained, experienced, and accredited.'
+          },
+          {
+            heading: 'How Online Therapy Works and Its Benefits',
+            content: 'After completing a questionnaire about your needs and preferences, BetterHelp matches you with a therapist typically within 24-48 hours. You can communicate via live video sessions, phone calls, or messaging.'
+          },
+          {
+            heading: 'Getting Started and Maximizing Your Experience',
+            content: '💡 Be honest and detailed when filling out the initial questionnaire to get the best therapist match. If your first match is not ideal, you can easily switch therapists at no additional cost.'
+          }
+        ]
+      }
     },
     {
       id: 6,
-      category: "professional",
-      title: "Open Path Collective",
-      description: "Affordable therapy network offering sessions between $30-$60. Non-profit organization connecting people with licensed mental health professionals.",
-      website: "https://openpathcollective.org",
-      cost: "$30-60/session",
-      details: "Sliding scale fees • In-person and online • No insurance needed",
-      color: "#0891b2"
-    },
-    {
-      id: 7,
-      category: "support",
-      title: "National Alliance on Mental Illness (NAMI)",
-      description: "Largest grassroots mental health organization providing education, support groups, and advocacy. Free support groups for individuals and families affected by mental illness.",
-      contact: "1-800-950-6264",
-      website: "https://nami.org",
-      details: "Free support groups • Family programs • Educational resources • Advocacy",
-      color: "#7c3aed"
-    },
-    {
-      id: 8,
-      category: "support",
-      title: "Mental Health America",
-      description: "Leading community-based nonprofit dedicated to addressing mental health needs. Offers screening tools, resources, and advocacy for mental health awareness.",
-      website: "https://mhanational.org",
-      details: "Free mental health screenings • Educational materials • Policy advocacy",
-      color: "#dc2626"
-    },
-    {
-      id: 9,
-      category: "youth",
-      title: "National Suicide Prevention Lifeline for Youth",
-      description: "Specialized support for young people under 25 experiencing mental health crises. Trained counselors understand unique challenges facing youth today.",
-      contact: "988 (Press 1 for Youth)",
-      website: "https://988lifeline.org",
-      urgent: true,
-      details: "Specialized for under 25 • LGBTQ+ affirming • Confidential support",
-      color: "#ea580c"
-    },
-    {
-      id: 10,
-      category: "youth",
-      title: "The Trevor Project",
-      description: "Leading national organization providing crisis intervention and suicide prevention services to LGBTQ+ young people under 25.",
-      contact: "1-866-488-7386",
-      website: "https://thetrevorproject.org",
-      urgent: true,
-      details: "LGBTQ+ focused • Text START to 678678 • Online chat available",
-      color: "#f59e0b"
-    },
-    {
-      id: 11,
-      category: "specialized",
-      title: "SAMHSA National Helpline",
-      description: "Free, confidential treatment referral service for mental health and substance use disorders. Provides information and referrals to local treatment facilities.",
-      contact: "1-800-662-4357",
-      website: "https://samhsa.gov",
-      details: "24/7 treatment referrals • Multiple languages • Insurance guidance",
-      color: "#16a34a"
-    },
-    {
-      id: 12,
-      category: "specialized",
-      title: "National Eating Disorders Association",
-      description: "Support and resources for eating disorders including anorexia, bulimia, and binge eating. Offers screening tools, treatment locators, and support groups.",
-      contact: "1-800-931-2237",
-      website: "https://nationaleatingdisorders.org",
-      details: "Specialized eating disorder support • Treatment locator • Family resources",
-      color: "#db2777"
+      category: 'support',
+      title: 'National Alliance on Mental Illness (NAMI)',
+      shortTitle: 'NAMI Support Groups',
+      description: 'Largest grassroots mental health organization providing education, support groups, and advocacy.',
+      contact: '1-800-950-6264',
+      website: 'https://nami.org',
+      emoji: '🤝',
+      bgColor: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+      placeholder: '🤝',
+      article: {
+        title: 'NAMI: Community Support and Mental Health Advocacy',
+        sections: [
+          {
+            heading: 'What is NAMI?',
+            content: 'The National Alliance on Mental Illness (NAMI) is the nation largest grassroots mental health organization dedicated to building better lives for the millions of Americans affected by mental illness.'
+          },
+          {
+            heading: 'Support Groups and Educational Programs',
+            content: 'NAMI offers various free support groups including NAMI Connection (peer-to-peer support for adults), NAMI Family Support Groups (for family members and caregivers), and educational programs.'
+          },
+          {
+            heading: 'Finding Local Support and Getting Involved',
+            content: '💡 Use NAMI website to find local chapters and support groups in your area. Most support groups meet weekly or bi-weekly and are facilitated by trained volunteers.'
+          }
+        ]
+      }
     }
   ];
 
-  const categories = [
-    { id: "all", name: "All Resources", icon: "💙", color: "#667eea" },
-    { id: "crisis", name: "Crisis Support", icon: "🆘", color: "#ef4444" },
-    { id: "professional", name: "Professional Help", icon: "👩‍⚕️", color: "#10b981" },
-    { id: "support", name: "Support Groups", icon: "🤝", color: "#8b5cf6" },
-    { id: "youth", name: "Youth Support", icon: "🌟", color: "#f59e0b" },
-    { id: "specialized", name: "Specialized Care", icon: "🎯", color: "#06b6d4" }
-  ];
-
-  const filteredResources = resources.filter(resource => {
-    const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || resource.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
   const handleCall = (contact) => {
-    if (contact.includes("Text")) {
-      const parts = contact.split(" to ");
+    if (contact.includes('Text')) {
+      const parts = contact.split(' to ');
       if (parts.length === 2) {
-        window.open(`sms:${parts[1]}?body=${parts[0]}`, "_self");
+        const phoneNumber = parts[1];
+        const message = parts[0];
+        window.open('sms:' + phoneNumber + '?body=' + message, '_self');
+        showNotification('Opening text message...', 'success');
       }
     } else {
-      window.open(`tel:${contact.replace(/\D/g, "")}`, "_self");
+      const cleanNumber = contact.replace(/[^0-9]/g, '');
+      window.open('tel:' + cleanNumber, '_self');
+      showNotification('Calling ' + contact + '...', 'success');
     }
   };
 
-  return (
-    <>
-      
-      <div style={{ 
-        padding: "2rem", 
-        maxWidth: "1200px", 
-        margin: "0 auto", 
-        minHeight: "100vh", 
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-      }}>
-        
-        {/* Cute Header */}
-        <div style={{
-          background: "rgba(255, 255, 255, 0.95)",
-          borderRadius: "30px",
-          padding: "3rem",
-          marginBottom: "3rem",
-          textAlign: "center",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.1)",
-          backdropFilter: "blur(20px)"
-        }}>
-          <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>💙</div>
-          <h1 style={{
-            fontSize: "3rem",
-            marginBottom: "1rem",
-            background: "linear-gradient(135deg, #667eea, #764ba2)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            fontWeight: "800"
-          }}>
-            Mental Health Resources
-          </h1>
-          <p style={{
-            fontSize: "1.3rem",
-            color: "#64748b",
-            margin: 0,
-            lineHeight: "1.6"
-          }}>
-            🌟 Professional support and caring communities for your mental wellness journey 🌟
-          </p>
-        </div>
+  const handleWebsite = (website) => {
+    window.open(website, '_blank');
+    showNotification('Opening website...', 'success');
+  };
 
-        {/* Cute Search Bar */}
-        <div style={{ 
-          marginBottom: "3rem", 
-          textAlign: "center",
-          background: "rgba(255, 255, 255, 0.9)",
-          borderRadius: "25px",
-          padding: "2rem",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
-        }}>
-          <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>🔍</div>
-          <input
-            type="text"
-            placeholder="✨ Search for mental health resources..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: "100%",
-              maxWidth: "600px",
-              padding: "1.2rem 2rem",
-              border: "3px solid #667eea",
-              borderRadius: "30px",
-              fontSize: "1.1rem",
-              outline: "none",
-              boxShadow: "0 8px 25px rgba(102, 126, 234, 0.2)",
-              transition: "all 0.3s ease"
-            }}
-          />
-        </div>
+  const openArticle = (resource) => {
+    setSelectedArticle(resource);
+    setSidebarOpen(false);
+  };
 
-        {/* Cute Category Buttons */}
-        <div style={{ 
-          display: "flex", 
-          gap: "1rem", 
-          marginBottom: "3rem", 
-          flexWrap: "wrap", 
-          justifyContent: "center",
-          background: "rgba(255, 255, 255, 0.9)",
-          borderRadius: "25px",
-          padding: "2rem",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
-        }}>
-          {categories.map(category => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
-              style={{
-                padding: "1rem 2rem",
-                background: selectedCategory === category.id 
-                  ? `linear-gradient(135deg, ${category.color}, ${category.color}dd)` 
-                  : "white",
-                color: selectedCategory === category.id ? "white" : category.color,
-                border: `3px solid ${category.color}`,
-                borderRadius: "30px",
-                cursor: "pointer",
-                fontWeight: "700",
-                fontSize: "1rem",
-                transition: "all 0.3s ease",
-                boxShadow: selectedCategory === category.id 
-                  ? `0 8px 25px ${category.color}40` 
-                  : "0 4px 15px rgba(0,0,0,0.1)",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}
-              onMouseOver={(e) => {
-                if (selectedCategory !== category.id) {
-                  e.currentTarget.style.transform = "translateY(-3px) scale(1.05)";
-                  e.currentTarget.style.boxShadow = `0 8px 25px ${category.color}30`;
-                }
-              }}
-              onMouseOut={(e) => {
-                if (selectedCategory !== category.id) {
-                  e.currentTarget.style.transform = "translateY(0) scale(1)";
-                  e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.1)";
-                }
-              }}
-            >
-              <span style={{ fontSize: "1.2rem" }}>{category.icon}</span>
-              <span>{category.name}</span>
-            </button>
-          ))}
-        </div>
+  const closeArticle = () => {
+    setSelectedArticle(null);
+  };
 
-        {/* Emergency Section */}
-        {filteredResources.some(r => r.urgent) && (
-          <div style={{ marginBottom: "3rem" }}>
-            <div style={{
-              background: "linear-gradient(135deg, #ef4444, #dc2626)",
-              borderRadius: "30px",
-              padding: "2.5rem",
-              textAlign: "center",
-              color: "white",
-              boxShadow: "0 15px 40px rgba(239, 68, 68, 0.3)",
-              marginBottom: "2rem"
-            }}>
-              <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🚨</div>
-              <h2 style={{
-                fontSize: "2.5rem",
-                marginBottom: "1rem",
-                fontWeight: "800"
-              }}>
-                Emergency Support Available 24/7
-              </h2>
-              <p style={{
-                fontSize: "1.3rem",
-                opacity: 0.95,
-                margin: 0,
-                lineHeight: "1.6"
-              }}>
-                💝 If you're in crisis, help is available right now. You are not alone. 💝
-              </p>
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % resources.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + resources.length) % resources.length);
+  };
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+  };
+
+  // Touch handlers for swipe
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    }
+    if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
+  if (selectedArticle) {
+    return (
+      <div className="article-view">
+        {notification && (
+          <div className={'resources-notification ' + notification.type}>
+            <div className="notification-content">
+              <span className="notification-icon">
+                {notification.type === 'success' ? '✅' : '⚠️'}
+              </span>
+              <span className="notification-message">{notification.message}</span>
+            </div>
+            <button className="notification-close" onClick={() => setNotification(null)}>×</button>
+          </div>
+        )}
+
+        <div className="resources-layout">
+          {/* Mobile Hamburger */}
+          {isMobile && (
+            <div className="mobile-header">
+              <button className="hamburger-btn" onClick={toggleSidebar}>
+                <span className="hamburger-line"></span>
+                <span className="hamburger-line"></span>
+                <span className="hamburger-line"></span>
+              </button>
+              <h3>📚 Resources</h3>
+              <button className="close-article-mobile" onClick={closeArticle}>×</button>
+            </div>
+          )}
+
+          {/* Sidebar Navigation */}
+          <div className={'sidebar-navigation ' + (isMobile ? (sidebarOpen ? 'mobile-open' : 'mobile-closed') : '')}>
+            <div className="sidebar-header">
+              <h3>📚 Mental Health Resources</h3>
+              {!isMobile && (
+                <button className="close-btn" onClick={closeArticle}>
+                  ← Back
+                </button>
+              )}
             </div>
             
-            <div style={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", 
-              gap: "2rem" 
-            }}>
-              {filteredResources.filter(r => r.urgent).map(resource => (
-                <div key={resource.id} style={{
-                  background: "rgba(255, 255, 255, 0.95)",
-                  border: `4px solid ${resource.color}`,
-                  borderRadius: "25px",
-                  padding: "2.5rem",
-                  boxShadow: `0 15px 40px ${resource.color}30`,
-                  transition: "all 0.3s ease",
-                  position: "relative",
-                  overflow: "hidden"
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
-                  e.currentTarget.style.boxShadow = `0 20px 50px ${resource.color}40`;
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = "translateY(0) scale(1)";
-                  e.currentTarget.style.boxShadow = `0 15px 40px ${resource.color}30`;
-                }}>
-                  
-                  <div style={{
-                    position: "absolute",
-                    top: "1rem",
-                    right: "1rem",
-                    background: resource.color,
-                    color: "white",
-                    padding: "0.5rem 1rem",
-                    borderRadius: "20px",
-                    fontSize: "0.9rem",
-                    fontWeight: "700"
-                  }}>
-                    🚨 24/7 SUPPORT
-                  </div>
-
-                  <h3 style={{
-                    color: resource.color,
-                    marginBottom: "1.5rem",
-                    fontSize: "1.6rem",
-                    fontWeight: "800",
-                    lineHeight: "1.3"
-                  }}>
-                    {resource.title}
-                  </h3>
-                  
-                  <p style={{
-                    marginBottom: "1.5rem",
-                    color: "#374151",
-                    lineHeight: "1.7",
-                    fontSize: "1.1rem"
-                  }}>
-                    {resource.description}
-                  </p>
-
-                  <div style={{
-                    background: `${resource.color}15`,
-                    padding: "1rem",
-                    borderRadius: "15px",
-                    marginBottom: "2rem",
-                    borderLeft: `4px solid ${resource.color}`
-                  }}>
-                    <p style={{
-                      color: "#64748b",
-                      fontSize: "0.95rem",
-                      margin: 0,
-                      fontWeight: "500"
-                    }}>
-                      💡 {resource.details}
-                    </p>
-                  </div>
-
-                  <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                    {resource.contact && (
-                      <button
-                        onClick={() => handleCall(resource.contact)}
-                        style={{
-                          background: `linear-gradient(135deg, ${resource.color}, ${resource.color}dd)`,
-                          color: "white",
-                          border: "none",
-                          padding: "1.2rem 2rem",
-                          borderRadius: "20px",
-                          cursor: "pointer",
-                          fontWeight: "700",
-                          fontSize: "1.1rem",
-                          flex: 1,
-                          minWidth: "200px",
-                          transition: "all 0.3s ease",
-                          boxShadow: `0 8px 25px ${resource.color}40`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "0.5rem"
-                        }}
-                        onMouseOver={(e) => {
-                          e.currentTarget.style.transform = "translateY(-3px)";
-                          e.currentTarget.style.boxShadow = `0 12px 35px ${resource.color}50`;
-                        }}
-                        onMouseOut={(e) => {
-                          e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.boxShadow = `0 8px 25px ${resource.color}40`;
-                        }}
-                      >
-                        {resource.contact.includes("Text") ? "💬" : "📞"} {resource.contact}
-                      </button>
-                    )}
-                    {resource.website && (
-                      <button
-                        onClick={() => window.open(resource.website, "_blank")}
-                        style={{
-                          background: "white",
-                          color: resource.color,
-                          border: `3px solid ${resource.color}`,
-                          padding: "1.2rem 2rem",
-                          borderRadius: "20px",
-                          cursor: "pointer",
-                          fontWeight: "700",
-                          fontSize: "1.1rem",
-                          transition: "all 0.3s ease",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "0.5rem"
-                        }}
-                        onMouseOver={(e) => {
-                          e.currentTarget.style.background = resource.color;
-                          e.currentTarget.style.color = "white";
-                          e.currentTarget.style.transform = "translateY(-3px)";
-                        }}
-                        onMouseOut={(e) => {
-                          e.currentTarget.style.background = "white";
-                          e.currentTarget.style.color = resource.color;
-                          e.currentTarget.style.transform = "translateY(0)";
-                        }}
-                      >
-                        🌐 Visit Website
-                      </button>
-                    )}
-                  </div>
+            <div className="sidebar-articles">
+              {resources.map(resource => (
+                <div
+                  key={resource.id}
+                  className={'sidebar-item ' + (selectedArticle.id === resource.id ? 'active' : '')}
+                  onClick={() => openArticle(resource)}
+                >
+                  <span className="sidebar-emoji">{resource.emoji}</span>
+                  <span className="sidebar-title">{resource.shortTitle}</span>
+                  {resource.urgent && <span className="sidebar-urgent">🚨</span>}
                 </div>
               ))}
             </div>
           </div>
-        )}
 
-        {/* Regular Resources */}
-        <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", 
-          gap: "2rem" 
-        }}>
-          {filteredResources.filter(r => !r.urgent).map(resource => (
-            <div key={resource.id} style={{
-              background: "rgba(255, 255, 255, 0.95)",
-              border: `3px solid ${resource.color}`,
-              borderRadius: "25px",
-              padding: "2.5rem",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-              transition: "all 0.3s ease",
-              backdropFilter: "blur(10px)"
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-5px)";
-              e.currentTarget.style.boxShadow = `0 15px 40px ${resource.color}30`;
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
-            }}>
-              
-              <h3 style={{
-                color: resource.color,
-                marginBottom: "1.5rem",
-                fontSize: "1.5rem",
-                fontWeight: "800",
-                lineHeight: "1.3"
-              }}>
-                {resource.title}
-              </h3>
-              
-              <p style={{
-                marginBottom: "1.5rem",
-                color: "#374151",
-                lineHeight: "1.7",
-                fontSize: "1.05rem"
-              }}>
-                {resource.description}
-              </p>
+          {/* Sidebar Overlay for Mobile */}
+          {isMobile && sidebarOpen && (
+            <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
+          )}
 
-              <div style={{
-                background: `${resource.color}15`,
-                padding: "1rem",
-                borderRadius: "15px",
-                marginBottom: "1.5rem",
-                borderLeft: `4px solid ${resource.color}`
-              }}>
-                <p style={{
-                  color: "#64748b",
-                  fontSize: "0.95rem",
-                  margin: 0,
-                  fontWeight: "500"
-                }}>
-                  💡 {resource.details}
-                </p>
-              </div>
-
-              {resource.cost && (
-                <div style={{
-                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
-                  color: "white",
-                  padding: "0.75rem 1.5rem",
-                  borderRadius: "20px",
-                  fontSize: "1rem",
-                  display: "inline-block",
-                  marginBottom: "2rem",
-                  fontWeight: "700",
-                  boxShadow: "0 4px 15px rgba(245, 158, 11, 0.3)"
-                }}>
-                  💰 {resource.cost}
-                </div>
-              )}
-
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                {resource.contact && (
-                  <button
-                    onClick={() => handleCall(resource.contact)}
-                    style={{
-                      background: `linear-gradient(135deg, ${resource.color}, ${resource.color}dd)`,
-                      color: "white",
-                      border: "none",
-                      padding: "1.2rem 2rem",
-                      borderRadius: "20px",
-                      cursor: "pointer",
-                      fontWeight: "700",
-                      fontSize: "1rem",
-                      flex: 1,
-                      transition: "all 0.3s ease",
-                      boxShadow: `0 6px 20px ${resource.color}40`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "0.5rem"
-                    }}
-                  >
-                    📞 {resource.contact}
-                  </button>
-                )}
-                {resource.website && (
-                  <button
-                    onClick={() => window.open(resource.website, "_blank")}
-                    style={{
-                      background: resource.contact ? "white" : `linear-gradient(135deg, ${resource.color}, ${resource.color}dd)`,
-                      color: resource.contact ? resource.color : "white",
-                      border: resource.contact ? `3px solid ${resource.color}` : "none",
-                      padding: "1.2rem 2rem",
-                      borderRadius: "20px",
-                      cursor: "pointer",
-                      fontWeight: "700",
-                      fontSize: "1rem",
-                      flex: resource.contact ? "none" : 1,
-                      width: resource.contact ? "auto" : "100%",
-                      transition: "all 0.3s ease",
-                      boxShadow: `0 6px 20px ${resource.color}40`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "0.5rem"
-                    }}
-                  >
-                    🌐 Visit Website
-                  </button>
+          {/* Article Content */}
+          <div className="article-main">
+            <div className="article-header" style={{ background: selectedArticle.bgColor }}>
+              <div className="article-icon">{selectedArticle.emoji}</div>
+              <div className="article-title-section">
+                <h1>{selectedArticle.article.title}</h1>
+                {selectedArticle.urgent && (
+                  <div className="urgent-banner">🚨 Emergency Support Available 24/7</div>
                 )}
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* Cute No Results */}
-        {filteredResources.length === 0 && (
-          <div style={{ 
-            textAlign: "center", 
-            padding: "4rem",
-            background: "rgba(255, 255, 255, 0.9)",
-            borderRadius: "30px",
-            boxShadow: "0 15px 40px rgba(0,0,0,0.1)"
-          }}>
-            <div style={{ fontSize: "6rem", marginBottom: "2rem" }}>🔍</div>
-            <h3 style={{ 
-              fontSize: "2.5rem", 
-              marginBottom: "1rem", 
-              color: "#667eea",
-              fontWeight: "800"
-            }}>
-              No resources found
-            </h3>
-            <p style={{ 
-              fontSize: "1.3rem", 
-              color: "#64748b",
-              lineHeight: "1.6"
-            }}>
-              💭 Try adjusting your search or filter criteria to find what you need
-            </p>
+            <div className="article-actions">
+              {selectedArticle.contact && (
+                <button
+                  onClick={() => handleCall(selectedArticle.contact)}
+                  className="article-action-btn primary"
+                  style={{ background: selectedArticle.bgColor }}
+                >
+                  <span className="btn-icon">
+                    {selectedArticle.contact.includes('Text') ? '💬' : '📞'}
+                  </span>
+                  <span>{selectedArticle.contact}</span>
+                </button>
+              )}
+              {selectedArticle.website && (
+                <button
+                  onClick={() => handleWebsite(selectedArticle.website)}
+                  className="article-action-btn secondary"
+                >
+                  <span className="btn-icon">🌐</span>
+                  <span>Visit Website</span>
+                </button>
+              )}
+            </div>
+
+            <div className="article-body">
+              {selectedArticle.article.sections.map((section, index) => (
+                <div key={index} className="article-section">
+                  <h2>{section.heading}</h2>
+                  <p>{section.content}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="resources-main">
+      {notification && (
+        <div className={'resources-notification ' + notification.type}>
+          <div className="notification-content">
+            <span className="notification-icon">
+              {notification.type === 'success' ? '✅' : '⚠️'}
+            </span>
+            <span className="notification-message">{notification.message}</span>
+          </div>
+          <button className="notification-close" onClick={() => setNotification(null)}>×</button>
+        </div>
+      )}
+
+      <div className="resources-layout">
+        {/* Mobile Hamburger */}
+        {isMobile && (
+          <div className="mobile-header">
+            <button className="hamburger-btn" onClick={toggleSidebar}>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+            </button>
+            <h3>📚 Mental Health Resources</h3>
+            <div></div>
           </div>
         )}
 
-        {/* Cute Footer */}
-        <div style={{
-          background: "rgba(255, 255, 255, 0.9)",
-          borderRadius: "25px",
-          padding: "2rem",
-          marginTop: "3rem",
-          textAlign: "center",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
-        }}>
-          <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>💙</div>
-          <p style={{
-            color: "#64748b",
-            fontSize: "1.1rem",
-            margin: 0,
-            lineHeight: "1.6"
-          }}>
-            🌟 Remember: Seeking help is a sign of strength, not weakness. You deserve support and care. 🌟
-          </p>
+        {/* Sidebar Navigation */}
+        <div className={'sidebar-navigation ' + (isMobile ? (sidebarOpen ? 'mobile-open' : 'mobile-closed') : '')}>
+          <div className="sidebar-header">
+            <h3>📚 Mental Health Resources</h3>
+            <p>Professional support and caring communities</p>
+          </div>
+          
+          <div className="sidebar-articles">
+            {resources.map(resource => (
+              <div
+                key={resource.id}
+                className="sidebar-item"
+                onClick={() => openArticle(resource)}
+              >
+                <span className="sidebar-emoji">{resource.emoji}</span>
+                <span className="sidebar-title">{resource.shortTitle}</span>
+                {resource.urgent && <span className="sidebar-urgent">🚨</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Sidebar Overlay for Mobile */}
+        {isMobile && sidebarOpen && (
+          <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
+        )}
+
+        {/* Article Squares - Mobile Slider, Desktop Grid */}
+        <div className="article-squares">
+          {isMobile ? (
+            <div className="mobile-slider">
+              <div 
+                className="slider-container"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
+                <div 
+                  className="slider-track"
+                  style={{ transform: 'translateX(-' + (currentSlide * 100) + '%)' }}
+                >
+                  {resources.map((resource, index) => (
+                    <div
+                      key={resource.id}
+                      className="slider-slide"
+                      onClick={() => openArticle(resource)}
+                    >
+                      <div
+                        className="article-square mobile-square"
+                        style={{ background: resource.bgColor }}
+                      >
+                        <div className="square-content">
+                          <div className="square-emoji">{resource.placeholder}</div>
+                          <h4>{resource.shortTitle}</h4>
+                          <p>{resource.description.substring(0, 80)}...</p>
+                          {resource.urgent && <div className="square-urgent">🚨 URGENT</div>}
+                        </div>
+                        <div className="square-overlay">
+                          <span className="read-text">Read Article</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Navigation Arrows */}
+              <button className="slider-btn prev-btn" onClick={prevSlide}>
+                ‹
+              </button>
+              <button className="slider-btn next-btn" onClick={nextSlide}>
+                ›
+              </button>
+
+              {/* Dots Navigation */}
+              <div className="slider-dots">
+                {resources.map((_, index) => (
+                  <button
+                    key={index}
+                    className={'dot ' + (index === currentSlide ? 'active' : '')}
+                    onClick={() => goToSlide(index)}
+                  ></button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            // Desktop Grid
+            resources.map(resource => (
+              <div
+                key={resource.id}
+                className="article-square"
+                onClick={() => openArticle(resource)}
+                style={{ background: resource.bgColor }}
+              >
+                <div className="square-content">
+                  <div className="square-emoji">{resource.placeholder}</div>
+                  <h4>{resource.shortTitle}</h4>
+                  <p>{resource.description.substring(0, 60)}...</p>
+                  {resource.urgent && <div className="square-urgent">🚨 URGENT</div>}
+                </div>
+                <div className="square-overlay">
+                  <span className="read-text">Read Article</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
 export default Resources;
-

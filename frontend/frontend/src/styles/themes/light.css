@@ -1,0 +1,16 @@
+﻿/* LIGHT THEME */
+[data-theme="light"] {
+  --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-secondary: rgba(255, 255, 255, 0.95);
+  --bg-card: rgba(255, 255, 255, 0.1);
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-on-gradient: #ffffff;
+  --border-color: rgba(255, 255, 255, 0.2);
+  --shadow-color: rgba(102, 126, 234, 0.15);
+}
+
+[data-theme="light"] body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}

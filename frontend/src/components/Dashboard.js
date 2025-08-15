@@ -1,8 +1,10 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalJournalEntries: 0,
     totalBreathingSessions: 0,
@@ -12,92 +14,67 @@ const Dashboard = () => {
     favoriteExercise: null
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
-  // Fetch user's personal stats
+  const handleJournalClick = () => {
+    navigate('/journal');
+  };
+
+  const handleBreathingClick = () => {
+    navigate('/breathing');
+  };
+
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
+  const handleSignupClick = () => {
+    navigate('/register');
+  };
+
   const fetchUserStats = async () => {
     try {
       if (!token) return;
 
       setLoading(true);
+      setError(null);
 
-      // Fetch journal entries
-      const journalResponse = await fetch(`${API_BASE}/api/journal`, {
+      console.log('Fetching personal stats from API:', API_BASE);
+
+      const response = await fetch(API_BASE + '/api/dashboard/personal-stats', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Fetch breathing sessions
-      const breathingResponse = await fetch(`${API_BASE}/api/breathing`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const journalData = await journalResponse.json();
-      const breathingData = await breathingResponse.json();
-
-      if (journalData.success && breathingData.success) {
-        const entries = journalData.data || [];
-        const sessions = breathingData.data || [];
-
-        // Calculate stats
-        const recentEntries = entries.slice(0, 3);
-        const recentSessions = sessions.slice(0, 3);
-        
-        // Find favorite breathing exercise
-        const exerciseCounts = {};
-        sessions.forEach(session => {
-          exerciseCounts[session.type] = (exerciseCounts[session.type] || 0) + 1;
-        });
-        const favoriteExercise = Object.keys(exerciseCounts).reduce((a, b) => 
-          exerciseCounts[a] > exerciseCounts[b] ? a : b, null
-        );
-
-        // Calculate streak (days with activity)
-        const today = new Date();
-        let streak = 0;
-        for (let i = 0; i < 30; i++) {
-          const checkDate = new Date(today);
-          checkDate.setDate(today.getDate() - i);
-          const dayStart = new Date(checkDate);
-          dayStart.setHours(0, 0, 0, 0);
-          const dayEnd = new Date(checkDate);
-          dayEnd.setHours(23, 59, 59, 999);
-
-          const hasActivity = entries.some(entry => {
-            const entryDate = new Date(entry.createdAt);
-            return entryDate >= dayStart && entryDate <= dayEnd;
-          }) || sessions.some(session => {
-            const sessionDate = new Date(session.createdAt);
-            return sessionDate >= dayStart && sessionDate <= dayEnd;
-          });
-
-          if (hasActivity) {
-            if (i === 0 || streak === i) streak++;
-            else break;
-          } else if (i === 0) {
-            break;
-          }
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
         }
+      });
 
+      console.log('API Response status:', response.status);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch personal stats: ' + response.status);
+      }
+
+      const data = await response.json();
+      console.log('Personal stats data:', data);
+
+      if (data.success && data.data) {
         setStats({
-          totalJournalEntries: entries.length,
-          totalBreathingSessions: sessions.length,
-          recentEntries,
-          recentSessions,
-          currentStreak: streak,
-          favoriteExercise
+          totalJournalEntries: data.data.totalJournalEntries || 0,
+          totalBreathingSessions: data.data.totalBreathingSessions || 0,
+          recentEntries: data.data.recentEntries || [],
+          recentSessions: data.data.recentSessions || [],
+          currentStreak: data.data.currentStreak || 0,
+          favoriteExercise: data.data.favoriteExercise || null
         });
+      } else {
+        setError('Invalid personal stats data received');
       }
     } catch (error) {
-      console.error('Error fetching user stats:', error);
+      console.error('Error fetching personal stats:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -106,9 +83,19 @@ const Dashboard = () => {
   useEffect(() => {
     if (user && token) {
       fetchUserStats();
-      // Auto-refresh every 30 seconds
       const interval = setInterval(fetchUserStats, 30000);
-      return () => clearInterval(interval);
+      
+      // Listen for journal updates
+      const handleJournalUpdate = () => {
+        fetchUserStats();
+      };
+      
+      window.addEventListener('journalUpdated', handleJournalUpdate);
+      
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('journalUpdated', handleJournalUpdate);
+      };
     }
   }, [user, token]);
 
@@ -137,8 +124,8 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="auth-buttons">
-              <button className="login-btn">Sign In</button>
-              <button className="signup-btn">Create Account</button>
+              <button className="login-btn" onClick={handleLoginClick}>Sign In</button>
+              <button className="signup-btn" onClick={handleSignupClick}>Create Account</button>
             </div>
           </div>
         </div>
@@ -157,9 +144,24 @@ const Dashboard = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="user-dashboard">
+        <div className="loading-container">
+          <div style={{ color: 'red', textAlign: 'center' }}>
+            <h3>Error Loading Data</h3>
+            <p>{error}</p>
+            <button onClick={fetchUserStats} style={{ padding: '10px 20px', marginTop: '10px' }}>
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="user-dashboard">
-      {/* Welcome Header */}
       <div className="dashboard-header">
         <div className="welcome-message">
           <h1>Welcome back, {user.firstName}! 👋</h1>
@@ -171,7 +173,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Quick Stats */}
       <div className="stats-grid">
         <div className="stat-card journal-stat">
           <div className="stat-icon">📝</div>
@@ -212,14 +213,13 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Recent Activity */}
       <div className="activity-section">
         <div className="recent-journals">
-          <h2>Recent Journal Entries</h2>
+          <h2>📖 Recent Journal Entries</h2>
           {stats.recentEntries.length === 0 ? (
             <div className="empty-state">
               <p>No journal entries yet</p>
-              <button className="cta-btn">Write Your First Entry</button>
+              <button className="cta-btn" onClick={handleJournalClick}>Write Your First Entry</button>
             </div>
           ) : (
             <div className="activity-list">
@@ -246,11 +246,11 @@ const Dashboard = () => {
         </div>
 
         <div className="recent-breathing">
-          <h2>Recent Breathing Sessions</h2>
+          <h2>🧘‍♀️ Recent Breathing Sessions</h2>
           {stats.recentSessions.length === 0 ? (
             <div className="empty-state">
               <p>No breathing sessions yet</p>
-              <button className="cta-btn">Start Your First Session</button>
+              <button className="cta-btn" onClick={handleBreathingClick}>Start Your First Session</button>
             </div>
           ) : (
             <div className="activity-list">
@@ -273,7 +273,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="quick-actions">
         <h2>Continue Your Journey</h2>
         <div className="actions-grid">
@@ -281,14 +280,14 @@ const Dashboard = () => {
             <div className="action-icon">📝</div>
             <h3>Write in Journal</h3>
             <p>Express your thoughts and feelings</p>
-            <button className="action-btn">Start Writing</button>
+            <button className="action-btn" onClick={handleJournalClick}>Start Writing</button>
           </div>
-          
+
           <div className="action-card breathing-action">
             <div className="action-icon">🧘‍♀️</div>
             <h3>Breathing Exercise</h3>
             <p>Find calm with guided breathing</p>
-            <button className="action-btn">Start Breathing</button>
+            <button className="action-btn" onClick={handleBreathingClick}>Start Breathing</button>
           </div>
         </div>
       </div>

@@ -1,1358 +1,204 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Settings = () => {
-  const { user, logout, updateUser } = useAuth();
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [activeTab, setActiveTab] = useState('profile');
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-
-  // Profile settings
-  const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    bio: user?.bio || '',
-    phone: user?.phone || '',
-    location: user?.location || ''
-  });
-
-  // Security settings
-  const [securityData, setSecurityData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-    twoFactorEnabled: user?.twoFactorEnabled || false
-  });
-
-  // Notification settings
-  const [notificationData, setNotificationData] = useState({
-    emailNotifications: user?.preferences?.emailNotifications ?? true,
-    pushNotifications: user?.preferences?.pushNotifications ?? true,
-    journalReminders: user?.preferences?.journalReminders ?? true,
-    breathingReminders: user?.preferences?.breathingReminders ?? true,
-    weeklyReports: user?.preferences?.weeklyReports ?? true,
-    motivationalQuotes: user?.preferences?.motivationalQuotes ?? true,
-    reminderTime: user?.preferences?.reminderTime || '19:00'
-  });
-
-  // Appearance settings
-  const [appearanceData, setAppearanceData] = useState({
-    theme: user?.preferences?.theme || 'light',
-    colorScheme: user?.preferences?.colorScheme || 'blue',
-    fontSize: user?.preferences?.fontSize || 'medium',
-    animations: user?.preferences?.animations ?? true,
-    compactMode: user?.preferences?.compactMode ?? false
-  });
-
-  // Privacy settings
-  const [privacyData, setPrivacyData] = useState({
-    profileVisibility: user?.preferences?.profileVisibility || 'private',
-    dataSharing: user?.preferences?.dataSharing ?? false,
-    analyticsOptIn: user?.preferences?.analyticsOptIn ?? true,
-    locationTracking: user?.preferences?.locationTracking ?? false
+  const [settings, setSettings] = useState({
+    fontSize: 'medium',
+    colorScheme: 'purple'
   });
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    loadSettings();
   }, []);
 
-  const tabs = [
-    { id: 'profile', name: 'Profile', icon: '👤', color: '#667eea' },
-    { id: 'security', name: 'Security', icon: '🔐', color: '#ef4444' },
-    { id: 'notifications', name: 'Notifications', icon: '🔔', color: '#f59e0b' },
-    { id: 'appearance', name: 'Appearance', icon: '🎨', color: '#8b5cf6' },
-    { id: 'privacy', name: 'Data & Privacy', icon: '🛡️', color: '#10b981' }
-  ];
-
-  const showMessage = (msg, type = 'success') => {
-    setMessage(`${type === 'success' ? '✅' : '❌'} ${msg}`);
-    setTimeout(() => setMessage(''), 3000);
-  };
-
-  const saveToDatabase = async (data, endpoint) => {
+  const loadSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/user/${endpoint}`, {
-        method: 'PUT',
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com'}/api/users/settings`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+        }
       });
 
       if (response.ok) {
-        const updatedUser = await response.json();
-        if (updateUser) updateUser(updatedUser);
-        return true;
+        const data = await response.json();
+        setSettings(data.settings);
+        applySettings(data.settings);
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+    }
+  };
+
+  const applySettings = (settingsData) => {
+    document.documentElement.style.setProperty('--font-size-multiplier', 
+      settingsData.fontSize === 'small' ? '0.9' : 
+      settingsData.fontSize === 'large' ? '1.1' : '1.0'
+    );
+    document.documentElement.setAttribute('data-color-scheme', settingsData.colorScheme);
+  };
+
+  const handleSettingsChange = async (key, value) => {
+    const newSettings = { ...settings, [key]: value };
+    setSettings(newSettings);
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com'}/api/users/settings`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newSettings)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessage('? Settings saved!');
+        applySettings(data.settings);
+        setTimeout(() => setMessage(''), 2000);
       } else {
-        const existingData = JSON.parse(localStorage.getItem('userSettings') || '{}');
-        localStorage.setItem('userSettings', JSON.stringify({ ...existingData, [endpoint]: data }));
-        return true;
+        throw new Error('Failed to save settings');
       }
     } catch (error) {
-      console.error('Error saving settings:', error);
-      const existingData = JSON.parse(localStorage.getItem('userSettings') || '{}');
-      localStorage.setItem('userSettings', JSON.stringify({ ...existingData, [endpoint]: data }));
-      return true;
-    }
-  };
-
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const success = await saveToDatabase(profileData, 'profile');
-      if (success) {
-        showMessage('Profile updated successfully!');
-      } else {
-        throw new Error('Failed to save');
-      }
-    } catch (error) {
-      showMessage('Failed to update profile', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSecurityUpdate = async (e) => {
-    e.preventDefault();
-    if (securityData.newPassword !== securityData.confirmPassword) {
-      showMessage('Passwords do not match', 'error');
-      return;
-    }
-    setLoading(true);
-    try {
-      const success = await saveToDatabase({
-        currentPassword: securityData.currentPassword,
-        newPassword: securityData.newPassword,
-        twoFactorEnabled: securityData.twoFactorEnabled
-      }, 'security');
-      if (success) {
-        showMessage('Security settings updated successfully!');
-        setSecurityData({ 
-          currentPassword: '', 
-          newPassword: '', 
-          confirmPassword: '', 
-          twoFactorEnabled: securityData.twoFactorEnabled 
-        });
-      }
-    } catch (error) {
-      showMessage('Failed to update security settings', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleNotificationUpdate = async () => {
-    setLoading(true);
-    try {
-      const success = await saveToDatabase(notificationData, 'notifications');
-      if (success) {
-        showMessage('Notification preferences updated!');
-      }
-    } catch (error) {
-      showMessage('Failed to update notifications', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAppearanceUpdate = async () => {
-    setLoading(true);
-    try {
-      const success = await saveToDatabase(appearanceData, 'appearance');
-      if (success) {
-        showMessage('Appearance settings updated!');
-        document.documentElement.setAttribute('data-theme', appearanceData.theme);
-        document.documentElement.setAttribute('data-color-scheme', appearanceData.colorScheme);
-      }
-    } catch (error) {
-      showMessage('Failed to update appearance', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePrivacyUpdate = async () => {
-    setLoading(true);
-    try {
-      const success = await saveToDatabase(privacyData, 'privacy');
-      if (success) {
-        showMessage('Privacy settings updated!');
-      }
-    } catch (error) {
-      showMessage('Failed to update privacy settings', 'error');
+      setMessage('? Failed to save');
+      console.error('Settings save error:', error);
+      setTimeout(() => setMessage(''), 2000);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      fontFamily: "'Inter', sans-serif"
+    <div style={{ 
+      padding: '15px',
+      background: 'rgba(255, 255, 255, 0.1)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: '15px',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      marginBottom: '20px',
+      maxWidth: '500px'
     }}>
-      <div style={{ padding: isMobile ? '1rem' : '2rem' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          
-          {/* Beautiful Header */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            borderRadius: '25px',
-            padding: isMobile ? '2rem' : '3rem',
-            marginBottom: '2rem',
-            boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
-            backdropFilter: 'blur(20px)',
-            textAlign: 'center',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
-              borderRadius: '20px',
-              padding: '1.5rem',
-              display: 'inline-block',
-              marginBottom: '1.5rem',
-              boxShadow: '0 15px 40px rgba(102, 126, 234, 0.3)'
-            }}>
-              <span style={{ fontSize: '3rem', color: 'white' }}>⚙️</span>
-            </div>
-            <h1 style={{
-              fontSize: isMobile ? '2.5rem' : '3.5rem',
-              fontWeight: '800',
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              margin: '0 0 1rem 0',
-              letterSpacing: '-0.02em'
-            }}>
-              Settings
-            </h1>
-            <p style={{
-              color: '#6b7280',
-              fontSize: '1.2rem',
-              margin: 0,
-              lineHeight: '1.6'
-            }}>
-              Customize your MindfulMe experience to perfectly match your needs ✨
-            </p>
-          </div>
+      <h2 style={{ 
+        margin: '0 0 15px 0',
+        color: 'white',
+        fontSize: '1.3em',
+        fontWeight: '600'
+      }}>
+        ?? Settings
+      </h2>
 
-          {/* Success/Error Message */}
-          {message && (
-            <div style={{
-              background: message.includes('✅') 
-                ? 'linear-gradient(135deg, #10b981, #059669)' 
-                : 'linear-gradient(135deg, #ef4444, #dc2626)',
-              color: 'white',
-              padding: '1rem 1.5rem',
-              borderRadius: '15px',
-              marginBottom: '2rem',
-              textAlign: 'center',
-              fontWeight: '600',
-              boxShadow: message.includes('✅')
-                ? '0 10px 30px rgba(16, 185, 129, 0.3)'
-                : '0 10px 30px rgba(239, 68, 68, 0.3)'
-            }}>
-              {message}
-            </div>
-          )}
+      {message && (
+        <div style={{
+          padding: '6px 10px',
+          marginBottom: '12px',
+          borderRadius: '6px',
+          backgroundColor: message.includes('?') ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+          color: 'white',
+          fontSize: '0.85em',
+          textAlign: 'center'
+        }}>
+          {message}
+        </div>
+      )}
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '320px 1fr',
-            gap: '2rem'
-          }}>
-            
-            {/* Settings Navigation */}
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: '25px',
-              padding: '2rem',
-              boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
-              backdropFilter: 'blur(20px)',
-              height: 'fit-content',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
-            }}>
-              <h3 style={{
-                color: '#1f2937',
-                fontSize: '1.3rem',
-                fontWeight: '700',
-                marginBottom: '1.5rem',
-                textAlign: 'center'
-              }}>
-                Settings Menu
-              </h3>
+      {/* Font Size */}
+      <div style={{ marginBottom: '15px' }}>
+        <label style={{ 
+          display: 'block',
+          color: 'white',
+          marginBottom: '6px',
+          fontSize: '0.9em',
+          fontWeight: '500'
+        }}>
+          ?? Font Size
+        </label>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {['small', 'medium', 'large'].map(size => (
+            <button
+              key={size}
+              onClick={() => handleSettingsChange('fontSize', size)}
+              disabled={loading}
+              style={{
+                padding: '6px 12px',
+                border: 'none',
+                borderRadius: '6px',
+                background: settings.fontSize === size 
+                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  : 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '0.8em',
+                fontWeight: '500',
+                textTransform: 'capitalize',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
+      </div>
 
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    width: '100%',
-                    padding: '1.2rem',
-                    margin: '0 0 0.8rem 0',
-                    background: activeTab === tab.id
-                      ? `linear-gradient(135deg, ${tab.color}, ${tab.color}dd)`
-                      : 'rgba(255, 255, 255, 0.8)',
-                    color: activeTab === tab.id ? 'white' : '#374151',
-                    border: activeTab === tab.id ? 'none' : '2px solid rgba(229, 231, 235, 0.8)',
-                    borderRadius: '15px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    textAlign: 'left',
-                    boxShadow: activeTab === tab.id 
-                      ? `0 10px 30px ${tab.color}40`
-                      : '0 5px 15px rgba(0, 0, 0, 0.05)'
-                  }}
-                  onClick={() => setActiveTab(tab.id)}
-                  onMouseOver={(e) => {
-                    if (activeTab !== tab.id) {
-                      e.target.style.background = 'rgba(229, 231, 235, 0.9)';
-                      e.target.style.transform = 'translateY(-2px)';
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    if (activeTab !== tab.id) {
-                      e.target.style.background = 'rgba(255, 255, 255, 0.8)';
-                      e.target.style.transform = 'translateY(0)';
-                    }
-                  }}
-                >
-                  <span style={{ fontSize: '1.3rem' }}>{tab.icon}</span>
-                  <span>{tab.name}</span>
-                </button>
-              ))}
-            </div>
+      {/* Color Scheme */}
+      <div>
+        <label style={{ 
+          display: 'block',
+          color: 'white',
+          marginBottom: '6px',
+          fontSize: '0.9em',
+          fontWeight: '500'
+        }}>
+          ?? Color Scheme
+        </label>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {[
+            { name: 'purple', color: '#8B5CF6' },
+            { name: 'blue', color: '#3B82F6' },
+            { name: 'green', color: '#10B981' },
+            { name: 'pink', color: '#EC4899' }
+          ].map(scheme => (
+            <button
+              key={scheme.name}
+              onClick={() => handleSettingsChange('colorScheme', scheme.name)}
+              disabled={loading}
+              style={{
+                padding: '6px 12px',
+                border: settings.colorScheme === scheme.name ? '2px solid white' : '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '6px',
+                background: scheme.color,
+                color: 'white',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '0.8em',
+                fontWeight: '500',
+                textTransform: 'capitalize',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {scheme.name}
+            </button>
+          ))}
+        </div>
+      </div>
 
-            {/* Settings Content */}
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: '25px',
-              padding: isMobile ? '2rem' : '2.5rem',
-              boxShadow: '0 25px 80px rgba(102, 126, 234, 0.15)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
-            }}>
-              
-              {/* Profile Settings */}
-              {activeTab === 'profile' && (
-                <div>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    marginBottom: '2rem'
-                  }}>
-                    <div style={{
-                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                      borderRadius: '15px',
-                      padding: '0.8rem',
-                      boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)'
-                    }}>
-                      <span style={{ fontSize: '1.5rem', color: 'white' }}>👤</span>
-                    </div>
-                    <h2 style={{
-                      color: '#1f2937',
-                      fontSize: '2rem',
-                      fontWeight: '700',
-                      margin: 0
-                    }}>
-                      Profile Information
-                    </h2>
-                  </div>
-
-                  <form onSubmit={handleProfileUpdate}>
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-                      gap: '1.5rem',
-                      marginBottom: '1.5rem'
-                    }}>
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '1rem',
-                          fontWeight: '600',
-                          color: '#374151',
-                          marginBottom: '0.5rem'
-                        }}>
-                          First Name
-                        </label>
-                        <input
-                          type="text"
-                          value={profileData.firstName}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
-                          style={{
-                            width: '100%',
-                            padding: '0.8rem 1rem',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '12px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            transition: 'border-color 0.3s ease'
-                          }}
-                          onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                          onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '1rem',
-                          fontWeight: '600',
-                          color: '#374151',
-                          marginBottom: '0.5rem'
-                        }}>
-                          Last Name
-                        </label>
-                        <input
-                          type="text"
-                          value={profileData.lastName}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
-                          style={{
-                            width: '100%',
-                            padding: '0.8rem 1rem',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '12px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            transition: 'border-color 0.3s ease'
-                          }}
-                          onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                          onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-                      gap: '1.5rem',
-                      marginBottom: '1.5rem'
-                    }}>
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '1rem',
-                          fontWeight: '600',
-                          color: '#374151',
-                          marginBottom: '0.5rem'
-                        }}>
-                          Email Address
-                        </label>
-                        <input
-                          type="email"
-                          value={profileData.email}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                          style={{
-                            width: '100%',
-                            padding: '0.8rem 1rem',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '12px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            transition: 'border-color 0.3s ease'
-                          }}
-                          onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                          onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '1rem',
-                          fontWeight: '600',
-                          color: '#374151',
-                          marginBottom: '0.5rem'
-                        }}>
-                          Phone Number
-                        </label>
-                        <input
-                          type="tel"
-                          value={profileData.phone}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                          placeholder="+1 (555) 123-4567"
-                          style={{
-                            width: '100%',
-                            padding: '0.8rem 1rem',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '12px',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            transition: 'border-color 0.3s ease'
-                          }}
-                          onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                          onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '1rem',
-                        fontWeight: '600',
-                        color: '#374151',
-                        marginBottom: '0.5rem'
-                      }}>
-                        Location
-                      </label>
-                      <input
-                        type="text"
-                        value={profileData.location}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
-                        placeholder="City, Country"
-                        style={{
-                          width: '100%',
-                          padding: '0.8rem 1rem',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '12px',
-                          fontSize: '1rem',
-                          outline: 'none',
-                          transition: 'border-color 0.3s ease'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                      />
-                    </div>
-
-                    <div style={{ marginBottom: '2rem' }}>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '1rem',
-                        fontWeight: '600',
-                        color: '#374151',
-                        marginBottom: '0.5rem'
-                      }}>
-                        Bio
-                      </label>
-                      <textarea
-                        value={profileData.bio}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-                        placeholder="Tell us about your mental wellness journey..."
-                        style={{
-                          width: '100%',
-                          minHeight: '120px',
-                          padding: '1rem',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '12px',
-                          fontSize: '1rem',
-                          resize: 'vertical',
-                          outline: 'none',
-                          transition: 'border-color 0.3s ease'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      style={{
-                        background: loading 
-                          ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                          : 'linear-gradient(135deg, #667eea, #764ba2)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '15px',
-                        padding: '1rem 2rem',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.3s ease',
-                        fontWeight: '700',
-                        fontSize: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.8rem',
-                        boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
-                      }}
-                    >
-                      <span style={{ fontSize: '1.2rem' }}>
-                        {loading ? '🔄' : '💾'}
-                      </span>
-                      {loading ? 'Saving Profile...' : 'Save Profile'}
-                    </button>
-                  </form>
-                </div>
-              )}
-
-              {/* Security Settings */}
-              {activeTab === 'security' && (
-                <div>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    marginBottom: '2rem'
-                  }}>
-                    <div style={{
-                      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                      borderRadius: '15px',
-                      padding: '0.8rem',
-                      boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)'
-                    }}>
-                      <span style={{ fontSize: '1.5rem', color: 'white' }}>🔐</span>
-                    </div>
-                    <h2 style={{
-                      color: '#1f2937',
-                      fontSize: '2rem',
-                      fontWeight: '700',
-                      margin: 0
-                    }}>
-                      Security Settings
-                    </h2>
-                  </div>
-
-                  <form onSubmit={handleSecurityUpdate}>
-                    <div style={{
-                      background: 'rgba(239, 68, 68, 0.05)',
-                      border: '2px solid rgba(239, 68, 68, 0.2)',
-                      borderRadius: '15px',
-                      padding: '1.5rem',
-                      marginBottom: '2rem'
-                    }}>
-                      <h3 style={{
-                        color: '#dc2626',
-                        fontSize: '1.2rem',
-                        fontWeight: '600',
-                        marginBottom: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem'
-                      }}>
-                        🔒 Change Password
-                      </h3>
-
-                      <div style={{ marginBottom: '1rem' }}>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '1rem',
-                          fontWeight: '600',
-                          color: '#374151',
-                          marginBottom: '0.5rem'
-                        }}>
-                          Current Password
-                        </label>
-                        <input
-                          type="password"
-                          value={securityData.currentPassword}
-                          onChange={(e) => setSecurityData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                          style={{
-                            width: '100%',
-                            padding: '0.8rem 1rem',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '12px',
-                            fontSize: '1rem',
-                            outline: 'none'
-                          }}
-                        />
-                      </div>
-
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-                        gap: '1rem'
-                      }}>
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            color: '#374151',
-                            marginBottom: '0.5rem'
-                          }}>
-                            New Password
-                          </label>
-                          <input
-                            type="password"
-                            value={securityData.newPassword}
-                            onChange={(e) => setSecurityData(prev => ({ ...prev, newPassword: e.target.value }))}
-                            style={{
-                              width: '100%',
-                              padding: '0.8rem 1rem',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '12px',
-                              fontSize: '1rem',
-                              outline: 'none'
-                            }}
-                          />
-                        </div>
-
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            color: '#374151',
-                            marginBottom: '0.5rem'
-                          }}>
-                            Confirm Password
-                          </label>
-                          <input
-                            type="password"
-                            value={securityData.confirmPassword}
-                            onChange={(e) => setSecurityData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                            style={{
-                              width: '100%',
-                              padding: '0.8rem 1rem',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '12px',
-                              fontSize: '1rem',
-                              outline: 'none'
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{
-                      background: 'rgba(16, 185, 129, 0.05)',
-                      border: '2px solid rgba(16, 185, 129, 0.2)',
-                      borderRadius: '15px',
-                      padding: '1.5rem',
-                      marginBottom: '2rem'
-                    }}>
-                      <h3 style={{
-                        color: '#059669',
-                        fontSize: '1.2rem',
-                        fontWeight: '600',
-                        marginBottom: '1rem'
-                      }}>
-                        🛡️ Two-Factor Authentication
-                      </h3>
-                      <label style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        cursor: 'pointer'
-                      }}>
-                        <input
-                          type="checkbox"
-                          checked={securityData.twoFactorEnabled}
-                          onChange={(e) => setSecurityData(prev => ({ ...prev, twoFactorEnabled: e.target.checked }))}
-                          style={{
-                            width: '20px',
-                            height: '20px',
-                            accentColor: '#10b981'
-                          }}
-                        />
-                        <span style={{ fontWeight: '500', color: '#374151' }}>
-                          Enable two-factor authentication for enhanced security
-                        </span>
-                      </label>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      style={{
-                        background: loading 
-                          ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                          : 'linear-gradient(135deg, #ef4444, #dc2626)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '15px',
-                        padding: '1rem 2rem',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.3s ease',
-                        fontWeight: '700',
-                        fontSize: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.8rem',
-                        boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
-                      }}
-                    >
-                      <span style={{ fontSize: '1.2rem' }}>
-                        {loading ? '🔄' : '🔐'}
-                      </span>
-                      {loading ? 'Updating Security...' : 'Update Security Settings'}
-                    </button>
-                  </form>
-                </div>
-              )}
-
-              {/* Notifications Settings */}
-              {activeTab === 'notifications' && (
-                <div>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    marginBottom: '2 rem'
-                 }}>
-                   <div style={{
-                     background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                     borderRadius: '15px',
-                     padding: '0.8rem',
-                     boxShadow: '0 8px 25px rgba(245, 158, 11, 0.3)'
-                   }}>
-                     <span style={{ fontSize: '1.5rem', color: 'white' }}>🔔</span>
-                   </div>
-                   <h2 style={{
-                     color: '#1f2937',
-                     fontSize: '2rem',
-                     fontWeight: '700',
-                     margin: 0
-                   }}>
-                     Notification Preferences
-                   </h2>
-                 </div>
-
-                 <div style={{
-                   background: 'rgba(245, 158, 11, 0.05)',
-                   border: '2px solid rgba(245, 158, 11, 0.2)',
-                   borderRadius: '15px',
-                   padding: '1.5rem',
-                   marginBottom: '2rem'
-                 }}>
-                   <h3 style={{
-                     color: '#d97706',
-                     fontSize: '1.2rem',
-                     fontWeight: '600',
-                     marginBottom: '1.5rem'
-                   }}>
-                     📧 Email & Push Notifications
-                   </h3>
-
-                   <div style={{ display: 'grid', gap: '1rem' }}>
-                     {[
-                       { key: 'emailNotifications', label: 'Email notifications', desc: 'Receive updates via email' },
-                       { key: 'pushNotifications', label: 'Push notifications', desc: 'Browser and mobile push alerts' },
-                       { key: 'journalReminders', label: 'Journal reminders', desc: 'Daily prompts to write in your journal' },
-                       { key: 'breathingReminders', label: 'Breathing exercise reminders', desc: 'Gentle reminders for mindfulness breaks' },
-                       { key: 'weeklyReports', label: 'Weekly progress reports', desc: 'Summary of your wellness journey' },
-                       { key: 'motivationalQuotes', label: 'Daily motivational quotes', desc: 'Inspirational messages to brighten your day' }
-                     ].map(item => (
-                       <label key={item.key} style={{
-                         display: 'flex',
-                         alignItems: 'center',
-                         gap: '1rem',
-                         padding: '1rem',
-                         background: 'rgba(255, 255, 255, 0.8)',
-                         borderRadius: '12px',
-                         cursor: 'pointer',
-                         transition: 'all 0.3s ease'
-                       }}>
-                         <input
-                           type="checkbox"
-                           checked={notificationData[item.key]}
-                           onChange={(e) => setNotificationData(prev => ({ ...prev, [item.key]: e.target.checked }))}
-                           style={{
-                             width: '20px',
-                             height: '20px',
-                             accentColor: '#f59e0b'
-                           }}
-                         />
-                         <div style={{ flex: 1 }}>
-                           <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.2rem' }}>
-                             {item.label}
-                           </div>
-                           <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-                             {item.desc}
-                           </div>
-                         </div>
-                       </label>
-                     ))}
-                   </div>
-
-                   <div style={{ marginTop: '1.5rem' }}>
-                     <label style={{
-                       display: 'block',
-                       fontSize: '1rem',
-                       fontWeight: '600',
-                       color: '#374151',
-                       marginBottom: '0.5rem'
-                     }}>
-                       Reminder Time
-                     </label>
-                     <input
-                       type="time"
-                       value={notificationData.reminderTime}
-                       onChange={(e) => setNotificationData(prev => ({ ...prev, reminderTime: e.target.value }))}
-                       style={{
-                         padding: '0.8rem 1rem',
-                         border: '2px solid #e5e7eb',
-                         borderRadius: '12px',
-                         fontSize: '1rem',
-                         outline: 'none'
-                       }}
-                     />
-                   </div>
-                 </div>
-
-                 <button
-                   onClick={handleNotificationUpdate}
-                   disabled={loading}
-                   style={{
-                     background: loading 
-                       ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                       : 'linear-gradient(135deg, #f59e0b, #d97706)',
-                     color: 'white',
-                     border: 'none',
-                     borderRadius: '15px',
-                     padding: '1rem 2rem',
-                     cursor: loading ? 'not-allowed' : 'pointer',
-                     transition: 'all 0.3s ease',
-                     fontWeight: '700',
-                     fontSize: '1rem',
-                     display: 'flex',
-                     alignItems: 'center',
-                     gap: '0.8rem',
-                     boxShadow: '0 10px 30px rgba(245, 158, 11, 0.3)'
-                   }}
-                 >
-                   <span style={{ fontSize: '1.2rem' }}>
-                     {loading ? '🔄' : '🔔'}
-                   </span>
-                   {loading ? 'Saving Preferences...' : 'Save Notification Preferences'}
-                 </button>
-               </div>
-             )}
-
-             {/* Appearance Settings */}
-             {activeTab === 'appearance' && (
-               <div>
-                 <div style={{
-                   display: 'flex',
-                   alignItems: 'center',
-                   gap: '1rem',
-                   marginBottom: '2rem'
-                 }}>
-                   <div style={{
-                     background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                     borderRadius: '15px',
-                     padding: '0.8rem',
-                     boxShadow: '0 8px 25px rgba(139, 92, 246, 0.3)'
-                   }}>
-                     <span style={{ fontSize: '1.5rem', color: 'white' }}>🎨</span>
-                   </div>
-                   <h2 style={{
-                     color: '#1f2937',
-                     fontSize: '2rem',
-                     fontWeight: '700',
-                     margin: 0
-                   }}>
-                     Appearance & Theme
-                   </h2>
-                 </div>
-
-                 <div style={{
-                   background: 'rgba(139, 92, 246, 0.05)',
-                   border: '2px solid rgba(139, 92, 246, 0.2)',
-                   borderRadius: '15px',
-                   padding: '1.5rem',
-                   marginBottom: '2rem'
-                 }}>
-                   <h3 style={{
-                     color: '#7c3aed',
-                     fontSize: '1.2rem',
-                     fontWeight: '600',
-                     marginBottom: '1.5rem'
-                   }}>
-                     🌗 Theme Settings
-                   </h3>
-
-                   <div style={{
-                     display: 'grid',
-                     gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-                     gap: '1rem',
-                     marginBottom: '1.5rem'
-                   }}>
-                     {['light', 'dark', 'auto'].map(theme => (
-                       <label key={theme} style={{
-                         display: 'flex',
-                         flexDirection: 'column',
-                         alignItems: 'center',
-                         gap: '0.5rem',
-                         padding: '1rem',
-                         background: appearanceData.theme === theme 
-                           ? 'rgba(139, 92, 246, 0.2)' 
-                           : 'rgba(255, 255, 255, 0.8)',
-                         border: appearanceData.theme === theme 
-                           ? '2px solid #8b5cf6' 
-                           : '2px solid transparent',
-                         borderRadius: '12px',
-                         cursor: 'pointer',
-                         transition: 'all 0.3s ease'
-                       }}>
-                         <input
-                           type="radio"
-                           name="theme"
-                           value={theme}
-                           checked={appearanceData.theme === theme}
-                           onChange={(e) => setAppearanceData(prev => ({ ...prev, theme: e.target.value }))}
-                           style={{ display: 'none' }}
-                         />
-                         <span style={{ fontSize: '2rem' }}>
-                           {theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '🔄'}
-                         </span>
-                         <span style={{
-                           fontWeight: '600',
-                           color: '#374151',
-                           textTransform: 'capitalize'
-                         }}>
-                           {theme}
-                         </span>
-                       </label>
-                     ))}
-                   </div>
-
-                   <div style={{ marginBottom: '1.5rem' }}>
-                     <label style={{
-                       display: 'block',
-                       fontSize: '1rem',
-                       fontWeight: '600',
-                       color: '#374151',
-                       marginBottom: '0.5rem'
-                     }}>
-                       Color Scheme
-                     </label>
-                     <div style={{
-                       display: 'grid',
-                       gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
-                       gap: '0.5rem'
-                     }}>
-                       {[
-                         { name: 'blue', color: '#3b82f6' },
-                         { name: 'purple', color: '#8b5cf6' },
-                         { name: 'green', color: '#10b981' },
-                         { name: 'pink', color: '#ec4899' },
-                         { name: 'orange', color: '#f59e0b' }
-                       ].map(scheme => (
-                         <button
-                           key={scheme.name}
-                           onClick={() => setAppearanceData(prev => ({ ...prev, colorScheme: scheme.name }))}
-                           style={{
-                             width: '60px',
-                             height: '60px',
-                             background: scheme.color,
-                             border: appearanceData.colorScheme === scheme.name 
-                               ? '3px solid #374151' 
-                               : '2px solid #e5e7eb',
-                             borderRadius: '12px',
-                             cursor: 'pointer',
-                             transition: 'all 0.3s ease'
-                           }}
-                         />
-                       ))}
-                     </div>
-                   </div>
-
-                   <div style={{
-                     display: 'grid',
-                     gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-                     gap: '1.5rem'
-                   }}>
-                     <div>
-                       <label style={{
-                         display: 'block',
-                         fontSize: '1rem',
-                         fontWeight: '600',
-                         color: '#374151',
-                         marginBottom: '0.5rem'
-                       }}>
-                         Font Size
-                       </label>
-                       <select
-                         value={appearanceData.fontSize}
-                         onChange={(e) => setAppearanceData(prev => ({ ...prev, fontSize: e.target.value }))}
-                         style={{
-                           width: '100%',
-                           padding: '0.8rem 1rem',
-                           border: '2px solid #e5e7eb',
-                           borderRadius: '12px',
-                           fontSize: '1rem',
-                           outline: 'none'
-                         }}
-                       >
-                         <option value="small">Small</option>
-                         <option value="medium">Medium</option>
-                         <option value="large">Large</option>
-                       </select>
-                     </div>
-
-                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                       <label style={{
-                         display: 'flex',
-                         alignItems: 'center',
-                         gap: '1rem',
-                         cursor: 'pointer'
-                       }}>
-                         <input
-                           type="checkbox"
-                           checked={appearanceData.animations}
-                           onChange={(e) => setAppearanceData(prev => ({ ...prev, animations: e.target.checked }))}
-                           style={{
-                             width: '20px',
-                             height: '20px',
-                             accentColor: '#8b5cf6'
-                           }}
-                         />
-                         <span style={{ fontWeight: '500', color: '#374151' }}>
-                           Enable animations
-                         </span>
-                       </label>
-
-                       <label style={{
-                         display: 'flex',
-                         alignItems: 'center',
-                         gap: '1rem',
-                         cursor: 'pointer'
-                       }}>
-                         <input
-                           type="checkbox"
-                           checked={appearanceData.compactMode}
-                           onChange={(e) => setAppearanceData(prev => ({ ...prev, compactMode: e.target.checked }))}
-                           style={{
-                             width: '20px',
-                             height: '20px',
-                             accentColor: '#8b5cf6'
-                           }}
-                         />
-                         <span style={{ fontWeight: '500', color: '#374151' }}>
-                           Compact mode
-                         </span>
-                       </label>
-                     </div>
-                   </div>
-                 </div>
-
-                 <button
-                   onClick={handleAppearanceUpdate}
-                   disabled={loading}
-                   style={{
-                     background: loading 
-                       ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                       : 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                     color: 'white',
-                     border: 'none',
-                     borderRadius: '15px',
-                     padding: '1rem 2rem',
-                     cursor: loading ? 'not-allowed' : 'pointer',
-                     transition: 'all 0.3s ease',
-                     fontWeight: '700',
-                     fontSize: '1rem',
-                     display: 'flex',
-                     alignItems: 'center',
-                     gap: '0.8rem',
-                     boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)'
-                   }}
-                 >
-                   <span style={{ fontSize: '1.2rem' }}>
-                     {loading ? '🔄' : '🎨'}
-                   </span>
-                   {loading ? 'Applying Changes...' : 'Apply Theme Settings'}
-                 </button>
-               </div>
-             )}
-
-             {/* Privacy Settings */}
-             {activeTab === 'privacy' && (
-               <div>
-                 <div style={{
-                   display: 'flex',
-                   alignItems: 'center',
-                   gap: '1rem',
-                   marginBottom: '2rem'
-                 }}>
-                   <div style={{
-                     background: 'linear-gradient(135deg, #10b981, #059669)',
-                     borderRadius: '15px',
-                     padding: '0.8rem',
-                     boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
-                   }}>
-                     <span style={{ fontSize: '1.5rem', color: 'white' }}>🛡️</span>
-                   </div>
-                   <h2 style={{
-                     color: '#1f2937',
-                     fontSize: '2rem',
-                     fontWeight: '700',
-                     margin: 0
-                   }}>
-                     Data & Privacy
-                   </h2>
-                 </div>
-
-                 <div style={{
-                   background: 'rgba(16, 185, 129, 0.05)',
-                   border: '2px solid rgba(16, 185, 129, 0.2)',
-                   borderRadius: '15px',
-                   padding: '1.5rem',
-                   marginBottom: '2rem'
-                 }}>
-                   <h3 style={{
-                     color: '#059669',
-                     fontSize: '1.2rem',
-                     fontWeight: '600',
-                     marginBottom: '1.5rem'
-                   }}>
-                     🔒 Privacy Controls
-                   </h3>
-
-                   <div style={{
-                     display: 'grid',
-                     gap: '1.5rem'
-                   }}>
-                     <div>
-                       <label style={{
-                         display: 'block',
-                         fontSize: '1rem',
-                         fontWeight: '600',
-                         color: '#374151',
-                         marginBottom: '0.5rem'
-                       }}>
-                         Profile Visibility
-                       </label>
-                       <select
-                         value={privacyData.profileVisibility}
-                         onChange={(e) => setPrivacyData(prev => ({ ...prev, profileVisibility: e.target.value }))}
-                         style={{
-                           width: '100%',
-                           padding: '0.8rem 1rem',
-                           border: '2px solid #e5e7eb',
-                           borderRadius: '12px',
-                           fontSize: '1rem',
-                           outline: 'none'
-                         }}
-                       >
-                         <option value="public">Public - Anyone can see your profile</option>
-                         <option value="friends">Friends Only - Only friends can see your profile</option>
-                         <option value="private">Private - Only you can see your profile</option>
-                       </select>
-                     </div>
-
-                     {[
-                       { key: 'dataSharing', label: 'Data sharing with partners', desc: 'Allow anonymized data to be shared for research' },
-                       { key: 'analyticsOptIn', label: 'Analytics and usage data', desc: 'Help improve the app by sharing usage analytics' },
-                       { key: 'locationTracking', label: 'Location-based features', desc: 'Enable location services for local resources' }
-                     ].map(item => (
-                       <label key={item.key} style={{
-                         display: 'flex',
-                         alignItems: 'center',
-                         gap: '1rem',
-                         padding: '1rem',
-                         background: 'rgba(255, 255, 255, 0.8)',
-                         borderRadius: '12px',
-                         cursor: 'pointer'
-                       }}>
-                         <input
-                           type="checkbox"
-                           checked={privacyData[item.key]}
-                           onChange={(e) => setPrivacyData(prev => ({ ...prev, [item.key]: e.target.checked }))}
-                           style={{
-                             width: '20px',
-                             height: '20px',
-                             accentColor: '#10b981'
-                           }}
-                         />
-                         <div style={{ flex: 1 }}>
-                           <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.2rem' }}>
-                             {item.label}
-                           </div>
-                           <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-                             {item.desc}
-                           </div>
-                         </div>
-                       </label>
-                     ))}
-                   </div>
-                 </div>
-
-                 <div style={{
-                   background: 'rgba(239, 68, 68, 0.05)',
-                   border: '2px solid rgba(239, 68, 68, 0.2)',
-                   borderRadius: '15px',
-                   padding: '1.5rem',
-                   marginBottom: '2rem'
-                 }}>
-                   <h3 style={{
-                     color: '#dc2626',
-                     fontSize: '1.2rem',
-                     fontWeight: '600',
-                     marginBottom: '1rem'
-                   }}>
-                     ⚠️ Data Management
-                   </h3>
-                   <div style={{
-                     display: 'grid',
-                     gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-                     gap: '1rem'
-                   }}>
-                     <button style={{
-                       background: 'rgba(59, 130, 246, 0.1)',
-                       border: '2px solid #3b82f6',
-                       color: '#1e40af',
-                       borderRadius: '12px',
-                       padding: '1rem',
-                       cursor: 'pointer',
-                       fontWeight: '600',
-                       transition: 'all 0.3s ease'
-                     }}>
-                       📥 Export My Data
-                     </button>
-                     <button style={{
-                       background: 'rgba(239, 68, 68, 0.1)',
-                       border: '2px solid #ef4444',
-                       color: '#dc2626',
-                       borderRadius: '12px',
-                       padding: '1rem',
-                       cursor: 'pointer',
-                       fontWeight: '600',
-                       transition: 'all 0.3s ease'
-                     }}>
-                       🗑️ Delete Account
-                     </button>
-                   </div>
-                 </div>
-
-                 <button
-                   onClick={handlePrivacyUpdate}
-                   disabled={loading}
-                   style={{
-                     background: loading 
-                       ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                       : 'linear-gradient(135deg, #10b981, #059669)',
-                     color: 'white',
-                     border: 'none',
-                     borderRadius: '15px',
-                     padding: '1rem 2rem',
-                     cursor: loading ? 'not-allowed' : 'pointer',
-                     transition: 'all 0.3s ease',
-                     fontWeight: '700',
-                     fontSize: '1rem',
-                     display: 'flex',
-                     alignItems: 'center',
-                     gap: '0.8rem',
-                     boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
-                   }}
-                 >
-                   <span style={{ fontSize: '1.2rem' }}>
-                     {loading ? '🔄' : '🛡️'}
-                   </span>
-                   {loading ? 'Saving Privacy Settings...' : 'Save Privacy Settings'}
-                 </button>
-               </div>
-             )}
-
-           </div>
-         </div>
-       </div>
-     </div>
-   </div>
- );
+      {loading && (
+        <div style={{
+          textAlign: 'center',
+          color: 'rgba(255, 255, 255, 0.7)',
+          fontSize: '0.8em',
+          marginTop: '8px'
+        }}>
+          Saving...
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Settings;
+
+
