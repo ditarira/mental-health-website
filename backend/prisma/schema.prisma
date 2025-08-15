@@ -17,6 +17,7 @@ model User {
   bio       String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  preferences Json?
 
   journalEntries    JournalEntry[]
   breathingSessions BreathingSession[]
@@ -33,6 +34,7 @@ model JournalEntry {
   tags      String[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  preferences Json?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -61,6 +63,7 @@ model MentalHealthResource {
   url         String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  preferences Json?
 
   @@map("mental_health_resources")
 }

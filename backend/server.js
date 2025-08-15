@@ -85,6 +85,17 @@ try {
   console.error('? Breathing routes error:', error.message);
 }
 
+
+// Users routes
+console.log('6. Loading users routes...');
+try {
+  const userRoutes = require('./src/routes/users');
+  app.use('/api/users', userRoutes);
+  console.log('? Users routes loaded successfully');
+} catch (error) {
+  console.error('? Users routes error:', error.message);
+}
+
 // Error handling
 app.use((error, req, res, next) => {
   console.error('Server error:', error);
@@ -97,3 +108,5 @@ app.listen(PORT, () => {
   console.log('?? Server running on port', PORT);
   console.log('?? Test: http://localhost:' + PORT + '/api/health');
 });
+
+
