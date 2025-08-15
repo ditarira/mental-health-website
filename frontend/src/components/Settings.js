@@ -52,65 +52,94 @@ const Settings = () => {
   };
 
   const applySettingsToWebsite = (settingsData) => {
-    console.log('?? Applying settings to website:', settingsData);
+    console.log('?? FORCING background change:', settingsData);
     
     // Apply font size
     const fontSize = settingsData.fontSize === 'small' ? '14px' : 
                     settingsData.fontSize === 'large' ? '18px' : '16px';
     document.documentElement.style.fontSize = fontSize;
     
-    // Background colors - more vibrant and noticeable
+    // FORCE background color changes with !important
     const backgroundColors = {
       purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      blue: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #1e40af 100%)',
-      green: 'linear-gradient(135deg, #065f46 0%, #10b981 50%, #047857 100%)',
-      pink: 'linear-gradient(135deg, #be185d 0%, #ec4899 50%, #db2777 100%)'
+      blue: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)',
+      green: 'linear-gradient(135deg, #047857 0%, #10b981 50%, #34d399 100%)',
+      pink: 'linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f472b6 100%)'
     };
     
     const background = backgroundColors[settingsData.colorScheme] || backgroundColors.purple;
     
-    // Apply to multiple elements to ensure visibility
-    document.body.style.background = background;
-    document.body.style.backgroundAttachment = 'fixed';
-    document.body.style.minHeight = '100vh';
-    document.documentElement.style.background = background;
-    
-    // Also apply to the main app container if it exists
-    const appContainer = document.getElementById('root');
-    if (appContainer) {
-      appContainer.style.background = background;
-      appContainer.style.minHeight = '100vh';
+    // Remove existing stylesheets that might override
+    const existingStyle = document.getElementById('dynamic-theme');
+    if (existingStyle) {
+      existingStyle.remove();
     }
     
-    // Apply to any main containers
-    const mainContainers = document.querySelectorAll('main, .main, .app');
-    mainContainers.forEach(container => {
-      container.style.background = background;
-    });
+    // Create a new style element with !important rules
+    const styleElement = document.createElement('style');
+    styleElement.id = 'dynamic-theme';
+    styleElement.innerHTML = `
+      html {
+        background: ${background} !important;
+        background-attachment: fixed !important;
+        min-height: 100vh !important;
+      }
+      
+      body {
+        background: ${background} !important;
+        background-attachment: fixed !important;
+        min-height: 100vh !important;
+      }
+      
+      #root {
+        background: ${background} !important;
+        min-height: 100vh !important;
+      }
+      
+      .app, .main, main {
+        background: ${background} !important;
+      }
+    `;
     
-    console.log('? Applied background to multiple elements:', settingsData.colorScheme);
-    console.log('? Background color:', background);
-    console.log('? Applied font size:', fontSize);
+    document.head.appendChild(styleElement);
     
-    // Show a visual indicator that settings changed
-    showVisualFeedback(settingsData.colorScheme);
+    // Also apply directly as backup
+    document.body.style.setProperty('background', background, 'important');
+    document.documentElement.style.setProperty('background', background, 'important');
+    
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      rootElement.style.setProperty('background', background, 'important');
+    }
+    
+    console.log('? FORCED background with style element:', settingsData.colorScheme);
+    console.log('? Background:', background);
+    
+    // Show visual feedback
+    showVisualFeedback(settingsData.colorScheme, background);
   };
 
-  const showVisualFeedback = (colorScheme) => {
-    // Create a temporary visual indicator
+  const showVisualFeedback = (colorScheme, background) => {
+    // Remove existing indicator
+    const existing = document.getElementById('color-indicator');
+    if (existing) existing.remove();
+    
+    // Create visual indicator
     const indicator = document.createElement('div');
-    indicator.innerHTML = `?? Background changed to ${colorScheme}!`;
+    indicator.id = 'color-indicator';
+    indicator.innerHTML = `?? Background FORCED to ${colorScheme}!`;
     indicator.style.cssText = `
       position: fixed;
       top: 20px;
       right: 20px;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.9);
       color: white;
-      padding: 10px 15px;
+      padding: 12px 16px;
       border-radius: 8px;
       z-index: 10000;
       font-size: 14px;
       font-weight: bold;
+      border: 2px solid white;
     `;
     
     document.body.appendChild(indicator);
@@ -119,16 +148,41 @@ const Settings = () => {
       if (indicator.parentNode) {
         indicator.parentNode.removeChild(indicator);
       }
-    }, 3000);
+    }, 4000);
+    
+    // Also create a test area to show the color
+    const testArea = document.createElement('div');
+    testArea.innerHTML = `${colorScheme.toUpperCase()} BACKGROUND TEST`;
+    testArea.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: ${background};
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      z-index: 9999;
+      font-weight: bold;
+      border: 3px solid white;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    `;
+    
+    document.body.appendChild(testArea);
+    
+    setTimeout(() => {
+      if (testArea.parentNode) {
+        testArea.parentNode.removeChild(testArea);
+      }
+    }, 4000);
   };
 
   const handleSettingsChange = async (key, value) => {
-    console.log('?? Changing setting:', key, 'to:', value);
+    console.log('?? CHANGING SETTING:', key, 'to:', value);
     
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     
-    // Apply changes immediately
+    // Apply changes immediately with force
     applySettingsToWebsite(newSettings);
     
     setLoading(true);
@@ -254,13 +308,13 @@ const Settings = () => {
           fontSize: '0.95em',
           fontWeight: '500'
         }}>
-          ?? Background Color (should change the page background)
+          ?? Background Color (FORCING with !important)
         </label>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
             { name: 'purple', preview: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-            { name: 'blue', preview: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' },
-            { name: 'green', preview: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)' },
+            { name: 'blue', preview: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' },
+            { name: 'green', preview: 'linear-gradient(135deg, #047857 0%, #10b981 100%)' },
             { name: 'pink', preview: 'linear-gradient(135deg, #be185d 0%, #ec4899 100%)' }
           ].map(scheme => (
             <button
@@ -287,27 +341,13 @@ const Settings = () => {
         </div>
       </div>
 
-      {loading && (
-        <div style={{
-          textAlign: 'center',
-          color: 'white',
-          fontSize: '0.9em',
-          marginTop: '12px',
-          padding: '8px',
-          background: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: '6px'
-        }}>
-          ?? Saving settings...
-        </div>
-      )}
-      
       <div style={{
         marginTop: '15px',
         fontSize: '0.8em',
         color: 'rgba(255, 255, 255, 0.8)',
         textAlign: 'center'
       }}>
-        Look for background changes around the edges of your screen!
+        Using CSS !important to force background changes!
       </div>
     </div>
   );
