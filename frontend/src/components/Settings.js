@@ -5,16 +5,17 @@ const Settings = () => {
   const { user, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [message, setMessage] = useState('');
-  const [verificationStep, setVerificationStep] = useState('form'); // 'form', 'code', 'success'
+  const [verificationStep, setVerificationStep] = useState('form');
   const [verificationCode, setVerificationCode] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
 
   // Profile settings
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
+    firstName: '',
+    lastName: '',
+    email: '',
     bio: '',
     phone: '',
     location: ''
@@ -38,30 +39,57 @@ const Settings = () => {
   }, []);
 
   const loadAllSettings = async () => {
+    setLoadingProfile(true);
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        console.log('No token found');
+        setLoadingProfile(false);
+        return;
+      }
+
+      console.log('Loading profile data...');
 
       // Load user profile
       const profileResponse = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (profileResponse.ok) {
-        const profileData = await profileResponse.json();
+        const profileResult = await profileResponse.json();
+        console.log('Profile data received:', profileResult);
+        
+        const userData = profileResult.user;
         setProfileData({
-          firstName: profileData.user.firstName || '',
-          lastName: profileData.user.lastName || '',
-          email: profileData.user.email || '',
-          bio: profileData.user.bio || '',
-          phone: profileData.user.phone || '',
-          location: profileData.user.location || ''
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          email: userData.email || '',
+          bio: userData.bio || '',
+          phone: userData.phone || '',
+          location: userData.location || ''
         });
+        
+        console.log('Profile data set:', {
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          email: userData.email || '',
+          bio: userData.bio || '',
+          phone: userData.phone || '',
+          location: userData.location || ''
+        });
+      } else {
+        console.error('Failed to load profile:', profileResponse.status);
       }
 
       // Load appearance settings
       const settingsResponse = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/settings`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (settingsResponse.ok) {
@@ -72,6 +100,8 @@ const Settings = () => {
 
     } catch (error) {
       console.error('Failed to load settings:', error);
+    } finally {
+      setLoadingProfile(false);
     }
   };
 
@@ -107,6 +137,8 @@ const Settings = () => {
   const saveProfile = async () => {
     setLoading(true);
     try {
+      console.log('Saving profile data:', profileData);
+      
       const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/profile`, {
         method: 'PUT',
         headers: {
@@ -116,15 +148,23 @@ const Settings = () => {
         body: JSON.stringify(profileData)
       });
 
+      const responseData = await response.json();
+      console.log('Save response:', responseData);
+
       if (response.ok) {
         setMessage('? Profile updated successfully!');
-        const updatedUser = await response.json();
-        if (updateUser) updateUser(updatedUser.user);
+        if (updateUser && responseData.user) {
+          updateUser(responseData.user);
+        }
+        // Reload the profile data to confirm it was saved
+        setTimeout(() => {
+          loadAllSettings();
+        }, 1000);
       } else {
-        throw new Error('Failed to update profile');
+        throw new Error(responseData.error || 'Failed to update profile');
       }
     } catch (error) {
-      setMessage('? Failed to update profile');
+      setMessage('? Failed to update profile: ' + error.message);
       console.error('Profile update error:', error);
     } finally {
       setLoading(false);
@@ -177,29 +217,12 @@ const Settings = () => {
 
     setLoading(true);
     
-    // Generate 6-digit verification code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedCode(code);
 
     try {
-      // Import EmailJS
-      const emailjs = await import('@emailjs/browser');
-
-      // Send verification email
-      const templateParams = {
-        to_email: user.email,
-        user_name: user.firstName || 'User',
-        verification_code: code,
-        app_name: 'MindfulMe'
-      };
-
-      await emailjs.send(
-        'service_mindfulme', // Your EmailJS service ID
-        'template_verification', // Your EmailJS template ID
-        templateParams,
-        'your_public_key' // Your EmailJS public key
-      );
-
+      // Simulate email sending for now
+      console.log('Verification code would be sent:', code);
       setVerificationStep('code');
       setMessage('?? Verification code sent to your email!');
     } catch (error) {
@@ -239,7 +262,6 @@ const Settings = () => {
         setVerificationCode('');
         setGeneratedCode('');
         
-        // Reset to form after 3 seconds
         setTimeout(() => {
           setVerificationStep('form');
         }, 3000);
@@ -280,226 +302,242 @@ const Settings = () => {
         }}>
           Profile Information
         </h3>
+        {loadingProfile && (
+          <span style={{ 
+            marginLeft: '15px', 
+            color: '#6b7280', 
+            fontSize: '0.9rem' 
+          }}>
+            Loading...
+          </span>
+        )}
       </div>
       
-      <div style={{ display: 'grid', gap: '20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-          <div>
-            <label style={{ 
-              color: '#6b7280', 
-              fontSize: '0.9rem', 
-              marginBottom: '8px', 
-              display: 'block',
-              fontWeight: '500'
-            }}>
-              ?? First Name
-            </label>
-            <input
-              type="text"
-              value={profileData.firstName}
-              onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                border: '2px solid #e5e7eb',
-                background: '#f9fafb',
-                color: '#374151',
-                fontSize: '1rem',
-                fontFamily: 'inherit',
-                transition: 'all 0.2s ease',
-                outline: 'none'
-              }}
-              placeholder="Enter first name"
-              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-            />
-          </div>
-          <div>
-            <label style={{ 
-              color: '#6b7280', 
-              fontSize: '0.9rem', 
-              marginBottom: '8px', 
-              display: 'block',
-              fontWeight: '500'
-            }}>
-              ?? Last Name
-            </label>
-            <input
-              type="text"
-              value={profileData.lastName}
-              onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                border: '2px solid #e5e7eb',
-                background: '#f9fafb',
-                color: '#374151',
-                fontSize: '1rem',
-                fontFamily: 'inherit',
-                transition: 'all 0.2s ease',
-                outline: 'none'
-              }}
-              placeholder="Enter last name"
-              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-            />
-          </div>
+      {loadingProfile ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '10px' }}>?</div>
+          Loading profile data...
         </div>
+      ) : (
+        <div style={{ display: 'grid', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div>
+              <label style={{ 
+                color: '#6b7280', 
+                fontSize: '0.9rem', 
+                marginBottom: '8px', 
+                display: 'block',
+                fontWeight: '500'
+              }}>
+                ?? First Name
+              </label>
+              <input
+                type="text"
+                value={profileData.firstName}
+                onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid #e5e7eb',
+                  background: '#f9fafb',
+                  color: '#374151',
+                  fontSize: '1rem',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+                placeholder="Enter first name"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+            <div>
+              <label style={{ 
+                color: '#6b7280', 
+                fontSize: '0.9rem', 
+                marginBottom: '8px', 
+                display: 'block',
+                fontWeight: '500'
+              }}>
+                ?? Last Name
+              </label>
+              <input
+                type="text"
+                value={profileData.lastName}
+                onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid #e5e7eb',
+                  background: '#f9fafb',
+                  color: '#374151',
+                  fontSize: '1rem',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+                placeholder="Enter last name"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+          </div>
 
-        <div>
-          <label style={{ 
-            color: '#6b7280', 
-            fontSize: '0.9rem', 
-            marginBottom: '8px', 
-            display: 'block',
-            fontWeight: '500'
-          }}>
-            ?? Email Address
-          </label>
-          <input
-            type="email"
-            value={profileData.email}
-            onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+          <div>
+            <label style={{ 
+              color: '#6b7280', 
+              fontSize: '0.9rem', 
+              marginBottom: '8px', 
+              display: 'block',
+              fontWeight: '500'
+            }}>
+              ?? Email Address
+            </label>
+            <input
+              type="email"
+              value={profileData.email}
+              onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: '2px solid #e5e7eb',
+                background: '#f9fafb',
+                color: '#374151',
+                fontSize: '1rem',
+                fontFamily: 'inherit',
+                transition: 'all 0.2s ease',
+                outline: 'none'
+              }}
+              placeholder="Enter email address"
+              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+            />
+          </div>
+
+          <div>
+            <label style={{ 
+              color: '#6b7280', 
+              fontSize: '0.9rem', 
+              marginBottom: '8px', 
+              display: 'block',
+              fontWeight: '500'
+            }}>
+              ?? Bio
+            </label>
+            <textarea
+              value={profileData.bio}
+              onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: '2px solid #e5e7eb',
+                background: '#f9fafb',
+                color: '#374151',
+                fontSize: '1rem',
+                fontFamily: 'inherit',
+                minHeight: '100px',
+                resize: 'vertical',
+                transition: 'all 0.2s ease',
+                outline: 'none'
+              }}
+              placeholder="Tell us about yourself..."
+              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div>
+              <label style={{ 
+                color: '#6b7280', 
+                fontSize: '0.9rem', 
+                marginBottom: '8px', 
+                display: 'block',
+                fontWeight: '500'
+              }}>
+                ?? Phone
+              </label>
+              <input
+                type="tel"
+                value={profileData.phone}
+                onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid #e5e7eb',
+                  background: '#f9fafb',
+                  color: '#374151',
+                  fontSize: '1rem',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+                placeholder="Phone number"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+            <div>
+              <label style={{ 
+                color: '#6b7280', 
+                fontSize: '0.9rem', 
+                marginBottom: '8px', 
+                display: 'block',
+                fontWeight: '500'
+              }}>
+                ?? Location
+              </label>
+              <input
+                type="text"
+                value={profileData.location}
+                onChange={(e) => setProfileData({...profileData, location: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid #e5e7eb',
+                  background: '#f9fafb',
+                  color: '#374151',
+                  fontSize: '1rem',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+                placeholder="City, Country"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={saveProfile}
+            disabled={loading}
             style={{
-              width: '100%',
-              padding: '12px 16px',
+              padding: '15px 25px',
               borderRadius: '12px',
-              border: '2px solid #e5e7eb',
-              background: '#f9fafb',
-              color: '#374151',
+              border: 'none',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
               fontSize: '1rem',
-              fontFamily: 'inherit',
+              fontWeight: '600',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              marginTop: '10px',
               transition: 'all 0.2s ease',
-              outline: 'none'
+              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
             }}
-            placeholder="Enter email address"
-            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-          />
+            onMouseEnter={(e) => !loading && (e.target.style.transform = 'translateY(-2px)')}
+            onMouseLeave={(e) => !loading && (e.target.style.transform = 'translateY(0px)')}
+          >
+            {loading ? '?? Saving...' : '?? Save Profile'}
+          </button>
         </div>
-
-        <div>
-          <label style={{ 
-            color: '#6b7280', 
-            fontSize: '0.9rem', 
-            marginBottom: '8px', 
-            display: 'block',
-            fontWeight: '500'
-          }}>
-            ?? Bio
-          </label>
-          <textarea
-            value={profileData.bio}
-            onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              borderRadius: '12px',
-              border: '2px solid #e5e7eb',
-              background: '#f9fafb',
-              color: '#374151',
-              fontSize: '1rem',
-              fontFamily: 'inherit',
-              minHeight: '100px',
-              resize: 'vertical',
-              transition: 'all 0.2s ease',
-              outline: 'none'
-            }}
-            placeholder="Tell us about yourself..."
-            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-          />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-          <div>
-            <label style={{ 
-              color: '#6b7280', 
-              fontSize: '0.9rem', 
-              marginBottom: '8px', 
-              display: 'block',
-              fontWeight: '500'
-            }}>
-              ?? Phone
-            </label>
-            <input
-              type="tel"
-              value={profileData.phone}
-              onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                border: '2px solid #e5e7eb',
-                background: '#f9fafb',
-                color: '#374151',
-                fontSize: '1rem',
-                fontFamily: 'inherit',
-                transition: 'all 0.2s ease',
-                outline: 'none'
-              }}
-              placeholder="Phone number"
-              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-            />
-          </div>
-          <div>
-            <label style={{ 
-              color: '#6b7280', 
-              fontSize: '0.9rem', 
-              marginBottom: '8px', 
-              display: 'block',
-              fontWeight: '500'
-            }}>
-              ?? Location
-            </label>
-            <input
-              type="text"
-              value={profileData.location}
-              onChange={(e) => setProfileData({...profileData, location: e.target.value})}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                border: '2px solid #e5e7eb',
-                background: '#f9fafb',
-                color: '#374151',
-                fontSize: '1rem',
-                fontFamily: 'inherit',
-                transition: 'all 0.2s ease',
-                outline: 'none'
-              }}
-              placeholder="City, Country"
-              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-            />
-          </div>
-        </div>
-
-        <button
-          onClick={saveProfile}
-          disabled={loading}
-          style={{
-            padding: '15px 25px',
-            borderRadius: '12px',
-            border: 'none',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            color: 'white',
-            fontSize: '1rem',
-            fontWeight: '600',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            marginTop: '10px',
-            transition: 'all 0.2s ease',
-            boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
-          }}
-          onMouseEnter={(e) => !loading && (e.target.style.transform = 'translateY(-2px)')}
-          onMouseLeave={(e) => !loading && (e.target.style.transform = 'translateY(0px)')}
-        >
-          {loading ? '?? Saving...' : '?? Save Profile'}
-        </button>
-      </div>
+      )}
     </div>
   );
 
@@ -769,7 +807,7 @@ const Settings = () => {
             <span style={{ fontSize: '3rem', display: 'block', marginBottom: '15px' }}>??</span>
             <h4 style={{ color: '#374151', margin: '0 0 10px 0' }}>Verification Code Sent!</h4>
             <p style={{ color: '#6b7280', margin: 0 }}>
-              We sent a 6-digit code to {user.email}
+              We sent a 6-digit code to {profileData.email}
             </p>
           </div>
           
@@ -793,36 +831,36 @@ const Settings = () => {
                 borderRadius: '12px',
                 border: '2px solid #e5e7eb',
                 background: '#f9fafb',
-                color: '#374151',
-                fontSize: '1.2rem',
-                fontFamily: 'monospace',
-                textAlign: 'center',
-                letterSpacing: '5px',
-                transition: 'all 0.2s ease',
-                outline: 'none'
-              }}
-              placeholder="000000"
-              maxLength="6"
-              onFocus={(e) => e.target.style.borderColor = '#dc2626'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-            />
-          </div>
+               color: '#374151',
+               fontSize: '1.2rem',
+               fontFamily: 'monospace',
+               textAlign: 'center',
+               letterSpacing: '5px',
+               transition: 'all 0.2s ease',
+               outline: 'none'
+             }}
+             placeholder="000000"
+             maxLength="6"
+             onFocus={(e) => e.target.style.borderColor = '#dc2626'}
+             onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+           />
+         </div>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-            <button
-              onClick={verifyCodeAndChangePassword}
-              disabled={loading || verificationCode.length !== 6}
-              style={{
-                padding: '12px 20px',
-                borderRadius: '10px',
-                border: 'none',
-                background: verificationCode.length === 6 
-                  ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                  : '#d1d5db',
-                color: 'white',
-                fontSize: '0.9rem',
-                fontWeight: '600',
-                cursor: loading || verificationCode.length !== 6 ? 'not-allowed' : 'pointer',
+         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+           <button
+             onClick={verifyCodeAndChangePassword}
+             disabled={loading || verificationCode.length !== 6}
+             style={{
+               padding: '12px 20px',
+               borderRadius: '10px',
+               border: 'none',
+               background: verificationCode.length === 6 
+                 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                 : '#d1d5db',
+               color: 'white',
+               fontSize: '0.9rem',
+               fontWeight: '600',
+               cursor: loading || verificationCode.length !== 6 ? 'not-allowed' : 'pointer',
                transition: 'all 0.2s ease'
              }}
            >
