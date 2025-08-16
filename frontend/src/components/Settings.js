@@ -74,12 +74,10 @@ const Settings = () => {
   };
 
   const applyAppearanceSettings = (settings) => {
-    // Apply font size
     const fontSize = settings.fontSize === 'small' ? '14px' : 
                     settings.fontSize === 'large' ? '18px' : '16px';
     document.documentElement.style.fontSize = fontSize;
     
-    // Apply background colors
     const backgroundColors = {
       purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       blue: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)',
@@ -119,7 +117,7 @@ const Settings = () => {
       if (response.ok) {
         setMessage('? Profile updated successfully!');
         const updatedUser = await response.json();
-        updateUser(updatedUser.user);
+        if (updateUser) updateUser(updatedUser.user);
       } else {
         throw new Error('Failed to update profile');
       }
@@ -177,17 +175,6 @@ const Settings = () => {
 
     setLoading(true);
     try {
-      // Send password change email using EmailJS
-      const emailData = {
-        to_email: user.email,
-        user_name: user.firstName,
-        reset_link: `${window.location.origin}/reset-password?token=temp123`,
-        service_id: 'service_mindfulme',
-        template_id: 'template_password_change',
-        user_id: 'user_mindfulme'
-      };
-
-      // For now, simulate the password change
       const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/change-password`, {
         method: 'PUT',
         headers: {
@@ -201,13 +188,14 @@ const Settings = () => {
       });
 
       if (response.ok) {
-        setMessage('? Password change email sent!');
+        setMessage('? Password changed successfully!');
         setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '', twoFactorEnabled: securityData.twoFactorEnabled });
       } else {
-        throw new Error('Failed to change password');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to change password');
       }
     } catch (error) {
-      setMessage('? Failed to change password');
+      setMessage(`? ${error.message}`);
       console.error('Password change error:', error);
     } finally {
       setLoading(false);
@@ -216,13 +204,41 @@ const Settings = () => {
   };
 
   const renderProfile = () => (
-    <div>
-      <h3 style={{ color: 'white', marginBottom: '20px', fontSize: '1.1em' }}>?? Profile Information</h3>
+    <div style={{
+      background: 'rgba(255, 255, 255, 0.95)',
+      borderRadius: '20px',
+      padding: '30px',
+      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+      marginBottom: '20px'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        marginBottom: '25px',
+        paddingBottom: '15px',
+        borderBottom: '2px solid #e5e7eb'
+      }}>
+        <span style={{ fontSize: '2rem', marginRight: '15px' }}>??</span>
+        <h3 style={{ 
+          color: '#374151', 
+          margin: 0, 
+          fontSize: '1.5rem',
+          fontWeight: '600'
+        }}>
+          Profile Information
+        </h3>
+      </div>
       
-      <div style={{ display: 'grid', gap: '15px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+      <div style={{ display: 'grid', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
           <div>
-            <label style={{ color: 'white', fontSize: '0.9em', marginBottom: '5px', display: 'block' }}>
+            <label style={{ 
+              color: '#6b7280', 
+              fontSize: '0.9rem', 
+              marginBottom: '8px', 
+              display: 'block',
+              fontWeight: '500'
+            }}>
               First Name
             </label>
             <input
@@ -231,18 +247,29 @@ const Settings = () => {
               onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
               style={{
                 width: '100%',
-                padding: '10px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: 'white',
-                fontSize: '0.9em'
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: '2px solid #e5e7eb',
+                background: '#f9fafb',
+                color: '#374151',
+                fontSize: '1rem',
+                fontFamily: 'inherit',
+                transition: 'all 0.2s ease',
+                outline: 'none'
               }}
               placeholder="Enter first name"
+              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           </div>
           <div>
-            <label style={{ color: 'white', fontSize: '0.9em', marginBottom: '5px', display: 'block' }}>
+            <label style={{ 
+              color: '#6b7280', 
+              fontSize: '0.9rem', 
+              marginBottom: '8px', 
+              display: 'block',
+              fontWeight: '500'
+            }}>
               Last Name
             </label>
             <input
@@ -251,21 +278,32 @@ const Settings = () => {
               onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
               style={{
                 width: '100%',
-                padding: '10px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: 'white',
-                fontSize: '0.9em'
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: '2px solid #e5e7eb',
+                background: '#f9fafb',
+                color: '#374151',
+                fontSize: '1rem',
+                fontFamily: 'inherit',
+                transition: 'all 0.2s ease',
+                outline: 'none'
               }}
               placeholder="Enter last name"
+              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           </div>
         </div>
 
         <div>
-          <label style={{ color: 'white', fontSize: '0.9em', marginBottom: '5px', display: 'block' }}>
-            Email
+          <label style={{ 
+            color: '#6b7280', 
+            fontSize: '0.9rem', 
+            marginBottom: '8px', 
+            display: 'block',
+            fontWeight: '500'
+          }}>
+            Email Address
           </label>
           <input
             type="email"
@@ -273,19 +311,30 @@ const Settings = () => {
             onChange={(e) => setProfileData({...profileData, email: e.target.value})}
             style={{
               width: '100%',
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              background: 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              fontSize: '0.9em'
+              padding: '12px 16px',
+              borderRadius: '12px',
+              border: '2px solid #e5e7eb',
+              background: '#f9fafb',
+              color: '#374151',
+              fontSize: '1rem',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s ease',
+              outline: 'none'
             }}
-            placeholder="Enter email"
+            placeholder="Enter email address"
+            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
           />
         </div>
 
         <div>
-          <label style={{ color: 'white', fontSize: '0.9em', marginBottom: '5px', display: 'block' }}>
+          <label style={{ 
+            color: '#6b7280', 
+            fontSize: '0.9rem', 
+            marginBottom: '8px', 
+            display: 'block',
+            fontWeight: '500'
+          }}>
             Bio
           </label>
           <textarea
@@ -293,16 +342,21 @@ const Settings = () => {
             onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
             style={{
               width: '100%',
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              background: 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              fontSize: '0.9em',
-              minHeight: '80px',
-              resize: 'vertical'
+              padding: '12px 16px',
+              borderRadius: '12px',
+              border: '2px solid #e5e7eb',
+              background: '#f9fafb',
+              color: '#374151',
+              fontSize: '1rem',
+              fontFamily: 'inherit',
+              minHeight: '100px',
+              resize: 'vertical',
+              transition: 'all 0.2s ease',
+              outline: 'none'
             }}
             placeholder="Tell us about yourself..."
+            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
           />
         </div>
 
@@ -310,16 +364,20 @@ const Settings = () => {
           onClick={saveProfile}
           disabled={loading}
           style={{
-            padding: '12px 20px',
-            borderRadius: '8px',
+            padding: '15px 25px',
+            borderRadius: '12px',
             border: 'none',
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             color: 'white',
-            fontSize: '0.9em',
+            fontSize: '1rem',
             fontWeight: '600',
             cursor: loading ? 'not-allowed' : 'pointer',
-            marginTop: '10px'
+            marginTop: '10px',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
           }}
+          onMouseEnter={(e) => !loading && (e.target.style.transform = 'translateY(-2px)')}
+          onMouseLeave={(e) => !loading && (e.target.style.transform = 'translateY(0px)')}
         >
           {loading ? '?? Saving...' : '?? Save Profile'}
         </button>
@@ -328,33 +386,64 @@ const Settings = () => {
   );
 
   const renderAppearance = () => (
-    <div>
-      <h3 style={{ color: 'white', marginBottom: '20px', fontSize: '1.1em' }}>?? Appearance Settings</h3>
+    <div style={{
+      background: 'rgba(255, 255, 255, 0.95)',
+      borderRadius: '20px',
+      padding: '30px',
+      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+      marginBottom: '20px'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        marginBottom: '25px',
+        paddingBottom: '15px',
+        borderBottom: '2px solid #e5e7eb'
+      }}>
+        <span style={{ fontSize: '2rem', marginRight: '15px' }}>??</span>
+        <h3 style={{ 
+          color: '#374151', 
+          margin: 0, 
+          fontSize: '1.5rem',
+          fontWeight: '600'
+        }}>
+          Appearance Settings
+        </h3>
+      </div>
       
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ color: 'white', fontSize: '0.9em', marginBottom: '8px', display: 'block' }}>
+      <div style={{ marginBottom: '30px' }}>
+        <label style={{ 
+          color: '#6b7280', 
+          fontSize: '1rem', 
+          marginBottom: '12px', 
+          display: 'block',
+          fontWeight: '500'
+        }}>
           ?? Font Size: {appearanceData.fontSize}
         </label>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
           {['small', 'medium', 'large'].map(size => (
             <button
               key={size}
               onClick={() => saveAppearance('fontSize', size)}
               disabled={loading}
               style={{
-                padding: '10px 16px',
+                padding: '12px 20px',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 background: appearanceData.fontSize === size 
-                  ? 'rgba(255, 255, 255, 0.4)'
-                  : 'rgba(255, 255, 255, 0.1)',
-                color: 'white',
+                  ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
+                  : '#f3f4f6',
+                color: appearanceData.fontSize === size ? 'white' : '#6b7280',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '0.85em',
+                fontSize: '0.9rem',
                 fontWeight: '600',
                 textTransform: 'capitalize',
-                border: appearanceData.fontSize === size ? '2px solid white' : '1px solid rgba(255, 255, 255, 0.2)'
+                transition: 'all 0.2s ease',
+                boxShadow: appearanceData.fontSize === size ? '0 4px 15px rgba(59, 130, 246, 0.3)' : 'none'
               }}
+              onMouseEnter={(e) => !loading && appearanceData.fontSize !== size && (e.target.style.background = '#e5e7eb')}
+              onMouseLeave={(e) => !loading && appearanceData.fontSize !== size && (e.target.style.background = '#f3f4f6')}
             >
               {size}
             </button>
@@ -363,10 +452,16 @@ const Settings = () => {
       </div>
 
       <div>
-        <label style={{ color: 'white', fontSize: '0.9em', marginBottom: '8px', display: 'block' }}>
+        <label style={{ 
+          color: '#6b7280', 
+          fontSize: '1rem', 
+          marginBottom: '12px', 
+          display: 'block',
+          fontWeight: '500'
+        }}>
           ?? Color Scheme: {appearanceData.colorScheme}
         </label>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           {[
             { name: 'purple', preview: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
             { name: 'blue', preview: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' },
@@ -378,17 +473,21 @@ const Settings = () => {
               onClick={() => saveAppearance('colorScheme', scheme.name)}
               disabled={loading}
               style={{
-                padding: '12px 18px',
-                border: appearanceData.colorScheme === scheme.name ? '3px solid white' : '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '8px',
+                padding: '15px 22px',
+                border: appearanceData.colorScheme === scheme.name ? '3px solid #374151' : '2px solid #e5e7eb',
+                borderRadius: '12px',
                 background: scheme.preview,
                 color: 'white',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '0.85em',
+                fontSize: '0.9rem',
                 fontWeight: '600',
                 textTransform: 'capitalize',
-                minWidth: '80px'
+                minWidth: '90px',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
               }}
+              onMouseEnter={(e) => !loading && (e.target.style.transform = 'translateY(-2px)')}
+              onMouseLeave={(e) => !loading && (e.target.style.transform = 'translateY(0px)')}
             >
               {scheme.name}
             </button>
@@ -399,12 +498,40 @@ const Settings = () => {
   );
 
   const renderSecurity = () => (
-    <div>
-      <h3 style={{ color: 'white', marginBottom: '20px', fontSize: '1.1em' }}>?? Security Settings</h3>
+    <div style={{
+      background: 'rgba(255, 255, 255, 0.95)',
+      borderRadius: '20px',
+      padding: '30px',
+      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+      marginBottom: '20px'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        marginBottom: '25px',
+        paddingBottom: '15px',
+        borderBottom: '2px solid #e5e7eb'
+      }}>
+        <span style={{ fontSize: '2rem', marginRight: '15px' }}>??</span>
+        <h3 style={{ 
+          color: '#374151', 
+          margin: 0, 
+          fontSize: '1.5rem',
+          fontWeight: '600'
+        }}>
+          Security Settings
+        </h3>
+      </div>
       
-      <div style={{ display: 'grid', gap: '15px' }}>
+      <div style={{ display: 'grid', gap: '20px' }}>
         <div>
-          <label style={{ color: 'white', fontSize: '0.9em', marginBottom: '5px', display: 'block' }}>
+          <label style={{ 
+            color: '#6b7280', 
+            fontSize: '0.9rem', 
+            marginBottom: '8px', 
+            display: 'block',
+            fontWeight: '500'
+          }}>
             Current Password
           </label>
           <input
@@ -413,19 +540,30 @@ const Settings = () => {
             onChange={(e) => setSecurityData({...securityData, currentPassword: e.target.value})}
             style={{
               width: '100%',
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              background: 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              fontSize: '0.9em'
+              padding: '12px 16px',
+              borderRadius: '12px',
+              border: '2px solid #e5e7eb',
+              background: '#f9fafb',
+              color: '#374151',
+              fontSize: '1rem',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s ease',
+              outline: 'none'
             }}
             placeholder="Enter current password"
+            onFocus={(e) => e.target.style.borderColor = '#dc2626'}
+            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
           />
         </div>
 
         <div>
-          <label style={{ color: 'white', fontSize: '0.9em', marginBottom: '5px', display: 'block' }}>
+          <label style={{ 
+            color: '#6b7280', 
+            fontSize: '0.9rem', 
+            marginBottom: '8px', 
+            display: 'block',
+            fontWeight: '500'
+          }}>
             New Password
           </label>
           <input
@@ -434,19 +572,30 @@ const Settings = () => {
             onChange={(e) => setSecurityData({...securityData, newPassword: e.target.value})}
             style={{
               width: '100%',
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              background: 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              fontSize: '0.9em'
+              padding: '12px 16px',
+              borderRadius: '12px',
+              border: '2px solid #e5e7eb',
+              background: '#f9fafb',
+              color: '#374151',
+              fontSize: '1rem',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s ease',
+              outline: 'none'
             }}
             placeholder="Enter new password"
+            onFocus={(e) => e.target.style.borderColor = '#dc2626'}
+            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
           />
         </div>
 
         <div>
-          <label style={{ color: 'white', fontSize: '0.9em', marginBottom: '5px', display: 'block' }}>
+          <label style={{ 
+            color: '#6b7280', 
+            fontSize: '0.9rem', 
+            marginBottom: '8px', 
+            display: 'block',
+            fontWeight: '500'
+          }}>
             Confirm New Password
           </label>
           <input
@@ -455,14 +604,19 @@ const Settings = () => {
             onChange={(e) => setSecurityData({...securityData, confirmPassword: e.target.value})}
             style={{
               width: '100%',
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              background: 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              fontSize: '0.9em'
+              padding: '12px 16px',
+              borderRadius: '12px',
+              border: '2px solid #e5e7eb',
+              background: '#f9fafb',
+              color: '#374151',
+              fontSize: '1rem',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s ease',
+              outline: 'none'
             }}
             placeholder="Confirm new password"
+            onFocus={(e) => e.target.style.borderColor = '#dc2626'}
+            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
           />
         </div>
 
@@ -470,53 +624,82 @@ const Settings = () => {
           onClick={changePassword}
           disabled={loading || !securityData.currentPassword || !securityData.newPassword}
           style={{
-            padding: '12px 20px',
-            borderRadius: '8px',
+            padding: '15px 25px',
+            borderRadius: '12px',
             border: 'none',
-            background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+            background: (!securityData.currentPassword || !securityData.newPassword) 
+              ? '#d1d5db' 
+              : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
             color: 'white',
-            fontSize: '0.9em',
+            fontSize: '1rem',
             fontWeight: '600',
-            cursor: loading ? 'not-allowed' : 'pointer',
+            cursor: loading || (!securityData.currentPassword || !securityData.newPassword) ? 'not-allowed' : 'pointer',
             marginTop: '10px',
-            opacity: (!securityData.currentPassword || !securityData.newPassword) ? 0.5 : 1
+            transition: 'all 0.2s ease',
+            boxShadow: (!securityData.currentPassword || !securityData.newPassword) ? 'none' : '0 4px 15px rgba(220, 38, 38, 0.3)'
           }}
+          onMouseEnter={(e) => !loading && securityData.currentPassword && securityData.newPassword && (e.target.style.transform = 'translateY(-2px)')}
+          onMouseLeave={(e) => !loading && (e.target.style.transform = 'translateY(0px)')}
         >
-          {loading ? '?? Sending Email...' : '?? Change Password (Email)'}
+          {loading ? '?? Changing Password...' : '?? Change Password'}
         </button>
       </div>
     </div>
   );
 
   return (
-    <div style={{ 
-      padding: '20px',
-      background: 'rgba(255, 255, 255, 0.1)',
-      backdropFilter: 'blur(20px)',
-      borderRadius: '15px',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-      marginBottom: '20px',
-      maxWidth: '600px'
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '40px 20px',
+      minHeight: '100vh',
+      maxWidth: '900px',
+      margin: '0 auto'
     }}>
-      <h2 style={{ 
-        margin: '0 0 20px 0',
-        color: 'white',
-        fontSize: '1.4em',
-        fontWeight: '600'
+      {/* Header Section */}
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: '20px',
+        padding: '30px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+        width: '100%',
+        marginBottom: '20px',
+        textAlign: 'center'
       }}>
-        ?? Settings
-      </h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}>
+          <span style={{ fontSize: '3rem', marginRight: '20px' }}>??</span>
+          <h1 style={{ 
+            color: '#1f2937', 
+            margin: 0, 
+            fontSize: '2.5rem',
+            fontWeight: '700'
+          }}>
+            Settings
+          </h1>
+        </div>
+        <p style={{ 
+          color: '#6b7280', 
+          margin: 0, 
+          fontSize: '1.1rem',
+          fontWeight: '400'
+        }}>
+          Customize your profile, appearance, and security preferences
+        </p>
+      </div>
 
       {message && (
         <div style={{
-          padding: '10px 15px',
+          padding: '15px 25px',
           marginBottom: '20px',
-          borderRadius: '8px',
-          backgroundColor: message.includes('?') ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)',
-          color: 'white',
-          fontSize: '0.9em',
+          borderRadius: '12px',
+          backgroundColor: message.includes('?') ? '#dcfce7' : '#fee2e2',
+          color: message.includes('?') ? '#166534' : '#dc2626',
+          fontSize: '1rem',
           textAlign: 'center',
-          border: `1px solid ${message.includes('?') ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`
+          border: `2px solid ${message.includes('?') ? '#bbf7d0' : '#fecaca'}`,
+          width: '100%',
+          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
         }}>
           {message}
         </div>
@@ -525,41 +708,49 @@ const Settings = () => {
       {/* Tab Navigation */}
       <div style={{ 
         display: 'flex', 
-        gap: '10px', 
+        gap: '15px', 
         marginBottom: '25px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-        paddingBottom: '10px'
+        background: 'rgba(255, 255, 255, 0.95)',
+        padding: '10px',
+        borderRadius: '15px',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)'
       }}>
         {[
-          { id: 'profile', label: '?? Profile', icon: '??' },
-          { id: 'appearance', label: '?? Appearance', icon: '??' },
-          { id: 'security', label: '?? Security', icon: '??' }
+          { id: 'profile', label: 'Profile', icon: '??' },
+          { id: 'appearance', label: 'Appearance', icon: '??' },
+          { id: 'security', label: 'Security', icon: '??' }
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             style={{
-              padding: '10px 15px',
+              padding: '12px 20px',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
               background: activeTab === tab.id 
-                ? 'rgba(255, 255, 255, 0.3)' 
-                : 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              fontSize: '0.9em',
+                ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
+                : 'transparent',
+              color: activeTab === tab.id ? 'white' : '#6b7280',
+              fontSize: '1rem',
               fontWeight: '600',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              border: activeTab === tab.id ? '2px solid white' : '1px solid rgba(255, 255, 255, 0.2)'
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: activeTab === tab.id ? '0 4px 15px rgba(59, 130, 246, 0.3)' : 'none'
             }}
+            onMouseEnter={(e) => activeTab !== tab.id && (e.target.style.background = '#f3f4f6')}
+            onMouseLeave={(e) => activeTab !== tab.id && (e.target.style.background = 'transparent')}
           >
+            <span style={{ fontSize: '1.2rem' }}>{tab.icon}</span>
             {tab.label}
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      <div>
+      <div style={{ width: '100%' }}>
         {activeTab === 'profile' && renderProfile()}
         {activeTab === 'appearance' && renderAppearance()}
         {activeTab === 'security' && renderSecurity()}
