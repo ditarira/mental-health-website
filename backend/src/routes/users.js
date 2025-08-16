@@ -102,3 +102,74 @@ router.put('/settings', authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+
+// Update user profile
+router.put('/profile', authMiddleware, async (req, res) => {
+  try {
+    const { firstName, lastName, email, bio, phone, location } = req.body;
+    
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        email: email || undefined,
+        bio: bio || undefined,
+        phone: phone || undefined,
+        location: location || undefined
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        bio: true,
+        phone: true,
+        location: true,
+        role: true,
+        createdAt: true
+      }
+    });
+    
+    res.json({ 
+      message: 'Profile updated successfully',
+      user 
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// Change password
+router.put('/change-password', authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const bcrypt = require('bcrypt');
+    
+    // Get current user with password
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id }
+    });
+    
+    // Verify current password
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    if (!isValidPassword) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+    
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update password
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { password: hashedNewPassword }
+    });
+    
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+});
