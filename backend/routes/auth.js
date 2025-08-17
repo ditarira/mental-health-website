@@ -1,18 +1,36 @@
-﻿// routes/auth.js
 const express = require('express');
-const router = express.Router();
-const auth = require('../middleware/auth');
-const {
-  register,
-  login,
-  verifyToken
-} = require('../controllers/authController');
+const { register, login } = require('../controllers/authController');
+const { PrismaClient } = require('@prisma/client');
 
-// Public routes
+const router = express.Router();
+const prisma = new PrismaClient();
+
+// Register route
 router.post('/register', register);
+
+// Login route  
 router.post('/login', login);
 
-// Protected routes (require authentication)
-router.get('/verify', auth, verifyToken);
+// Test route
+router.get('/test', (req, res) => {
+  res.json({ message: 'Auth routes working!' });
+});
+
+// Database test route
+router.get('/db-test', async (req, res) => {
+  try {
+    const userCount = await prisma.user.count();
+    res.json({ 
+      message: 'Database connection working!', 
+      userCount: userCount 
+    });
+  } catch (error) {
+    console.error('Database test error:', error);
+    res.status(500).json({ 
+      error: 'Database connection failed',
+      details: error.message 
+    });
+  }
+});
 
 module.exports = router;

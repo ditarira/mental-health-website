@@ -33,7 +33,7 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    // Create user with proper data
     const user = await prisma.user.create({
       data: {
         firstName: firstName.trim(),
@@ -66,6 +66,8 @@ const register = async (req, res) => {
 
   } catch (error) {
     console.error('? Registration error:', error);
+    console.error('? Error details:', error.message);
+    console.error('? Error stack:', error.stack);
     res.status(500).json({ 
       error: 'Server error during registration',
       details: error.message 
@@ -83,18 +85,27 @@ const login = async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
+    console.log('?? Looking for user in database...');
+    
     // Find user
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() }
     });
+
+    console.log('?? User found:', user ? 'Yes' : 'No');
 
     if (!user) {
       console.log('? User not found:', email);
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
+    console.log('?? Checking password...');
+    
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
+    
+    console.log('?? Password match:', isMatch);
+
     if (!isMatch) {
       console.log('? Invalid password for:', email);
       return res.status(400).json({ error: 'Invalid email or password' });
@@ -123,6 +134,8 @@ const login = async (req, res) => {
 
   } catch (error) {
     console.error('? Login error:', error);
+    console.error('? Error message:', error.message);
+    console.error('? Error stack:', error.stack);
     res.status(500).json({ 
       error: 'Server error during login',
       details: error.message 
