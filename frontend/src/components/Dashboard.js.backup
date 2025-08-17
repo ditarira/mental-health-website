@@ -153,7 +153,7 @@ const Dashboard = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -195,7 +195,7 @@ const Dashboard = () => {
             <button 
               onClick={handleLoginClick}
               style={{
-                background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
                 color: 'white',
                 border: 'none',
                 padding: '14px 28px',
@@ -237,7 +237,7 @@ const Dashboard = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -254,7 +254,7 @@ const Dashboard = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -275,7 +275,7 @@ const Dashboard = () => {
           <button 
             onClick={() => fetchUserStats()}
             style={{
-              background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
               color: 'white',
               border: 'none',
               padding: '12px 24px',
@@ -294,7 +294,7 @@ const Dashboard = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
+      background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
       padding: '0'
     }}>
       {/* Header */}
@@ -321,7 +321,7 @@ const Dashboard = () => {
               fontWeight: '700',
               textShadow: '0 2px 10px rgba(0,0,0,0.2)'
             }}>
-?? Welcome back, {user.firstName}!
+              ?? Welcome back, {user.firstName}!
             </h1>
             <p style={{
               margin: 0,
@@ -374,7 +374,7 @@ const Dashboard = () => {
             color: '#dc2626',
             backdropFilter: 'blur(5px)'
           }}>
-?? {error}
+            ?? {error}
           </div>
         )}
 
@@ -411,7 +411,7 @@ const Dashboard = () => {
 
           {/* Journal Card - Blue Gradient */}
           <div onClick={!isMobile ? handleJournalClick : undefined} style={{
-            background: 'linear-gradient(135deg, #a7c7e7 0%, #6fa8dc 100%)',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
             borderRadius: isMobile ? '12px' : '20px',
             padding: isMobile ? '15px' : '25px',
             textAlign: 'center',
@@ -424,7 +424,8 @@ const Dashboard = () => {
             flexDirection: 'column',
             justifyContent: 'center'
           }}>
-            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>\n              ??
+            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
+              ??
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -451,7 +452,7 @@ const Dashboard = () => {
 
           {/* Breathing Card - Coral Gradient */}
           <div onClick={!isMobile ? handleBreathingClick : undefined} style={{
-            background: 'linear-gradient(135deg, #f4c2c2 0%, #dda0dd 100%)',
+            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
             borderRadius: isMobile ? '12px' : '20px',
             padding: isMobile ? '15px' : '25px',
             textAlign: 'center',
@@ -464,7 +465,8 @@ const Dashboard = () => {
             flexDirection: 'column',
             justifyContent: 'center'
           }}>
-            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>\n              ?????
+            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
+              ?????
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -491,7 +493,7 @@ const Dashboard = () => {
 
           {/* Streak Card - Gold Gradient */}
           <div style={{
-            background: 'linear-gradient(135deg, #fff2cc 0%, #ffe599 100%)',
+            background: 'linear-gradient(135deg, #ffd700 0%, #ffb700 100%)',
             borderRadius: isMobile ? '12px' : '20px',
             padding: isMobile ? '15px' : '25px',
             textAlign: 'center',
@@ -503,7 +505,8 @@ const Dashboard = () => {
             flexDirection: 'column',
             justifyContent: 'center'
           }}>
-            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>\n              ??
+            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
+              ??
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -530,7 +533,7 @@ const Dashboard = () => {
 
           {/* Mood Analytics Card - Emerald Gradient */}
           <div style={{
-            background: 'linear-gradient(135deg, #c6efce 0%, #a9dfbf 100%)',
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             borderRadius: isMobile ? '12px' : '20px',
             padding: isMobile ? '15px' : '25px',
             textAlign: 'center',
@@ -542,9 +545,10 @@ const Dashboard = () => {
             flexDirection: 'column',
             justifyContent: 'center'
           }}>
-            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>\n              ??' : 
-??' : 
-????'}
+            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
+              {moodAnalytics.averageMood >= 4 ? '??' : 
+               moodAnalytics.averageMood >= 3 ? '??' : 
+               moodAnalytics.averageMood >= 2 ? '??' : '??'}
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -580,7 +584,7 @@ const Dashboard = () => {
             marginBottom: '40px'
           }}>
             <div style={{
-              background: 'linear-gradient(135deg, #a7c7e7 0%, #6fa8dc 100%)',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
               borderRadius: '20px',
               padding: '30px',
               textAlign: 'center',
@@ -623,7 +627,7 @@ const Dashboard = () => {
             </div>
 
             <div style={{
-              background: 'linear-gradient(135deg, #f4c2c2 0%, #dda0dd 100%)',
+              background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
               borderRadius: '20px',
               padding: '30px',
               textAlign: 'center',
@@ -631,7 +635,7 @@ const Dashboard = () => {
               color: 'white',
               transition: 'all 0.3s ease'
             }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>??</div>
+              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>?????</div>
               <h3 style={{ 
                 margin: '0 0 8px 0', 
                 fontSize: '1.3rem',
@@ -688,7 +692,7 @@ const Dashboard = () => {
               color: '#1f2937',
               fontWeight: '700'
             }}>
-?? Recent Journal Entries
+              ?? Recent Journal Entries
             </h2>
             {stats.recentEntries.length === 0 ? (
               <div style={{ textAlign: 'center', color: '#6b7280', padding: '15px 0' }}>
@@ -697,7 +701,7 @@ const Dashboard = () => {
                 <button 
                   onClick={handleJournalClick}
                   style={{
-                    background: 'linear-gradient(135deg, #a7c7e7 0%, #6fa8dc 100%)',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                     color: 'white',
                     border: 'none',
                     padding: '10px 20px',
@@ -738,11 +742,11 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div style={{ fontSize: '1.2rem', marginLeft: '8px' }}>
-??'}
-??'}
-??'}
-??'}
-??'}
+                      {entry.mood === '1' && '??'}
+                      {entry.mood === '2' && '??'}
+                      {entry.mood === '3' && '??'}
+                      {entry.mood === '4' && '??'}
+                      {entry.mood === '5' && '??'}
                     </div>
                   </div>
                 ))}
@@ -765,7 +769,7 @@ const Dashboard = () => {
              color: '#1f2937',
              fontWeight: '700'
            }}>
-????? Recent Breathing Sessions
+             ????? Recent Breathing Sessions
            </h2>
            {stats.recentSessions.length === 0 ? (
              <div style={{ textAlign: 'center', color: '#6b7280', padding: '15px 0' }}>
@@ -774,7 +778,7 @@ const Dashboard = () => {
                <button 
                  onClick={handleBreathingClick}
                  style={{
-                   background: 'linear-gradient(135deg, #f4c2c2 0%, #dda0dd 100%)',
+                   background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
                    color: 'white',
                    border: 'none',
                    padding: '10px 20px',
@@ -797,7 +801,7 @@ const Dashboard = () => {
                    padding: '10px 0',
                    borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
                  }}>
-                   <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>??</div>
+                   <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>?????</div>
                    <div style={{ flex: 1, minWidth: 0 }}>
                      <div style={{ 
                        fontWeight: '600', 
@@ -850,17 +854,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-

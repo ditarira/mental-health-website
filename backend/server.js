@@ -4,6 +4,20 @@ const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
 
 const app = express();
+
+// Manual CORS headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://mental-health-website-lyart.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', true);
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 const prisma = new PrismaClient();
 
 // CORS Configuration - Allow your frontend domain
@@ -91,3 +105,5 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+
+
