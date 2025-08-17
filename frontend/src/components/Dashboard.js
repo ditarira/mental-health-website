@@ -20,6 +20,28 @@ const Dashboard = () => {
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
+  // Emoji constants to avoid encoding issues
+  const EMOJIS = {
+    brain: '??',
+    wave: '??',
+    sparkles: '?',
+    writing: '??',
+    meditation: '?????',
+    fire: '??',
+    warning: '??',
+    refresh: '??',
+    clock: '?',
+    book: '??',
+    wind: '???',
+    trophy: '??',
+    chart: '??',
+    happy: '??',
+    smile: '??',
+    neutral: '??',
+    sad: '??',
+    cry: '??'
+  };
+
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
@@ -153,7 +175,7 @@ const Dashboard = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -170,7 +192,7 @@ const Dashboard = () => {
           backdropFilter: 'blur(10px)'
         }}>
           <div style={{ fontSize: isMobile ? '3rem' : '4rem', marginBottom: '20px' }}>
-            ??
+            {EMOJIS.brain}
           </div>
           <h1 style={{ 
             fontSize: isMobile ? '1.8rem' : '2.5rem', 
@@ -197,7 +219,7 @@ const Dashboard = () => {
             <button 
               onClick={handleLoginClick}
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
                 color: 'white',
                 border: 'none',
                 padding: '14px 28px',
@@ -206,7 +228,7 @@ const Dashboard = () => {
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+                boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)',
                 width: isMobile ? '100%' : 'auto'
               }}
             >
@@ -216,8 +238,8 @@ const Dashboard = () => {
               onClick={handleSignupClick}
               style={{
                 background: 'transparent',
-                color: '#667eea',
-                border: '2px solid #667eea',
+                color: '#4f46e5',
+                border: '2px solid #4f46e5',
                 padding: '14px 28px',
                 borderRadius: '12px',
                 fontSize: '1rem',
@@ -239,13 +261,13 @@ const Dashboard = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
         <div style={{ textAlign: 'center', color: 'white' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>??</div>
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>{EMOJIS.brain}</div>
           <div style={{ fontSize: '1.3rem', fontWeight: '600' }}>Loading your wellness journey...</div>
         </div>
       </div>
@@ -256,7 +278,7 @@ const Dashboard = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -271,13 +293,13 @@ const Dashboard = () => {
           width: '100%',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '20px' }}>??</div>
+          <div style={{ fontSize: '3rem', marginBottom: '20px' }}>{EMOJIS.warning}</div>
           <h3 style={{ color: '#dc2626', marginBottom: '15px' }}>Error Loading Data</h3>
           <p style={{ color: '#6b7280', marginBottom: '25px' }}>{error}</p>
           <button 
             onClick={() => fetchUserStats()}
             style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
               color: 'white',
               border: 'none',
               padding: '12px 24px',
@@ -296,7 +318,7 @@ const Dashboard = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
       padding: '0'
     }}>
       {/* Header */}
@@ -323,14 +345,14 @@ const Dashboard = () => {
               fontWeight: '700',
               textShadow: '0 2px 10px rgba(0,0,0,0.2)'
             }}>
-              <span>??</span> Welcome back, {user.firstName}!
+              <span>{EMOJIS.wave}</span> Welcome back, {user.firstName}!
             </h1>
             <p style={{
               margin: 0,
               fontSize: isMobile ? '0.9rem' : '1.1rem',
               color: 'rgba(255, 255, 255, 0.9)'
             }}>
-              Continue your mindfulness journey <span>?</span>
+              Continue your mindfulness journey <span>{EMOJIS.sparkles}</span>
             </p>
           </div>
           
@@ -353,7 +375,7 @@ const Dashboard = () => {
               backdropFilter: 'blur(5px)'
             }}
           >
-            <span>??</span>
+            <span>{EMOJIS.refresh}</span>
             {refreshingStats ? 'Updating...' : 'Refresh'}
           </button>
         </div>
@@ -376,7 +398,7 @@ const Dashboard = () => {
             color: '#dc2626',
             backdropFilter: 'blur(5px)'
           }}>
-            ?? {error}
+            {EMOJIS.warning} {error}
           </div>
         )}
 
@@ -405,19 +427,19 @@ const Dashboard = () => {
               backdropFilter: 'blur(3px)'
             }}>
               <div style={{ textAlign: 'center', color: 'white' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>?</div>
+                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>{EMOJIS.clock}</div>
                 <div style={{ fontWeight: '600', fontSize: '0.8rem' }}>Updating...</div>
               </div>
             </div>
           )}
 
-          {/* Journal Card */}
+          {/* Journal Card - Blue Gradient */}
           <div onClick={!isMobile ? handleJournalClick : undefined} style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
             borderRadius: isMobile ? '12px' : '20px',
             padding: isMobile ? '15px' : '25px',
             textAlign: 'center',
-            boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+            boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)',
             color: 'white',
             transition: 'all 0.3s ease',
             cursor: !isMobile ? 'pointer' : 'default',
@@ -427,7 +449,7 @@ const Dashboard = () => {
             justifyContent: 'center'
           }}>
             <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
-              ??
+              {EMOJIS.writing}
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -452,13 +474,13 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Breathing Card */}
+          {/* Breathing Card - Coral Gradient */}
           <div onClick={!isMobile ? handleBreathingClick : undefined} style={{
-            background: 'linear-gradient(135deg, #06d6a0 0%, #118ab2 100%)',
+            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
             borderRadius: isMobile ? '12px' : '20px',
             padding: isMobile ? '15px' : '25px',
             textAlign: 'center',
-            boxShadow: '0 8px 25px rgba(6, 214, 160, 0.3)',
+            boxShadow: '0 8px 25px rgba(255, 107, 107, 0.3)',
             color: 'white',
             transition: 'all 0.3s ease',
             cursor: !isMobile ? 'pointer' : 'default',
@@ -468,7 +490,7 @@ const Dashboard = () => {
             justifyContent: 'center'
           }}>
             <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
-              ?????
+              {EMOJIS.meditation}
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -493,13 +515,13 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Streak Card */}
+          {/* Streak Card - Gold Gradient */}
           <div style={{
-            background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+            background: 'linear-gradient(135deg, #ffd700 0%, #ffb700 100%)',
             borderRadius: isMobile ? '12px' : '20px',
             padding: isMobile ? '15px' : '25px',
             textAlign: 'center',
-            boxShadow: '0 8px 25px rgba(252, 182, 159, 0.3)',
+            boxShadow: '0 8px 25px rgba(255, 215, 0, 0.3)',
             color: '#8b4513',
             transition: 'all 0.3s ease',
             minHeight: isMobile ? '100px' : '140px',
@@ -508,7 +530,7 @@ const Dashboard = () => {
             justifyContent: 'center'
           }}>
             <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
-              ??
+              {EMOJIS.fire}
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -533,13 +555,13 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Mood Analytics Card */}
+          {/* Mood Analytics Card - Emerald Gradient */}
           <div style={{
-            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             borderRadius: isMobile ? '12px' : '20px',
             padding: isMobile ? '15px' : '25px',
             textAlign: 'center',
-            boxShadow: '0 8px 25px rgba(240, 147, 251, 0.3)',
+            boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)',
             color: 'white',
             transition: 'all 0.3s ease',
             minHeight: isMobile ? '100px' : '140px',
@@ -548,9 +570,9 @@ const Dashboard = () => {
             justifyContent: 'center'
           }}>
             <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
-              {moodAnalytics.averageMood >= 4 ? '??' : 
-               moodAnalytics.averageMood >= 3 ? '??' : 
-               moodAnalytics.averageMood >= 2 ? '??' : '??'}
+              {moodAnalytics.averageMood >= 4 ? EMOJIS.happy : 
+               moodAnalytics.averageMood >= 3 ? EMOJIS.smile : 
+               moodAnalytics.averageMood >= 2 ? EMOJIS.neutral : EMOJIS.sad}
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -586,15 +608,15 @@ const Dashboard = () => {
             marginBottom: '40px'
           }}>
             <div style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
               borderRadius: '20px',
               padding: '30px',
               textAlign: 'center',
-              boxShadow: '0 10px 30px rgba(102, 126, 234, 0.2)',
+              boxShadow: '0 10px 30px rgba(59, 130, 246, 0.2)',
               color: 'white',
               transition: 'all 0.3s ease'
             }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>??</div>
+              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>{EMOJIS.writing}</div>
               <h3 style={{ 
                 margin: '0 0 8px 0', 
                 fontSize: '1.3rem',
@@ -629,15 +651,15 @@ const Dashboard = () => {
             </div>
 
             <div style={{
-              background: 'linear-gradient(135deg, #06d6a0 0%, #118ab2 100%)',
+              background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
               borderRadius: '20px',
               padding: '30px',
               textAlign: 'center',
-              boxShadow: '0 10px 30px rgba(6, 214, 160, 0.2)',
+              boxShadow: '0 10px 30px rgba(255, 107, 107, 0.2)',
               color: 'white',
               transition: 'all 0.3s ease'
             }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>?????</div>
+              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>{EMOJIS.meditation}</div>
               <h3 style={{ 
                 margin: '0 0 8px 0', 
                 fontSize: '1.3rem',
@@ -694,16 +716,16 @@ const Dashboard = () => {
               color: '#1f2937',
               fontWeight: '700'
             }}>
-              ?? Recent Journal Entries
+              {EMOJIS.book} Recent Journal Entries
             </h2>
             {stats.recentEntries.length === 0 ? (
               <div style={{ textAlign: 'center', color: '#6b7280', padding: '15px 0' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '10px' }}>??</div>
+                <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{EMOJIS.writing}</div>
                 <p style={{ marginBottom: '15px', fontSize: '0.9rem' }}>No journal entries yet</p>
                 <button 
                   onClick={handleJournalClick}
                   style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                     color: 'white',
                     border: 'none',
                     padding: '10px 20px',
@@ -711,7 +733,7 @@ const Dashboard = () => {
                     fontSize: '0.85rem',
                     fontWeight: '600',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+                    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
                   }}
                 >
                   Write First Entry
@@ -726,7 +748,7 @@ const Dashboard = () => {
                     padding: '10px 0',
                     borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
                   }}>
-                    <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>??</div>
+                    <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>{EMOJIS.writing}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ 
                         fontWeight: '600', 
@@ -736,32 +758,32 @@ const Dashboard = () => {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap'
-                      }}>
-                        {entry.title || 'Untitled Entry'}
-                      </div>
-                      <div style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: '#6b7280' }}>
-                        {new Date(entry.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <div style={{ fontSize: '1.2rem', marginLeft: '8px' }}>
-                      {entry.mood === '1' && '??'}
-                      {entry.mood === '2' && '??'}
-                      {entry.mood === '3' && '??'}
-                      {entry.mood === '4' && '??'}
-                      {entry.mood === '5' && '??'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                     }}>
+                       {entry.title || 'Untitled Entry'}
+                     </div>
+                     <div style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: '#6b7280' }}>
+                       {new Date(entry.createdAt).toLocaleDateString()}
+                     </div>
+                   </div>
+                   <div style={{ fontSize: '1.2rem', marginLeft: '8px' }}>
+                     {entry.mood === '1' && EMOJIS.cry}
+                     {entry.mood === '2' && EMOJIS.sad}
+                     {entry.mood === '3' && EMOJIS.neutral}
+                     {entry.mood === '4' && EMOJIS.smile}
+                     {entry.mood === '5' && EMOJIS.happy}
+                   </div>
+                 </div>
+               ))}
+             </div>
+           )}
+         </div>
 
-          {/* Recent Breathing Sessions */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            borderRadius: isMobile ? '12px' : '16px',
-            padding: isMobile ? '15px' : '25px',
-            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+         {/* Recent Breathing Sessions */}
+         <div style={{
+           background: 'rgba(255, 255, 255, 0.95)',
+           borderRadius: isMobile ? '12px' : '16px',
+           padding: isMobile ? '15px' : '25px',
+           boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
            backdropFilter: 'blur(10px)',
            border: '1px solid rgba(255, 255, 255, 0.3)'
          }}>
@@ -771,16 +793,16 @@ const Dashboard = () => {
              color: '#1f2937',
              fontWeight: '700'
            }}>
-             ????? Recent Breathing Sessions
+             {EMOJIS.meditation} Recent Breathing Sessions
            </h2>
            {stats.recentSessions.length === 0 ? (
              <div style={{ textAlign: 'center', color: '#6b7280', padding: '15px 0' }}>
-               <div style={{ fontSize: '2rem', marginBottom: '10px' }}>???</div>
+               <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{EMOJIS.wind}</div>
                <p style={{ marginBottom: '15px', fontSize: '0.9rem' }}>No breathing sessions yet</p>
                <button 
                  onClick={handleBreathingClick}
                  style={{
-                   background: 'linear-gradient(135deg, #06d6a0 0%, #118ab2 100%)',
+                   background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
                    color: 'white',
                    border: 'none',
                    padding: '10px 20px',
@@ -788,7 +810,7 @@ const Dashboard = () => {
                    fontSize: '0.85rem',
                    fontWeight: '600',
                    cursor: 'pointer',
-                   boxShadow: '0 4px 15px rgba(6, 214, 160, 0.3)'
+                   boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)'
                  }}
                >
                  Start First Session
@@ -803,7 +825,7 @@ const Dashboard = () => {
                    padding: '10px 0',
                    borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
                  }}>
-                   <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>?????</div>
+                   <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>{EMOJIS.meditation}</div>
                    <div style={{ flex: 1, minWidth: 0 }}>
                      <div style={{ 
                        fontWeight: '600', 
@@ -821,7 +843,7 @@ const Dashboard = () => {
                      </div>
                    </div>
                    <div style={{
-                     background: 'linear-gradient(135deg, #06d6a0, #118ab2)',
+                     background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
                      color: 'white',
                      padding: '3px 6px',
                      borderRadius: '4px',
