@@ -20,28 +20,6 @@ const Dashboard = () => {
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
-  // Emoji constants to avoid encoding issues
-  const EMOJIS = {
-    brain: '??',
-    wave: '??',
-    sparkles: '?',
-    writing: '??',
-    meditation: '?????',
-    fire: '??',
-    warning: '??',
-    refresh: '??',
-    clock: '?',
-    book: '??',
-    wind: '???',
-    trophy: '??',
-    chart: '??',
-    happy: '??',
-    smile: '??',
-    neutral: '??',
-    sad: '??',
-    cry: '??'
-  };
-
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
@@ -191,9 +169,7 @@ const Dashboard = () => {
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
           backdropFilter: 'blur(10px)'
         }}>
-          <div style={{ fontSize: isMobile ? '3rem' : '4rem', marginBottom: '20px' }}>
-            {EMOJIS.brain}
-          </div>
+          <div style={{ fontSize: isMobile ? '3rem' : '4rem', marginBottom: '20px' }}>??</div>
           <h1 style={{ 
             fontSize: isMobile ? '1.8rem' : '2.5rem', 
             margin: '0 0 10px 0', 
@@ -267,7 +243,7 @@ const Dashboard = () => {
         justifyContent: 'center'
       }}>
         <div style={{ textAlign: 'center', color: 'white' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>{EMOJIS.brain}</div>
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>??</div>
           <div style={{ fontSize: '1.3rem', fontWeight: '600' }}>Loading your wellness journey...</div>
         </div>
       </div>
@@ -293,7 +269,7 @@ const Dashboard = () => {
           width: '100%',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '20px' }}>{EMOJIS.warning}</div>
+          <div style={{ fontSize: '3rem', marginBottom: '20px' }}>??</div>
           <h3 style={{ color: '#dc2626', marginBottom: '15px' }}>Error Loading Data</h3>
           <p style={{ color: '#6b7280', marginBottom: '25px' }}>{error}</p>
           <button 
@@ -345,14 +321,14 @@ const Dashboard = () => {
               fontWeight: '700',
               textShadow: '0 2px 10px rgba(0,0,0,0.2)'
             }}>
-              <span>{EMOJIS.wave}</span> Welcome back, {user.firstName}!
+              ?? Welcome back, {user.firstName}!
             </h1>
             <p style={{
               margin: 0,
               fontSize: isMobile ? '0.9rem' : '1.1rem',
               color: 'rgba(255, 255, 255, 0.9)'
             }}>
-              Continue your mindfulness journey <span>{EMOJIS.sparkles}</span>
+              Continue your mindfulness journey ?
             </p>
           </div>
           
@@ -375,7 +351,7 @@ const Dashboard = () => {
               backdropFilter: 'blur(5px)'
             }}
           >
-            <span>{EMOJIS.refresh}</span>
+            <span>??</span>
             {refreshingStats ? 'Updating...' : 'Refresh'}
           </button>
         </div>
@@ -398,7 +374,7 @@ const Dashboard = () => {
             color: '#dc2626',
             backdropFilter: 'blur(5px)'
           }}>
-            {EMOJIS.warning} {error}
+            ?? {error}
           </div>
         )}
 
@@ -427,7 +403,7 @@ const Dashboard = () => {
               backdropFilter: 'blur(3px)'
             }}>
               <div style={{ textAlign: 'center', color: 'white' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>{EMOJIS.clock}</div>
+                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>?</div>
                 <div style={{ fontWeight: '600', fontSize: '0.8rem' }}>Updating...</div>
               </div>
             </div>
@@ -449,7 +425,7 @@ const Dashboard = () => {
             justifyContent: 'center'
           }}>
             <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
-              {EMOJIS.writing}
+              ??
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -490,7 +466,7 @@ const Dashboard = () => {
             justifyContent: 'center'
           }}>
             <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
-              {EMOJIS.meditation}
+              ?????
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -530,7 +506,7 @@ const Dashboard = () => {
             justifyContent: 'center'
           }}>
             <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
-              {EMOJIS.fire}
+              ??
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -570,9 +546,9 @@ const Dashboard = () => {
             justifyContent: 'center'
           }}>
             <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>
-              {moodAnalytics.averageMood >= 4 ? EMOJIS.happy : 
-               moodAnalytics.averageMood >= 3 ? EMOJIS.smile : 
-               moodAnalytics.averageMood >= 2 ? EMOJIS.neutral : EMOJIS.sad}
+              {moodAnalytics.averageMood >= 4 ? '??' : 
+               moodAnalytics.averageMood >= 3 ? '??' : 
+               moodAnalytics.averageMood >= 2 ? '??' : '??'}
             </div>
             <div style={{
               fontSize: isMobile ? '1.8rem' : '2.5rem',
@@ -616,7 +592,7 @@ const Dashboard = () => {
               color: 'white',
               transition: 'all 0.3s ease'
             }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>{EMOJIS.writing}</div>
+              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>??</div>
               <h3 style={{ 
                 margin: '0 0 8px 0', 
                 fontSize: '1.3rem',
@@ -659,7 +635,7 @@ const Dashboard = () => {
               color: 'white',
               transition: 'all 0.3s ease'
             }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>{EMOJIS.meditation}</div>
+              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>?????</div>
               <h3 style={{ 
                 margin: '0 0 8px 0', 
                 fontSize: '1.3rem',
@@ -716,11 +692,11 @@ const Dashboard = () => {
               color: '#1f2937',
               fontWeight: '700'
             }}>
-              {EMOJIS.book} Recent Journal Entries
+              ?? Recent Journal Entries
             </h2>
             {stats.recentEntries.length === 0 ? (
               <div style={{ textAlign: 'center', color: '#6b7280', padding: '15px 0' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{EMOJIS.writing}</div>
+                <div style={{ fontSize: '2rem', marginBottom: '10px' }}>??</div>
                 <p style={{ marginBottom: '15px', fontSize: '0.9rem' }}>No journal entries yet</p>
                 <button 
                   onClick={handleJournalClick}
@@ -748,7 +724,7 @@ const Dashboard = () => {
                     padding: '10px 0',
                     borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
                   }}>
-                    <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>{EMOJIS.writing}</div>
+                    <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>??</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ 
                         fontWeight: '600', 
@@ -758,27 +734,27 @@ const Dashboard = () => {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap'
-                     }}>
-                       {entry.title || 'Untitled Entry'}
-                     </div>
-                     <div style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: '#6b7280' }}>
-                       {new Date(entry.createdAt).toLocaleDateString()}
-                     </div>
-                   </div>
-                   <div style={{ fontSize: '1.2rem', marginLeft: '8px' }}>
-                     {entry.mood === '1' && EMOJIS.cry}
-                     {entry.mood === '2' && EMOJIS.sad}
-                     {entry.mood === '3' && EMOJIS.neutral}
-                     {entry.mood === '4' && EMOJIS.smile}
-                     {entry.mood === '5' && EMOJIS.happy}
-                   </div>
-                 </div>
-               ))}
-             </div>
-           )}
-         </div>
+                      }}>
+                        {entry.title || 'Untitled Entry'}
+                      </div>
+                      <div style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: '#6b7280' }}>
+                        {new Date(entry.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '1.2rem', marginLeft: '8px' }}>
+                      {entry.mood === '1' && '??'}
+                      {entry.mood === '2' && '??'}
+                      {entry.mood === '3' && '??'}
+                      {entry.mood === '4' && '??'}
+                      {entry.mood === '5' && '??'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-         {/* Recent Breathing Sessions */}
+          {/* Recent Breathing Sessions */}
          <div style={{
            background: 'rgba(255, 255, 255, 0.95)',
            borderRadius: isMobile ? '12px' : '16px',
@@ -793,11 +769,11 @@ const Dashboard = () => {
              color: '#1f2937',
              fontWeight: '700'
            }}>
-             {EMOJIS.meditation} Recent Breathing Sessions
+             ????? Recent Breathing Sessions
            </h2>
            {stats.recentSessions.length === 0 ? (
              <div style={{ textAlign: 'center', color: '#6b7280', padding: '15px 0' }}>
-               <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{EMOJIS.wind}</div>
+               <div style={{ fontSize: '2rem', marginBottom: '10px' }}>??</div>
                <p style={{ marginBottom: '15px', fontSize: '0.9rem' }}>No breathing sessions yet</p>
                <button 
                  onClick={handleBreathingClick}
@@ -825,7 +801,7 @@ const Dashboard = () => {
                    padding: '10px 0',
                    borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
                  }}>
-                   <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>{EMOJIS.meditation}</div>
+                   <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>?????</div>
                    <div style={{ flex: 1, minWidth: 0 }}>
                      <div style={{ 
                        fontWeight: '600', 
