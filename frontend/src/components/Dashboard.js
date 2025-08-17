@@ -14,7 +14,7 @@ const Dashboard = () => {
     favoriteExercise: null
   });
   const [loading, setLoading] = useState(true);
-  const [refreshingStats, setRefreshingStats] = useState(false); // New state for partial refresh
+  const [refreshingStats, setRefreshingStats] = useState(false);
   const [error, setError] = useState(null);
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
@@ -39,7 +39,6 @@ const Dashboard = () => {
     try {
       if (!token) return;
 
-      // Set appropriate loading state
       if (isManualRefresh) {
         setRefreshingStats(true);
         setError(null);
@@ -92,17 +91,15 @@ const Dashboard = () => {
     }
   };
 
-  // Manual refresh function for the refresh button
   const handleRefreshStats = () => {
-    fetchUserStats(true); // Pass true to indicate manual refresh
+    fetchUserStats(true);
   };
 
   useEffect(() => {
     if (user && token) {
       fetchUserStats();
-      const interval = setInterval(() => fetchUserStats(true), 30000); // Auto-refresh every 30 seconds
+      const interval = setInterval(() => fetchUserStats(true), 30000);
 
-      // Listen for journal updates
       const handleJournalUpdate = () => {
         fetchUserStats(true);
       };
@@ -121,8 +118,8 @@ const Dashboard = () => {
       <div className="user-dashboard">
         <div className="welcome-guest">
           <div className="welcome-content">
-            <h1>Welcome to MindfulMe</h1>
-            <p>Your personal mental wellness companion</p>
+            <h1>?? Welcome to MindfulMe</h1>
+            <p>Your personal mental wellness companion ?</p>
             <div className="feature-grid">
               <div className="feature-card">
                 <div className="feature-icon">??</div>
@@ -141,8 +138,8 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="auth-buttons">
-              <button className="login-btn" onClick={handleLoginClick}>Sign In</button>
-              <button className="signup-btn" onClick={handleSignupClick}>Create Account</button>
+              <button className="login-btn" onClick={handleLoginClick}>?? Sign In</button>
+              <button className="signup-btn" onClick={handleSignupClick}>?? Create Account</button>
             </div>
           </div>
         </div>
@@ -154,8 +151,8 @@ const Dashboard = () => {
     return (
       <div className="user-dashboard">
         <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading your wellness journey...</p>
+          <div className="loading-spinner">??</div>
+          <p>Loading your wellness journey... ?</p>
         </div>
       </div>
     );
@@ -166,10 +163,10 @@ const Dashboard = () => {
       <div className="user-dashboard">
         <div className="loading-container">
           <div style={{ color: 'red', textAlign: 'center' }}>
-            <h3>Error Loading Data</h3>
+            <h3>?? Error Loading Data</h3>
             <p>{error}</p>
             <button onClick={() => fetchUserStats()} style={{ padding: '10px 20px', marginTop: '10px' }}>
-              Try Again
+              ?? Try Again
             </button>
           </div>
         </div>
@@ -182,11 +179,20 @@ const Dashboard = () => {
       <div className="dashboard-header">
         <div className="welcome-message">
           <h1>Welcome back, {user.firstName}! ??</h1>
-          <p>Continue your mindfulness journey</p>
+          <p>Continue your mindfulness journey ??</p>
         </div>
         <div className="header-actions">
           <div className="streak-counter">
-            <div className="streak-number">{stats.currentStreak}</div>
+            <div className="streak-number" style={{
+              fontSize: '2.5rem',
+              fontWeight: '900',
+              background: 'linear-gradient(135deg, #ff6b6b, #ffd93d)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+              {stats.currentStreak}
+            </div>
             <div className="streak-label">Day Streak ??</div>
           </div>
           <button 
@@ -195,7 +201,7 @@ const Dashboard = () => {
             className="refresh-button"
             style={{
               padding: '12px 20px',
-              background: refreshingStats ? '#9ca3af' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              background: refreshingStats ? '#9ca3af' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '12px',
@@ -206,7 +212,8 @@ const Dashboard = () => {
               alignItems: 'center',
               gap: '8px',
               transition: 'all 0.2s ease',
-              marginLeft: '20px'
+              marginLeft: '20px',
+              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
             }}
           >
             <span style={{ 
@@ -220,7 +227,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Error banner for refresh errors (non-blocking) */}
       {error && refreshingStats && (
         <div style={{
           padding: '10px 15px',
@@ -236,7 +242,6 @@ const Dashboard = () => {
       )}
 
       <div className="stats-grid" style={{ position: 'relative' }}>
-        {/* Loading overlay for stats refresh */}
         {refreshingStats && (
           <div style={{
             position: 'absolute',
@@ -244,59 +249,172 @@ const Dashboard = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(255, 255, 255, 0.8)',
+            background: 'rgba(255, 255, 255, 0.9)',
             borderRadius: '20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 10,
-            backdropFilter: 'blur(2px)'
+            backdropFilter: 'blur(4px)'
           }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ 
-                fontSize: '2rem', 
+                fontSize: '3rem', 
                 marginBottom: '10px',
-                animation: 'spin 1s linear infinite'
+                animation: 'bounce 1s ease-in-out infinite'
               }}>?</div>
               <div style={{ color: '#6b7280', fontWeight: '600' }}>Updating stats...</div>
             </div>
           </div>
         )}
 
-        <div className="stat-card journal-stat">
-          <div className="stat-icon">??</div>
+        <div className="stat-card journal-stat" style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          borderRadius: '20px',
+          padding: '25px',
+          boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
+          transform: 'translateY(0)',
+          transition: 'all 0.3s ease'
+        }}>
+          <div className="stat-icon" style={{ fontSize: '3rem', marginBottom: '15px' }}>??</div>
           <div className="stat-content">
-            <div className="stat-number">{stats.totalJournalEntries}</div>
-            <div className="stat-label">Journal Entries</div>
-            <div className="stat-sublabel">Total written</div>
+            <div className="stat-number" style={{
+              fontSize: '3.5rem',
+              fontWeight: '900',
+              textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              marginBottom: '8px',
+              background: 'linear-gradient(135deg, #ffffff, #f1f5f9)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              {stats.totalJournalEntries}
+            </div>
+            <div className="stat-label" style={{ 
+              fontSize: '1.2rem', 
+              fontWeight: '700',
+              marginBottom: '4px'
+            }}>
+              Journal Entries
+            </div>
+            <div className="stat-sublabel" style={{ 
+              opacity: 0.9,
+              fontSize: '0.9rem'
+            }}>
+              ?? Total written
+            </div>
           </div>
         </div>
 
-        <div className="stat-card breathing-stat">
-          <div className="stat-icon">?????</div>
+        <div className="stat-card breathing-stat" style={{
+          background: 'linear-gradient(135deg, #06d6a0 0%, #118ab2 100%)',
+          color: 'white',
+          borderRadius: '20px',
+          padding: '25px',
+          boxShadow: '0 10px 30px rgba(6, 214, 160, 0.3)',
+          transform: 'translateY(0)',
+          transition: 'all 0.3s ease'
+        }}>
+          <div className="stat-icon" style={{ fontSize: '3rem', marginBottom: '15px' }}>?????</div>
           <div className="stat-content">
-            <div className="stat-number">{stats.totalBreathingSessions}</div>
-            <div className="stat-label">Breathing Sessions</div>
-            <div className="stat-sublabel">Completed</div>
+            <div className="stat-number" style={{
+              fontSize: '3.5rem',
+              fontWeight: '900',
+              textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              marginBottom: '8px',
+              background: 'linear-gradient(135deg, #ffffff, #f1f5f9)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              {stats.totalBreathingSessions}
+            </div>
+            <div className="stat-label" style={{ 
+              fontSize: '1.2rem', 
+              fontWeight: '700',
+              marginBottom: '4px'
+            }}>
+              Breathing Sessions
+            </div>
+            <div className="stat-sublabel" style={{ 
+              opacity: 0.9,
+              fontSize: '0.9rem'
+            }}>
+              ??? Completed
+            </div>
           </div>
         </div>
 
-        <div className="stat-card total-stat">
-          <div className="stat-icon">?</div>
+        <div className="stat-card total-stat" style={{
+          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+          color: 'white',
+          borderRadius: '20px',
+          padding: '25px',
+          boxShadow: '0 10px 30px rgba(240, 147, 251, 0.3)',
+          transform: 'translateY(0)',
+          transition: 'all 0.3s ease'
+        }}>
+          <div className="stat-icon" style={{ fontSize: '3rem', marginBottom: '15px' }}>?</div>
           <div className="stat-content">
-            <div className="stat-number">{stats.totalJournalEntries + stats.totalBreathingSessions}</div>
-            <div className="stat-label">Total Activities</div>
-            <div className="stat-sublabel">Your wellness score</div>
+            <div className="stat-number" style={{
+              fontSize: '3.5rem',
+              fontWeight: '900',
+              textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              marginBottom: '8px',
+              background: 'linear-gradient(135deg, #ffffff, #f1f5f9)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              {stats.totalJournalEntries + stats.totalBreathingSessions}
+            </div>
+            <div className="stat-label" style={{ 
+              fontSize: '1.2rem', 
+              fontWeight: '700',
+              marginBottom: '4px'
+            }}>
+              Total Activities
+            </div>
+            <div className="stat-sublabel" style={{ 
+              opacity: 0.9,
+              fontSize: '0.9rem'
+            }}>
+              ?? Your wellness score
+            </div>
           </div>
         </div>
 
         {stats.favoriteExercise && (
-          <div className="stat-card favorite-stat">
-            <div className="stat-icon">?</div>
+          <div className="stat-card favorite-stat" style={{
+            background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+            color: '#8b4513',
+            borderRadius: '20px',
+            padding: '25px',
+            boxShadow: '0 10px 30px rgba(252, 182, 159, 0.3)',
+            transform: 'translateY(0)',
+            transition: 'all 0.3s ease'
+          }}>
+            <div className="stat-icon" style={{ fontSize: '3rem', marginBottom: '15px' }}>?</div>
             <div className="stat-content">
-              <div className="stat-favorite">{stats.favoriteExercise}</div>
-              <div className="stat-label">Favorite Exercise</div>
-              <div className="stat-sublabel">Most practiced</div>
+              <div className="stat-favorite" style={{
+                fontSize: '1.8rem',
+                fontWeight: '800',
+                textShadow: '0 1px 4px rgba(0,0,0,0.1)',
+                marginBottom: '8px'
+              }}>
+                {stats.favoriteExercise}
+              </div>
+              <div className="stat-label" style={{ 
+                fontSize: '1.2rem', 
+                fontWeight: '700',
+                marginBottom: '4px'
+              }}>
+                Favorite Exercise
+              </div>
+              <div className="stat-sublabel" style={{ 
+                opacity: 0.8,
+                fontSize: '0.9rem'
+              }}>
+                ?? Most practiced
+              </div>
             </div>
           </div>
         )}
@@ -307,8 +425,8 @@ const Dashboard = () => {
           <h2>?? Recent Journal Entries</h2>
           {stats.recentEntries.length === 0 ? (
             <div className="empty-state">
-              <p>No journal entries yet</p>
-              <button className="cta-btn" onClick={handleJournalClick}>Write Your First Entry</button>
+              <p>?? No journal entries yet</p>
+              <button className="cta-btn" onClick={handleJournalClick}>? Write Your First Entry</button>
             </div>
           ) : (
             <div className="activity-list">
@@ -318,10 +436,10 @@ const Dashboard = () => {
                   <div className="activity-content">
                     <div className="activity-title">{entry.title || 'Untitled Entry'}</div>
                     <div className="activity-date">
-                      {new Date(entry.createdAt).toLocaleDateString()}
+                      ?? {new Date(entry.createdAt).toLocaleDateString()}
                     </div>
                   </div>
-                  <div className="activity-mood">
+                  <div className="activity-mood" style={{ fontSize: '1.5rem' }}>
                     {entry.mood === '1' && '??'}
                     {entry.mood === '2' && '??'}
                     {entry.mood === '3' && '??'}
@@ -338,8 +456,8 @@ const Dashboard = () => {
           <h2>????? Recent Breathing Sessions</h2>
           {stats.recentSessions.length === 0 ? (
             <div className="empty-state">
-              <p>No breathing sessions yet</p>
-              <button className="cta-btn" onClick={handleBreathingClick}>Start Your First Session</button>
+              <p>??? No breathing sessions yet</p>
+              <button className="cta-btn" onClick={handleBreathingClick}>????? Start Your First Session</button>
             </div>
           ) : (
             <div className="activity-list">
@@ -347,13 +465,20 @@ const Dashboard = () => {
                 <div key={session.id} className="activity-item">
                   <div className="activity-icon">?????</div>
                   <div className="activity-content">
-                    <div className="activity-title">{session.type}</div>
+                    <div className="activity-title">??? {session.type}</div>
                     <div className="activity-date">
-                      {new Date(session.createdAt).toLocaleDateString()}
+                      ?? {new Date(session.createdAt).toLocaleDateString()}
                     </div>
                   </div>
-                  <div className="activity-duration">
-                    {Math.round(session.duration)}s
+                  <div className="activity-duration" style={{
+                    background: 'linear-gradient(135deg, #06d6a0, #118ab2)',
+                    color: 'white',
+                    padding: '4px 8px',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    fontWeight: '600'
+                  }}>
+                    ?? {Math.round(session.duration)}s
                   </div>
                 </div>
               ))}
@@ -363,29 +488,68 @@ const Dashboard = () => {
       </div>
 
       <div className="quick-actions">
-        <h2>Continue Your Journey</h2>
+        <h2>?? Continue Your Journey</h2>
         <div className="actions-grid">
-          <div className="action-card journal-action">
-            <div className="action-icon">??</div>
+          <div className="action-card journal-action" style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            borderRadius: '20px',
+            padding: '25px',
+            boxShadow: '0 10px 30px rgba(102, 126, 234, 0.2)'
+          }}>
+            <div className="action-icon" style={{ fontSize: '3rem' }}>??</div>
             <h3>Write in Journal</h3>
-            <p>Express your thoughts and feelings</p>
-            <button className="action-btn" onClick={handleJournalClick}>Start Writing</button>
+            <p>Express your thoughts and feelings ?</p>
+            <button className="action-btn" onClick={handleJournalClick} style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}>
+              ?? Start Writing
+            </button>
           </div>
 
-          <div className="action-card breathing-action">
-            <div className="action-icon">?????</div>
+          <div className="action-card breathing-action" style={{
+            background: 'linear-gradient(135deg, #06d6a0 0%, #118ab2 100%)',
+            color: 'white',
+            borderRadius: '20px',
+            padding: '25px',
+            boxShadow: '0 10px 30px rgba(6, 214, 160, 0.2)'
+          }}>
+            <div className="action-icon" style={{ fontSize: '3rem' }}>?????</div>
             <h3>Breathing Exercise</h3>
-            <p>Find calm with guided breathing</p>
-            <button className="action-btn" onClick={handleBreathingClick}>Start Breathing</button>
+            <p>Find calm with guided breathing ???</p>
+            <button className="action-btn" onClick={handleBreathingClick} style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}>
+              ?? Start Breathing
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Add CSS for spin animation */}
       <style jsx>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+          40% { transform: translateY(-10px); }
+          60% { transform: translateY(-5px); }
         }
         
         .header-actions {
@@ -395,11 +559,31 @@ const Dashboard = () => {
         
         .refresh-button:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .stat-card:hover {
+          transform: translateY(-5px) !important;
+          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2) !important;
+        }
+        
+        .action-btn:hover {
+          background: rgba(255, 255, 255, 0.3) !important;
+          transform: translateY(-2px);
         }
         
         .stats-grid {
           transition: opacity 0.2s ease;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 20px;
+          margin-bottom: 30px;
+        }
+        
+        .actions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
         }
       `}</style>
     </div>
