@@ -1,92 +1,74 @@
-const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || 'mindfulme-secret-key-2024';
 
-// Register a new user
+// Register user
 const register = async (req, res) => {
   try {
+    console.log('?? Registration attempt for:', req.body.email);
     const { firstName, lastName, email, password } = req.body;
 
-    console.log('📝 Registration attempt for:', email);
-
-    // Validation
+    // Validate input
     if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        error: 'All fields are required'
-      });
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        error: 'Password must be at least 6 characters long'
-      });
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
-    // Check if user already exists
+    // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { email: email.toLowerCase() }
     });
 
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        error: 'User with this email already exists'
-      });
+      return res.status(400).json({ error: 'User already exists with this email' });
     }
 
     // Hash password
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create user
     const user = await prisma.user.create({
       data: {
-        firstName,
-        lastName,
-        email: email.toLowerCase(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.toLowerCase().trim(),
         password: hashedPassword,
-        role: 'USER'
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        createdAt: true
+        updatedAt: new Date()
       }
     });
 
-    // Generate JWT token
+    console.log('? User created successfully:', user.id);
+
+    // Create JWT token
     const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email,
-        role: user.role 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { userId: user.id },
+      JWT_SECRET,
+      { expiresIn: '30d' }
     );
 
-    console.log('✅ User registered successfully:', user.email);
-
     res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      user,
-      token
+      message: 'User created successfully',
+      token,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      }
     });
 
   } catch (error) {
-    console.error('❌ Registration error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error during registration',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    console.error('? Registration error:', error);
+    res.status(500).json({ 
+      error: 'Server error during registration',
+      details: error.message 
     });
   }
 };
@@ -94,16 +76,11 @@ const register = async (req, res) => {
 // Login user
 const login = async (req, res) => {
   try {
+    console.log('?? Login attempt for:', req.body.email);
     const { email, password } = req.body;
 
-    console.log('🔑 Login attempt for:', email);
-
-    // Validation
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        error: 'Email and password are required'
-      });
+      return res.status(400).json({ error: 'Email and password are required' });
     }
 
     // Find user
@@ -112,77 +89,48 @@ const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid email or password'
-      });
+      console.log('? User not found:', email);
+      return res.status(400).json({ error: 'Invalid email or password' });
     }
 
     // Check password
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassword) {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid email or password'
-      });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.log('? Invalid password for:', email);
+      return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    // Generate JWT token
+    console.log('? Login successful for:', email);
+
+    // Create JWT token
     const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email,
-        role: user.role 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { userId: user.id },
+      JWT_SECRET,
+      { expiresIn: '30d' }
     );
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
-
-    console.log('✅ Login successful for:', user.email);
-
     res.json({
-      success: true,
       message: 'Login successful',
-      user: userWithoutPassword,
-      token
+      token,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role
+      }
     });
 
   } catch (error) {
-    console.error('❌ Login error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error during login',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-};
-
-// Verify token
-const verifyToken = async (req, res) => {
-  try {
-    // The auth middleware already verified the token and added user to req
-    const { password: _, ...userWithoutPassword } = req.user;
-
-    res.json({
-      success: true,
-      user: userWithoutPassword
-    });
-
-  } catch (error) {
-    console.error('❌ Token verification error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error during token verification'
+    console.error('? Login error:', error);
+    res.status(500).json({ 
+      error: 'Server error during login',
+      details: error.message 
     });
   }
 };
 
 module.exports = {
   register,
-  login,
-  verifyToken
+  login
 };
