@@ -6,16 +6,32 @@ require('dotenv').config();
 const app = express();
 const prisma = new PrismaClient();
 
-// Middleware
+// CORS Configuration - Allow your frontend domain
 app.use(cors({
-  origin: ['https://mental-health-website-lyart.vercel.app', 'http://localhost:3000'],
-  credentials: true
+  origin: [
+    'https://mental-health-website-lyart.vercel.app',
+    'http://localhost:3000',
+    'https://localhost:3000'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Origin'
+  ]
 }));
+
+// Handle preflight requests
+app.options('*', cors());
+
 app.use(express.json());
 
 // Logging middleware
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.get('Origin')}`);
   next();
 });
 
@@ -44,7 +60,8 @@ app.get('/api/health', (req, res) => {
     message: 'MindfulMe Backend is running!',
     timestamp: new Date().toISOString(),
     database: 'NeonDB PostgreSQL',
-    orm: 'Prisma'
+    orm: 'Prisma',
+    cors: 'Enabled for frontend'
   });
 });
 
@@ -69,6 +86,7 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`? Server running on port ${PORT}`);
+  console.log(`? CORS enabled for: https://mental-health-website-lyart.vercel.app`);
   console.log(`? Database: ${process.env.DATABASE_URL ? 'Connected' : 'URL Missing'}`);
 });
 
