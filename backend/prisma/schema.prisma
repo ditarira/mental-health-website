@@ -74,7 +74,9 @@ model mental_health_resources {
   updatedAt   DateTime
   url         String?
   preferences Json?
-}model UserSettings {
+}
+
+model UserSettings {
  id         Int    @id @default(autoincrement())
  userId     String @unique
  fontSize   String @default("medium")
