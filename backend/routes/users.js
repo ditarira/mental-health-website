@@ -2,10 +2,8 @@
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
-const { Resend } = require('resend');
 
 const prisma = new PrismaClient();
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Middleware to verify token
 const verifyToken = require('../middleware/auth');
@@ -115,72 +113,6 @@ router.put('/settings', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error updating settings:', error);
     res.status(500).json({ error: 'Failed to update settings' });
-  }
-});
-
-    router.post('/send-verification-email', verifyToken, async (req, res) => {
-  try {
-    console.log('📧 Email route called');
-    console.log('📧 Request body:', req.body);
-    
-    const { email, code, firstName, lastName } = req.body;
-    
-    console.log('📧 Extracted values:', { email, code, firstName, lastName });
-
-   if (!email || !code) {
-      console.log('📧 Validation failed - missing email or code');
-      return res.status(400).json({ error: 'Email and code are required' });
-    }
-    
-    console.log('📧 About to send email with Resend...');
-    
- const { data, error } = await resend.emails.send({
-  from: 'onboarding@resend.dev',
-  to: [email],
-  subject: 'Password Change Verification - Mental Health App',
-  html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-        <h1 style="color: white; margin: 0;">🔐 Password Change Request</h1>
-      </div>
-      
-      <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        <h2 style="color: #333; margin-top: 0;">Hello ${firstName || 'User'}!</h2>
-        
-        <p style="color: #666; font-size: 16px; line-height: 1.5;">
-          You have requested to change your password for your Mental Health App account.
-        </p>
-        
-        <div style="background: #f8fafc; border: 2px solid #667eea; border-radius: 10px; padding: 20px; text-align: center; margin: 30px 0;">
-          <p style="color: #333; margin: 0; font-size: 14px;">Your verification code is:</p>
-          <h1 style="color: #667eea; font-family: monospace; font-size: 36px; margin: 10px 0; letter-spacing: 5px;">${code}</h1>
-          <p style="color: #666; margin: 0; font-size: 12px;">This code will expire in 10 minutes</p>
-        </div>
-        
-        <p style="color: #666; font-size: 14px;">
-          If you didn't request this change, please ignore this email or contact support if you have concerns.
-        </p>
-        
-        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-        <p style="color: #999; font-size: 12px; text-align: center;">
-          Mental Health Support Team<br>
-          This is an automated message, please do not reply.
-        </p>
-      </div>
-    </div>`
-});
-     
-    if (error) {
-      console.log('📧 Resend error:', error);
-      return res.status(400).json({ error: 'Failed to send email' });
-    }
-    
-    console.log('📧 Email sent successfully:', data);
-    res.json({ success: true, message: 'Verification email sent' });
-    
-  } catch (error) {
-    console.error('📧 Route error:', error);
-    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
