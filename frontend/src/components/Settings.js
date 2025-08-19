@@ -830,7 +830,7 @@ const verifyCodeAndChangePassword = async (email, verificationCode, newPassword)
  try {
    setVerificationLoading(true);
    
-   const response = await fetch(${API_BASE_URL}/api/users/verify-password-change, {
+   const response = await fetch(\\/api/users/verify-password-change\, {
      method: 'POST',
      headers: {
        'Content-Type': 'application/json',
