@@ -480,7 +480,6 @@ const Settings = () => {
     setLoading(false);
     setTimeout(() => setMessage(''), 5000);
   }
-
  const verifyCodeAndChangePassword = async () => {
    if (verificationCode !== generatedCode) {
      setMessage('❌ Invalid verification code. Please check your email.');
@@ -490,10 +489,10 @@ const Settings = () => {
 
    setLoading(true);
    try {
-     const response = await fetch(https://mental-health-backend-2mtp.onrender.com/api/users/change-password, {
+     const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/change-password`, {
        method: 'PUT',
        headers: {
-         'Authorization': Bearer ,
+         'Authorization': `Bearer ${localStorage.getItem('token')}`,
          'Content-Type': 'application/json'
        },
        body: JSON.stringify({
@@ -520,7 +519,9 @@ const Settings = () => {
      setLoading(false);
      setTimeout(() => setMessage(''), 4000);
    }
- }; {
+ };
+
+ {
     return (
       <div style={{
         minHeight: '100vh',
@@ -864,6 +865,3 @@ const Settings = () => {
 };
 
 export default Settings;
-
-
-
