@@ -118,16 +118,23 @@ router.put('/settings', verifyToken, async (req, res) => {
   }
 });
 
-// Send verification email for password change
-router.post('/send-verification-email', verifyToken, async (req, res) => {
+    router.post('/send-verification-email', verifyToken, async (req, res) => {
   try {
+    console.log('📧 Email route called');
+    console.log('📧 Request body:', req.body);
+    
     const { email, code, firstName, lastName } = req.body;
     
-    if (!email || !code) {
+    console.log('📧 Extracted values:', { email, code, firstName, lastName });
+
+   if (!email || !code) {
+      console.log('📧 Validation failed - missing email or code');
       return res.status(400).json({ error: 'Email and code are required' });
     }
-
-    const { data, error } = await resend.emails.send({
+    
+    console.log('📧 About to send email with Resend...');
+    
+ const { data, error } = await resend.emails.send({
   from: 'onboarding@resend.dev',
   to: [email],
   subject: 'Password Change Verification - Mental Health App',
@@ -162,15 +169,17 @@ router.post('/send-verification-email', verifyToken, async (req, res) => {
       </div>
     </div>`
 });
+     
     if (error) {
-      console.error('Resend error:', error);
+      console.log('📧 Resend error:', error);
       return res.status(400).json({ error: 'Failed to send email' });
     }
-
-    console.log('Email sent successfully:', data);
-    res.json({ success: true, messageId: data.id });
+    
+    console.log('📧 Email sent successfully:', data);
+    res.json({ success: true, message: 'Verification email sent' });
+    
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error('📧 Route error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
