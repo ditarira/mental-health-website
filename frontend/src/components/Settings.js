@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-
+import emailjs from '@emailjs/browser';
 
 // MOVE COMPONENTS OUTSIDE - THIS IS THE KEY FIX
 const StyledInput = ({ label, type = 'text', value, onChange, placeholder, icon, isTextarea = false, isMobile, ...props }) => {
@@ -412,12 +412,7 @@ const Settings = () => {
     }
   };
 
-  const sendVerificationEmail = async () => {
-  console.log('Current Password:', securityData.currentPassword);
-  console.log('New Password:', securityData.newPassword);
-  console.log('Confirm Password:', securityData.confirmPassword);
-  console.log('Passwords match?', securityData.newPassword === securityData.confirmPassword);
-
+ const sendVerificationEmail = async () => {
   if (securityData.newPassword !== securityData.confirmPassword) {
     setMessage('❌ Passwords do not match');
     setTimeout(() => setMessage(''), 3000);
@@ -441,46 +436,25 @@ const Settings = () => {
   setGeneratedCode(code);
 
   try {
-    // Send email via your backend with Resend
-    const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/send-verification-email`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
+    // Send email via EmailJS - Template 2 (Password Change)
+    await emailjs.send(
+      'service_770dbc6',      // Your service ID
+      'template_lugzz24',     // Password change template
+      {
         email: profileData.email,
-        code: code,
-        firstName: profileData.firstName,
-        lastName: profileData.lastName
-      })
-    });
+        user_name: profileData.firstName || 'User',
+        verification_code: code
+      },
+      'vbeur3IfUOfHG1olR'     // Your public key
+    );
 
-    const result = await response.json();
-
-    if (response.ok && result.success) {
-      setVerificationStep('code');
-      setMessage('✅ Verification code sent to your email! Check your inbox and spam folder.');
-    } else {
-      throw new Error(result.error || 'Failed to send email');
-    }
+    setVerificationStep('code');
+    setMessage('✅ Verification code sent to your email! Check your inbox and spam folder.');
     
   } catch (error) {
-    console.error('Email sending error:', error);
-    
-    // User-friendly error messages
-    let errorMessage = '❌ Failed to send verification email. ';
-    
-    if (error.message.includes('Failed to send email')) {
-      errorMessage += 'Email service temporarily unavailable.';
-    } else if (error.message.includes('network') || error.name === 'TypeError') {
-      errorMessage += 'Check your internet connection.';
-    } else {
-      errorMessage += 'Please try again or contact support.';
-    }
-    
-    setMessage(errorMessage);
-    setGeneratedCode(''); // Clear the code if email failed
+    console.error('EmailJS error:', error);
+    setMessage('❌ Failed to send verification email. Please try again.');
+    setGeneratedCode('');
   } finally {
     setLoading(false);
     setTimeout(() => setMessage(''), 5000);
