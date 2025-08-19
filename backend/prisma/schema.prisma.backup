@@ -16,20 +16,18 @@ model User {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime
   bio                String?
+  phone              String?
+  location           String?
   role               String             @default("USER")
   preferences        Json?
-  location           String?
-  phone              String?
   breathing_sessions BreathingSession[]
   journal_entries    JournalEntry[]
-  settings           UserSettings?
 
   @@map("users")
 }
-
 model UserSettings {
   id         Int    @id @default(autoincrement())
-  userId     String @unique
+  userId     Int    @unique
   fontSize   String @default("medium")
   fontWeight String @default("normal")
   user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
