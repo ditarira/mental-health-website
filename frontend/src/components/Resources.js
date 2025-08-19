@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const Resources = () => {
+ const Resources = () => {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [notification, setNotification] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -13,7 +13,7 @@ const Resources = () => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -50,7 +50,7 @@ const Resources = () => {
           },
           {
             heading: 'Extra Support & Advice',
-            content: '💡 The 988 Lifeline also offers specialized support: Press 1 for Veterans, Press 2 for Spanish language support, and Press 3 for LGBTQ+ youth support. You can also chat online at 988lifeline.org or text 988.'
+            content: 'The 988 Lifeline also offers specialized support: Press 1 for Veterans, Press 2 for Spanish language support, and Press 3 for LGBTQ+ youth support. You can also chat online at 988lifeline.org or text 988.'
           }
         ]
       }
@@ -65,7 +65,7 @@ const Resources = () => {
       website: 'https://crisistextline.org',
       urgent: true,
       emoji: '💬',
-      bgColor: 'linear-gradient(135deg, #10b981, #059669)',
+      bgColor: 'linear-gradient(135deg, #a7c7e7 0%, #6fa8dc 100%)',
       placeholder: '💬',
       article: {
         title: 'Crisis Text Line: Text-Based Mental Health Support',
@@ -80,7 +80,7 @@ const Resources = () => {
           },
           {
             heading: 'Tips for Effective Crisis Texting',
-            content: '💡 Be honest about what you are going through - Crisis Counselors are trained to handle any situation without judgment. Use specific words to describe your feelings. Save 741741 in your phone for quick access.'
+            content: 'Be honest about what you are going through - Crisis Counselors are trained to handle any situation without judgment. Use specific words to describe your feelings. Save 741741 in your phone for quick access.'
           }
         ]
       }
@@ -95,7 +95,7 @@ const Resources = () => {
       website: 'https://thehotline.org',
       urgent: true,
       emoji: '🛡️',
-      bgColor: 'linear-gradient(135deg, #7c2d12, #92400e)',
+      bgColor: 'linear-gradient(135deg, #f4c2c2 0%, #dda0dd 100%)',
       placeholder: '🛡️',
       article: {
         title: 'National Domestic Violence Hotline: Safety and Support',
@@ -110,7 +110,7 @@ const Resources = () => {
           },
           {
             heading: 'Supporting Someone in an Abusive Relationship',
-            content: '💡 If someone you know is in an abusive relationship: Listen without judgment, believe them, let them know the abuse is not their fault, respect their decisions, help them create a safety plan.'
+            content: 'If someone you know is in an abusive relationship: Listen without judgment, believe them, let them know the abuse is not their fault, respect their decisions, help them create a safety plan.'
           }
         ]
       }
@@ -123,7 +123,7 @@ const Resources = () => {
       description: 'Comprehensive directory to find licensed therapists and mental health professionals.',
       website: 'https://psychologytoday.com',
       emoji: '👩‍⚕️',
-      bgColor: 'linear-gradient(135deg, #1d4ed8, #2563eb)',
+      bgColor: 'linear-gradient(135deg, #c6efce 0%, #a9dfbf 100%)',
       placeholder: '👩‍⚕️',
       article: {
         title: 'Finding the Right Therapist: A Complete Guide',
@@ -138,7 +138,7 @@ const Resources = () => {
           },
           {
             heading: 'Making the Most of Your Therapy Search',
-            content: '💡 Use the advanced filters to narrow down your search by insurance, specialties, gender, language, and treatment approaches like CBT or EMDR. Read therapist profiles carefully.'
+            content: 'Use the advanced filters to narrow down your search by insurance, specialties, gender, language, and treatment approaches like CBT or EMDR. Read therapist profiles carefully.'
           }
         ]
       }
@@ -150,9 +150,9 @@ const Resources = () => {
       shortTitle: 'Online Therapy',
       description: 'Professional online counseling with licensed, accredited therapists.',
       website: 'https://betterhelp.com',
-      cost: '-90/week',
+      cost: '$60-90/week',
       emoji: '💻',
-      bgColor: 'linear-gradient(135deg, #059669, #047857)',
+      bgColor: 'linear-gradient(135deg, #fff2cc 0%, #ffe599 100%)',
       placeholder: '💻',
       article: {
         title: 'Online Therapy with BetterHelp: Accessible Mental Health Care',
@@ -167,7 +167,7 @@ const Resources = () => {
           },
           {
             heading: 'Getting Started and Maximizing Your Experience',
-            content: '💡 Be honest and detailed when filling out the initial questionnaire to get the best therapist match. If your first match is not ideal, you can easily switch therapists at no additional cost.'
+            content: 'Be honest and detailed when filling out the initial questionnaire to get the best therapist match. If your first match is not ideal, you can easily switch therapists at no additional cost.'
           }
         ]
       }
@@ -181,7 +181,7 @@ const Resources = () => {
       contact: '1-800-950-6264',
       website: 'https://nami.org',
       emoji: '🤝',
-      bgColor: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+      bgColor: 'linear-gradient(135deg, #a7c7e7 0%, #6fa8dc 100%)',
       placeholder: '🤝',
       article: {
         title: 'NAMI: Community Support and Mental Health Advocacy',
@@ -196,7 +196,63 @@ const Resources = () => {
           },
           {
             heading: 'Finding Local Support and Getting Involved',
-            content: '💡 Use NAMI website to find local chapters and support groups in your area. Most support groups meet weekly or bi-weekly and are facilitated by trained volunteers.'
+            content: 'Use NAMI website to find local chapters and support groups in your area. Most support groups meet weekly or bi-weekly and are facilitated by trained volunteers.'
+          }
+        ]
+      }
+    },
+    {
+      id: 7,
+      category: 'support',
+      title: 'Anxiety and Depression Association of America',
+      shortTitle: 'ADAA Resources',
+      description: 'Educational resources and support for anxiety, depression, and related disorders.',
+      website: 'https://adaa.org',
+      emoji: '🧠',
+      bgColor: 'linear-gradient(135deg, #f4c2c2 0%, #dda0dd 100%)',
+      placeholder: '🧠',
+      article: {
+        title: 'ADAA: Understanding Anxiety and Depression',
+        sections: [
+          {
+            heading: 'What is ADAA?',
+            content: 'The Anxiety and Depression Association of America (ADAA) is a national nonprofit organization dedicated to the prevention, treatment, and cure of anxiety, depression, and related disorders through education, practice, and research.'
+          },
+          {
+            heading: 'Understanding Anxiety and Depression',
+            content: 'Anxiety disorders are the most common mental health concern in the United States. Depression often co-occurs with anxiety disorders. Both are highly treatable with proper care and support.'
+          },
+          {
+            heading: 'Self-Help and Coping Strategies',
+            content: 'Regular exercise, adequate sleep, healthy eating, mindfulness practices, and social support can significantly help manage anxiety and depression symptoms alongside professional treatment.'
+          }
+        ]
+      }
+    },
+    {
+      id: 8,
+      category: 'wellness',
+      title: 'Headspace: Meditation and Mindfulness',
+      shortTitle: 'Meditation App',
+      description: 'Guided meditation, sleep stories, and mindfulness exercises for mental wellness.',
+      website: 'https://headspace.com',
+      emoji: '🧘‍♂️',
+      bgColor: 'linear-gradient(135deg, #c6efce 0%, #a9dfbf 100%)',
+      placeholder: '🧘‍♂️',
+      article: {
+        title: 'Headspace: Building a Meditation Practice',
+        sections: [
+          {
+            heading: 'What is Headspace?',
+            content: 'Headspace is a digital mental health platform that provides guided meditation sessions, mindfulness exercises, sleep stories, and focus music to help improve mental wellbeing and reduce stress.'
+          },
+          {
+            heading: 'Benefits of Regular Meditation',
+            content: 'Research shows that regular meditation can reduce stress, improve focus, enhance emotional regulation, better sleep quality, and increase overall life satisfaction. Even 10 minutes daily can make a difference.'
+          },
+          {
+            heading: 'Getting Started with Meditation',
+            content: 'Start with short 3-5 minute sessions and gradually increase duration. Find a quiet space, sit comfortably, and focus on your breath. Consistency is more important than duration when building a meditation habit.'
           }
         ]
       }
@@ -237,18 +293,6 @@ const Resources = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % resources.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + resources.length) % resources.length);
-  };
-
-  const goToSlide = (index) => {
-    setCurrentSlide(index);
-  };
-
   // Touch handlers for swipe
   const handleTouchStart = (e) => {
     setTouchStart(e.targetTouches[0].clientX);
@@ -260,122 +304,372 @@ const Resources = () => {
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
 
-    if (isLeftSwipe) {
-      nextSlide();
+    if (isLeftSwipe && !sidebarOpen) {
+      setSidebarOpen(true);
     }
-    if (isRightSwipe) {
-      prevSlide();
+    if (isRightSwipe && sidebarOpen) {
+      setSidebarOpen(false);
     }
   };
 
   if (selectedArticle) {
     return (
-      <div className="article-view">
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '0'
+      }}>
+        {/* Enhanced Notification */}
         {notification && (
-          <div className={'resources-notification ' + notification.type}>
-            <div className="notification-content">
-              <span className="notification-icon">
-                {notification.type === 'success' ? '✅' : '⚠️'}
-              </span>
-              <span className="notification-message">{notification.message}</span>
-            </div>
-            <button className="notification-close" onClick={() => setNotification(null)}>×</button>
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            background: notification.type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)',
+            color: 'white',
+            padding: '15px 20px',
+            borderRadius: '12px',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            maxWidth: isMobile ? '300px' : '400px'
+          }}>
+            <span>{notification.type === 'success' ? '✅' : '⚠️'}</span>
+            <span style={{ flex: 1 }}>{notification.message}</span>
+            <button
+              onClick={() => setNotification(null)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'white',
+                fontSize: '1.2rem',
+                cursor: 'pointer',
+                padding: '0'
+              }}
+            >
+              ×
+            </button>
           </div>
         )}
 
-        <div className="resources-layout">
-          {/* Mobile Hamburger */}
+        <div style={{ display: 'flex', minHeight: '100vh' }}>
+          {/* Mobile Header */}
           {isMobile && (
-            <div className="mobile-header">
-              <button className="hamburger-btn" onClick={toggleSidebar}>
-                <span className="hamburger-line"></span>
-                <span className="hamburger-line"></span>
-                <span className="hamburger-line"></span>
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(15px)',
+              padding: '15px 20px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+              zIndex: 100,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              {/* Improved Hamburger Button with Rounder Edges */}
+              <button
+                onClick={toggleSidebar}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  border: 'none',
+                  color: 'white',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  padding: '12px',
+                  borderRadius: '25px', // Much rounder
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+                  transform: sidebarOpen ? 'rotate(90deg)' : 'rotate(0deg)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.3)';
+                  e.target.style.transform = sidebarOpen ? 'rotate(90deg) scale(1.05)' : 'rotate(0deg) scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+                  e.target.style.transform = sidebarOpen ? 'rotate(90deg) scale(1)' : 'rotate(0deg) scale(1)';
+                }}
+              >
+                ☰
               </button>
-              <h3>📚 Resources</h3>
-              <button className="close-article-mobile" onClick={closeArticle}>×</button>
+              <h3 style={{ margin: 0, color: 'white', fontSize: '1.1rem' }}>📚 Resources</h3>
+              <button
+                onClick={closeArticle}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  border: 'none',
+                  color: 'white',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  padding: '12px',
+                  borderRadius: '25px', // Much rounder
+                  transition: 'all 0.3s ease',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.3)';
+                  e.target.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+                  e.target.style.transform = 'scale(1)';
+                }}
+              >
+                ×
+              </button>
             </div>
           )}
 
-          {/* Sidebar Navigation */}
-          <div className={'sidebar-navigation ' + (isMobile ? (sidebarOpen ? 'mobile-open' : 'mobile-closed') : '')}>
-            <div className="sidebar-header">
-              <h3>📚 Mental Health Resources</h3>
-              {!isMobile && (
-                <button className="close-btn" onClick={closeArticle}>
-                  ← Back
-                </button>
-              )}
-            </div>
-            
-            <div className="sidebar-articles">
-              {resources.map(resource => (
-                <div
-                  key={resource.id}
-                  className={'sidebar-item ' + (selectedArticle.id === resource.id ? 'active' : '')}
-                  onClick={() => openArticle(resource)}
-                >
-                  <span className="sidebar-emoji">{resource.emoji}</span>
-                  <span className="sidebar-title">{resource.shortTitle}</span>
-                  {resource.urgent && <span className="sidebar-urgent">🚨</span>}
-                </div>
-              ))}
+          {/* Sidebar Navigation with LEFT SLIDE Animation */}
+          <div style={{
+            width: isMobile ? (sidebarOpen ? '280px' : '0px') : '320px',
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRight: '1px solid rgba(255, 255, 255, 0.3)',
+            backdropFilter: 'blur(10px)',
+            overflow: 'hidden',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: isMobile ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)',
+            position: isMobile ? 'fixed' : 'relative',
+            height: '100vh',
+            zIndex: 200,
+            boxShadow: isMobile ? '0 0 20px rgba(0,0,0,0.3)' : 'none'
+          }}>
+            <div style={{ padding: '30px 25px' }}>
+              <div style={{ marginBottom: '30px' }}>
+                <h3 style={{
+                  margin: '0 0 8px 0',
+                  color: '#1f2937',
+                  fontSize: '1.3rem',
+                  fontWeight: '700'
+                }}>
+                  📚 Mental Health Resources
+                </h3>
+                {!isMobile && (
+                  <button
+                    onClick={closeArticle}
+                    style={{
+                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      marginTop: '10px'
+                    }}
+                  >
+                    ← Back
+                  </button>
+                )}
+                <p style={{
+                  margin: '10px 0 0 0',
+                  color: '#6b7280',
+                  fontSize: '0.9rem'
+                }}>
+                  Professional support and caring communities
+                </p>
+              </div>
+
+              <div>
+                {resources.map(resource => (
+                  <div
+                    key={resource.id}
+                    onClick={() => openArticle(resource)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '12px 15px',
+                      marginBottom: '8px',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      background: selectedArticle.id === resource.id ? 'linear-gradient(135deg, #667eea, #764ba2)' : 'transparent',
+                      color: selectedArticle.id === resource.id ? 'white' : '#374151'
+                    }}
+                  >
+                    <span style={{ fontSize: '1.2rem', marginRight: '12px' }}>{resource.emoji}</span>
+                    <span style={{
+                      flex: 1,
+                      fontWeight: '600',
+                      fontSize: '0.9rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {resource.shortTitle}
+                    </span>
+                    {resource.urgent && (
+                      <span style={{
+                        fontSize: '0.7rem',
+                        opacity: 0.8,
+                        marginLeft: '8px'
+                      }}>
+                        🚨
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Sidebar Overlay for Mobile */}
           {isMobile && sidebarOpen && (
-            <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
+            <div
+              onClick={() => setSidebarOpen(false)}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 150,
+                transition: 'opacity 0.3s ease'
+              }}
+            ></div>
           )}
 
           {/* Article Content */}
-          <div className="article-main">
-            <div className="article-header" style={{ background: selectedArticle.bgColor }}>
-              <div className="article-icon">{selectedArticle.emoji}</div>
-              <div className="article-title-section">
-                <h1>{selectedArticle.article.title}</h1>
+          <div style={{
+            flex: 1,
+            padding: isMobile ? '70px 20px 20px 20px' : '40px',
+            overflowY: 'auto'
+          }}>
+            <div style={{
+              maxWidth: '800px',
+              margin: '0 auto'
+            }}>
+              {/* Article Header */}
+              <div style={{
+                background: selectedArticle.bgColor,
+                borderRadius: '20px',
+                padding: '40px',
+                textAlign: 'center',
+                marginBottom: '30px',
+                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                color: 'white'
+              }}>
+                <div style={{ fontSize: '4rem', marginBottom: '15px' }}>
+                  {selectedArticle.emoji}
+                </div>
+                <h1 style={{
+                  margin: '0 0 15px 0',
+                  fontSize: isMobile ? '1.5rem' : '2rem',
+                  fontWeight: '700'
+                }}>
+                  {selectedArticle.article.title}
+                </h1>
                 {selectedArticle.urgent && (
-                  <div className="urgent-banner">🚨 Emergency Support Available 24/7</div>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontSize: '0.9rem',
+                    fontWeight: '600',
+                    display: 'inline-block'
+                  }}>
+                    🚨 Emergency Support Available 24/7
+                  </div>
                 )}
               </div>
-            </div>
 
-            <div className="article-actions">
-              {selectedArticle.contact && (
-                <button
-                  onClick={() => handleCall(selectedArticle.contact)}
-                  className="article-action-btn primary"
-                  style={{ background: selectedArticle.bgColor }}
-                >
-                  <span className="btn-icon">
-                    {selectedArticle.contact.includes('Text') ? '💬' : '📞'}
-                  </span>
-                  <span>{selectedArticle.contact}</span>
-                </button>
-              )}
-              {selectedArticle.website && (
-                <button
-                  onClick={() => handleWebsite(selectedArticle.website)}
-                  className="article-action-btn secondary"
-                >
-                  <span className="btn-icon">🌐</span>
-                  <span>Visit Website</span>
-                </button>
-              )}
-            </div>
+              {/* Action Buttons */}
+              <div style={{
+                display: 'flex',
+                gap: '15px',
+                justifyContent: 'center',
+                marginBottom: '40px',
+                flexWrap: 'wrap'
+              }}>
+                {selectedArticle.contact && (
+                  <button
+                    onClick={() => handleCall(selectedArticle.contact)}
+                    style={{
+                      background: selectedArticle.bgColor,
+                      color: 'white',
+                      border: 'none',
+                      padding: '15px 25px',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
+                    }}
+                  >
+                    <span>{selectedArticle.contact.includes('Text') ? '💬' : '📞'}</span>
+                    <span>{selectedArticle.contact}</span>
+                  </button>
+                )}
+                {selectedArticle.website && (
+                  <button
+                    onClick={() => handleWebsite(selectedArticle.website)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      color: '#374151',
+                      border: 'none',
+                      padding: '15px 25px',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    <span>🌐</span>
+                    <span>Visit Website</span>
+                  </button>
+                )}
+              </div>
 
-            <div className="article-body">
-              {selectedArticle.article.sections.map((section, index) => (
-                <div key={index} className="article-section">
-                  <h2>{section.heading}</h2>
-                  <p>{section.content}</p>
-                </div>
-              ))}
+              {/* Article Sections */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '20px',
+                padding: '40px',
+                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                {selectedArticle.article.sections.map((section, index) => (
+                  <div key={index} style={{ marginBottom: index < selectedArticle.article.sections.length - 1 ? '35px' : '0' }}>
+                    <h2 style={{
+                      color: '#1f2937',
+                      fontSize: '1.3rem',
+                      fontWeight: '700',
+                      marginBottom: '15px'
+                    }}>
+                      {section.heading}
+                    </h2>
+                    <p style={{
+                      color: '#374151',
+                      fontSize: '1rem',
+                      lineHeight: '1.6',
+                      margin: '0'
+                    }}>
+                      {section.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -384,139 +678,666 @@ const Resources = () => {
   }
 
   return (
-    <div className="resources-main">
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '0'
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Enhanced Notification */}
       {notification && (
-        <div className={'resources-notification ' + notification.type}>
-          <div className="notification-content">
-            <span className="notification-icon">
-              {notification.type === 'success' ? '✅' : '⚠️'}
-            </span>
-            <span className="notification-message">{notification.message}</span>
-          </div>
-          <button className="notification-close" onClick={() => setNotification(null)}>×</button>
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: notification.type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)',
+          color: 'white',
+          padding: '15px 20px',
+          borderRadius: '12px',
+          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          maxWidth: isMobile ? '300px' : '400px'
+        }}>
+          <span>{notification.type === 'success' ? '✅' : '⚠️'}</span>
+          <span style={{ flex: 1 }}>{notification.message}</span>
+          <button
+            onClick={() => setNotification(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'white',
+              fontSize: '1.2rem',
+              cursor: 'pointer',
+              padding: '0'
+            }}
+          >
+            ×
+          </button>
         </div>
       )}
 
-      <div className="resources-layout">
-        {/* Mobile Hamburger */}
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        {/* Mobile Header */}
         {isMobile && (
-          <div className="mobile-header">
-            <button className="hamburger-btn" onClick={toggleSidebar}>
-              <span className="hamburger-line"></span>
-              <span className="hamburger-line"></span>
-              <span className="hamburger-line"></span>
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(15px)',
+            padding: '15px 20px',
+            borderBottom: '1px solid rgba(255,255, 255, 0.2)',
+            zIndex: 100,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            {/* Improved Hamburger Button with Rounder Edges */}
+            <button
+              onClick={toggleSidebar}
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                border: 'none',
+                color: 'white',
+                fontSize: '1.2rem',
+                cursor: 'pointer',
+                padding: '12px',
+                borderRadius: '25px', // Much rounder
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+                transform: sidebarOpen ? 'rotate(90deg)' : 'rotate(0deg)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(255, 255, 255, 0.3)';
+                e.target.style.transform = sidebarOpen ? 'rotate(90deg) scale(1.05)' : 'rotate(0deg) scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+                e.target.style.transform = sidebarOpen ? 'rotate(90deg) scale(1)' : 'rotate(0deg) scale(1)';
+              }}
+            >
+              ☰
             </button>
-            <h3>📚 Mental Health Resources</h3>
+            <h3 style={{ margin: 0, color: 'white', fontSize: '1.1rem' }}>📚 Mental Health Resources</h3>
             <div></div>
           </div>
         )}
 
-        {/* Sidebar Navigation */}
-        <div className={'sidebar-navigation ' + (isMobile ? (sidebarOpen ? 'mobile-open' : 'mobile-closed') : '')}>
-          <div className="sidebar-header">
-            <h3>📚 Mental Health Resources</h3>
-            <p>Professional support and caring communities</p>
-          </div>
-          
-          <div className="sidebar-articles">
-            {resources.map(resource => (
-              <div
-                key={resource.id}
-                className="sidebar-item"
-                onClick={() => openArticle(resource)}
-              >
-                <span className="sidebar-emoji">{resource.emoji}</span>
-                <span className="sidebar-title">{resource.shortTitle}</span>
-                {resource.urgent && <span className="sidebar-urgent">🚨</span>}
-              </div>
-            ))}
+        {/* Sidebar Navigation with LEFT SLIDE Animation */}
+        <div style={{
+          width: isMobile ? (sidebarOpen ? '280px' : '0px') : '320px',
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRight: '1px solid rgba(255, 255, 255, 0.3)',
+          backdropFilter: 'blur(10px)',
+          overflow: 'hidden',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: isMobile ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)',
+          position: isMobile ? 'fixed' : 'relative',
+          height: '100vh',
+          zIndex: 200,
+          boxShadow: isMobile ? '0 0 20px rgba(0,0,0,0.3)' : 'none'
+        }}>
+          <div style={{ padding: '30px 25px' }}>
+            <div style={{ marginBottom: '30px' }}>
+              <h3 style={{
+                margin: '0 0 8px 0',
+                color: '#1f2937',
+                fontSize: '1.3rem',
+                fontWeight: '700'
+              }}>
+                📚 Mental Health Resources
+              </h3>
+              <p style={{
+                margin: '0',
+                color: '#6b7280',
+                fontSize: '0.9rem'
+              }}>
+                Professional support and caring communities
+              </p>
+            </div>
+
+            <div>
+              {resources.map(resource => (
+                <div
+                  key={resource.id}
+                  onClick={() => openArticle(resource)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '12px 15px',
+                    marginBottom: '8px',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    background: 'transparent',
+                    color: '#374151'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <span style={{ fontSize: '1.2rem', marginRight: '12px' }}>{resource.emoji}</span>
+                  <span style={{
+                    flex: 1,
+                    fontWeight: '600',
+                    fontSize: '0.9rem',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {resource.shortTitle}
+                  </span>
+                  {resource.urgent && (
+                    <span style={{
+                      fontSize: '0.7rem',
+                      opacity: 0.8,
+                      marginLeft: '8px'
+                    }}>
+                      🚨
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Sidebar Overlay for Mobile */}
         {isMobile && sidebarOpen && (
-          <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
+          <div
+            onClick={() => setSidebarOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 150,
+              transition: 'opacity 0.3s ease'
+            }}
+          ></div>
         )}
 
-        {/* Article Squares - Mobile Slider, Desktop Grid */}
-        <div className="article-squares">
-          {isMobile ? (
-            <div className="mobile-slider">
-              <div 
-                className="slider-container"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-              >
-                <div 
-                  className="slider-track"
-                  style={{ transform: 'translateX(-' + (currentSlide * 100) + '%)' }}
-                >
-                  {resources.map((resource, index) => (
-                    <div
-                      key={resource.id}
-                      className="slider-slide"
-                      onClick={() => openArticle(resource)}
-                    >
-                      <div
-                        className="article-square mobile-square"
-                        style={{ background: resource.bgColor }}
-                      >
-                        <div className="square-content">
-                          <div className="square-emoji">{resource.placeholder}</div>
-                          <h4>{resource.shortTitle}</h4>
-                          <p>{resource.description.substring(0, 80)}...</p>
-                          {resource.urgent && <div className="square-urgent">🚨 URGENT</div>}
-                        </div>
-                        <div className="square-overlay">
-                          <span className="read-text">Read Article</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        {/* Main Content Area - Resource Cards Grid */}
+        <div style={{
+          flex: 1,
+          padding: isMobile ? '70px 20px 20px 20px' : '40px',
+          overflowY: 'auto'
+        }}>
+          {/* Header */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '40px',
+            color: 'white'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📚</div>
+            <h1 style={{
+              fontSize: isMobile ? '2rem' : '2.5rem',
+              fontWeight: '700',
+              margin: '0 0 10px 0'
+            }}>
+              Mental Health Resources
+            </h1>
+            <p style={{
+              fontSize: '1.1rem',
+              opacity: 0.9,
+              margin: '0'
+            }}>
+              Professional support and caring communities
+            </p>
+          </div>
 
-              {/* Navigation Arrows */}
-              <button className="slider-btn prev-btn" onClick={prevSlide}>
-                ‹
-              </button>
-              <button className="slider-btn next-btn" onClick={nextSlide}>
-                ›
-              </button>
-
-              {/* Dots Navigation */}
-              <div className="slider-dots">
-                {resources.map((_, index) => (
-                  <button
-                    key={index}
-                    className={'dot ' + (index === currentSlide ? 'active' : '')}
-                    onClick={() => goToSlide(index)}
-                  ></button>
-                ))}
-              </div>
+          {/* Crisis Resources - Emergency Section */}
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '2px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '20px',
+            padding: '30px',
+            marginBottom: '30px',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+              <h2 style={{
+                color: 'white',
+                fontSize: '1.5rem',
+                fontWeight: '700',
+                margin: '0 0 10px 0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px'
+              }}>
+                🚨 Emergency Crisis Support
+              </h2>
+              <p style={{ color: 'rgba(255,255,255,0.9)', margin: '0' }}>
+                If you're in crisis, these resources are available 24/7
+              </p>
             </div>
-          ) : (
-            // Desktop Grid
-            resources.map(resource => (
-              <div
-                key={resource.id}
-                className="article-square"
-                onClick={() => openArticle(resource)}
-                style={{ background: resource.bgColor }}
-              >
-                <div className="square-content">
-                  <div className="square-emoji">{resource.placeholder}</div>
-                  <h4>{resource.shortTitle}</h4>
-                  <p>{resource.description.substring(0, 60)}...</p>
-                  {resource.urgent && <div className="square-urgent">🚨 URGENT</div>}
+
+            {/* MOBILE: 2 cards per row, DESKTOP: 3 cards per row */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: isMobile ? '15px' : '20px'
+            }}>
+              {resources.filter(r => r.urgent).map(resource => (
+                <div
+                  key={resource.id}
+                  style={{
+                    background: resource.bgColor,
+                    borderRadius: '15px',
+                    padding: isMobile ? '20px' : '25px',
+                    color: 'white',
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                    transition: 'transform 0.2s ease',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => openArticle(resource)}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '15px',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    textAlign: isMobile ? 'center' : 'left'
+                  }}>
+                    <span style={{ 
+                      fontSize: isMobile ? '2.5rem' : '2rem', 
+                      marginRight: isMobile ? '0' : '15px',
+                      marginBottom: isMobile ? '8px' : '0'
+                    }}>
+                      {resource.emoji}
+                    </span>
+                    <span style={{
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      padding: '4px 8px',
+                      borderRadius: '12px',
+                      fontSize: '0.7rem',
+                      fontWeight: '600'
+                    }}>
+                      24/7 AVAILABLE
+                    </span>
+                  </div>
+
+                  <h3 style={{
+                    fontSize: isMobile ? '1rem' : '1.2rem',
+                    fontWeight: '700',
+                    margin: '0 0 10px 0',
+                    textAlign: isMobile ? 'center' : 'left'
+                  }}>
+                    {resource.title}
+                  </h3>
+
+                  <p style={{
+                    fontSize: isMobile ? '0.8rem' : '0.9rem',
+                    opacity: 0.9,
+                    margin: '0 0 20px 0',
+                    lineHeight: '1.5',
+                    textAlign: isMobile ? 'center' : 'left'
+                  }}>
+                    {resource.description}
+                  </p>
+
+                  <div style={{
+                    display: 'flex',
+                    gap: '10px',
+                    flexWrap: 'wrap',
+                    justifyContent: isMobile ? 'center' : 'flex-start'
+                  }}>
+                    {resource.contact && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCall(resource.contact);
+                        }}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.9)',
+                          color: '#1f2937',
+                          border: 'none',
+                          padding: isMobile ? '8px 12px' : '10px 15px',
+                          borderRadius: '10px',
+                          fontSize: isMobile ? '0.8rem' : '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        <span>{resource.contact.includes('Text') ? '💬' : '📞'}</span>
+                        <span>{isMobile ? resource.contact.split(' ')[0] : resource.contact}</span>
+                      </button>
+                    )}
+
+                    {resource.website && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleWebsite(resource.website);
+                        }}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.2)',
+                          color: 'white',
+                          border: 'none',
+                          padding: isMobile ? '8px 12px' : '10px 15px',
+                          borderRadius: '10px',
+                          fontSize: isMobile ? '0.8rem' : '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <span>🌐</span>
+                        <span>Website</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="square-overlay">
-                  <span className="read-text">Read Article</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Professional Help Section */}
+          <div style={{
+            marginBottom: '30px'
+          }}>
+            <h2 style={{
+              color: 'white',
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              👩‍⚕️ Professional Mental Health Services
+            </h2>
+
+            {/* MOBILE: 2 cards per row, DESKTOP: flexible */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(350px, 1fr))',
+              gap: isMobile ? '15px' : '20px'
+            }}>
+              {resources.filter(r => r.category === 'professional').map(resource => (
+                <div
+                  key={resource.id}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    borderRadius: '20px',
+                    padding: isMobile ? '20px' : '30px',
+                    color: '#1f2937',
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                    transition: 'transform 0.2s ease',
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                  onClick={() => openArticle(resource)}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '15px',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    textAlign: isMobile ? 'center' : 'left'
+                  }}>
+                    <span style={{ 
+                      fontSize: isMobile ? '2.5rem' : '2rem', 
+                      marginRight: isMobile ? '0' : '15px',
+                      marginBottom: isMobile ? '8px' : '0'
+                    }}>
+                      {resource.emoji}
+                    </span>
+                    {resource.cost && (
+                      <span style={{
+                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                        color: 'white',
+                        padding: '4px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.7rem',
+                        fontWeight: '600'
+                      }}>
+                        {resource.cost}
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 style={{
+                    fontSize: isMobile ? '1rem' : '1.3rem',
+                    fontWeight: '700',
+                    margin: '0 0 10px 0',
+                    color: '#1f2937',
+                    textAlign: isMobile ? 'center' : 'left'
+                  }}>
+                    {resource.title}
+                  </h3>
+
+                  <p style={{
+                    fontSize: isMobile ? '0.8rem' : '0.9rem',
+                    opacity: 0.8,
+                    margin: '0 0 20px 0',
+                    lineHeight: '1.5',
+                    color: '#374151',
+                    textAlign: isMobile ? 'center' : 'left'
+                  }}>
+                    {resource.description}
+                  </p>
+
+                  <div style={{
+                    display: 'flex',
+                    gap: '10px',
+                    flexWrap: 'wrap',
+                    justifyContent: isMobile ? 'center' : 'flex-start'
+                  }}>
+                    {resource.website && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleWebsite(resource.website);
+                        }}
+                        style={{
+                          background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                          color: 'white',
+                          border: 'none',
+                          padding: isMobile ? '8px 12px' : '10px 15px',
+                          borderRadius: '10px',
+                          fontSize: isMobile ? '0.8rem' : '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+                        }}
+                      >
+                        <span>🌐</span>
+                        <span>Website</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => openArticle(resource)}
+                      style={{
+                        background: 'transparent',
+                        color: '#667eea',
+                        border: '2px solid #667eea',
+                        padding: isMobile ? '8px 12px' : '10px 15px',
+                        borderRadius: '10px',
+                        fontSize: isMobile ? '0.8rem' : '0.9rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <span>📖</span>
+                      <span>Learn More</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))}
+            </div>
+          </div>
+
+          {/* Support Groups & Wellness Section */}
+          <div style={{
+            marginBottom: '30px'
+          }}>
+            <h2 style={{
+              color: 'white',
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              🤝 Support Groups & Wellness Resources
+            </h2>
+
+            {/* MOBILE: 2 cards per row, DESKTOP: flexible */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(350px, 1fr))',
+              gap: isMobile ? '15px' : '20px'
+            }}>
+              {resources.filter(r => r.category === 'support' || r.category === 'wellness').map(resource => (
+                <div
+                  key={resource.id}
+                  style={{
+                    background: resource.bgColor,
+                    borderRadius: '20px',
+                    padding: isMobile ? '20px' : '30px',
+                    color: 'white',
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                    transition: 'transform 0.2s ease',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => openArticle(resource)}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '15px',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    textAlign: isMobile ? 'center' : 'left'
+                  }}>
+                    <span style={{ 
+                      fontSize: isMobile ? '2.5rem' : '2rem', 
+                      marginRight: isMobile ? '0' : '15px',
+                      marginBottom: isMobile ? '8px' : '0'
+                    }}>
+                      {resource.emoji}
+                    </span>
+                    <span style={{
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      padding: '4px 8px',
+                      borderRadius: '12px',
+                      fontSize: '0.7rem',
+                      fontWeight: '600'
+                    }}>
+                      {resource.category === 'support' ? 'COMMUNITY' : 'WELLNESS'}
+                    </span>
+                  </div>
+
+                  <h3 style={{
+                    fontSize: isMobile ? '1rem' : '1.3rem',
+                    fontWeight: '700',
+                    margin: '0 0 10px 0',
+                    textAlign: isMobile ? 'center' : 'left'
+                  }}>
+                    {resource.title}
+                  </h3>
+
+                  <p style={{
+                    fontSize: isMobile ? '0.8rem' : '0.9rem',
+                    opacity: 0.9,
+                    margin: '0 0 20px 0',
+                    lineHeight: '1.5',
+                    textAlign: isMobile ? 'center' : 'left'
+                  }}>
+                    {resource.description}
+                  </p>
+
+                  <div style={{
+                    display: 'flex',
+                    gap: '10px',
+                    flexWrap: 'wrap',
+                    justifyContent: isMobile ? 'center' : 'flex-start'
+                  }}>
+                    {resource.contact && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCall(resource.contact);
+                        }}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.2)',
+                          color: 'white',
+                          border: 'none',
+                          padding: isMobile ? '6px 10px' : '8px 12px',
+                          borderRadius: '8px',
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px'
+                        }}
+                      >
+                        <span>📞</span>
+                        <span>{isMobile ? resource.contact.split('-')[0] : resource.contact}</span>
+                      </button>
+                    )}
+
+                    {resource.website && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleWebsite(resource.website);
+                        }}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.2)',
+                          color: 'white',
+                          border: 'none',
+                          padding: isMobile ? '6px 10px' : '8px 12px',
+                          borderRadius: '8px',
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px'
+                        }}
+                      >
+                        <span>🌐</span>
+                        <span>Visit</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
-﻿import React from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Navigation from './components/Navigation';
 import Settings from './components/Settings';
 import Login from './pages/Login';
@@ -31,7 +32,7 @@ const ProtectedRoute = ({ children }) => {
         color: 'white'
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🧠</div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>??</div>
           <div>Loading MindfulMe...</div>
         </div>
       </div>
@@ -56,7 +57,7 @@ const PublicRoute = ({ children }) => {
         color: 'white'
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🧠</div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>??</div>
           <div>Loading MindfulMe...</div>
         </div>
       </div>
@@ -67,9 +68,9 @@ const PublicRoute = ({ children }) => {
 };
 
 function App() {
-  return (
-    <AuthProvider>
-      <Router>
+  return (<AuthProvider>
+      
+      <ThemeProvider><Router>
         <div className="App">
           <Routes>
             {/* Public routes - NO Navigation */}
@@ -123,8 +124,10 @@ function App() {
           </Routes>
         </div>
       </Router>
-    </AuthProvider>
-  );
+    
+      </ThemeProvider></AuthProvider>);
 }
 
 export default App;
+
+

@@ -1,6 +1,5 @@
-﻿// frontend/src/contexts/ThemeContext.js
+// frontend/src/contexts/ThemeContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from './AuthContext';
 
 const ThemeContext = createContext();
 
@@ -13,18 +12,18 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
- const { user } = useAuth();
  const [themeSettings, setThemeSettings] = useState({
    theme: 'light',
-   colorScheme: 'blue',
+   colorScheme: 'purple',
    fontSize: 'medium',
-   animations: true
+   animations: true,
+   themeMode: 'default'
  });
 
- // Load theme settings on mount and user change
+ // Load theme settings on mount
  useEffect(() => {
    loadThemeSettings();
- }, [user]);
+ }, []);
 
  // Apply theme changes to document
  useEffect(() => {
@@ -33,34 +32,10 @@ export const ThemeProvider = ({ children }) => {
 
  const loadThemeSettings = async () => {
    try {
-     // Try to load from localStorage first
      const savedSettings = localStorage.getItem('mindfulTheme');
      if (savedSettings) {
        const parsed = JSON.parse(savedSettings);
        setThemeSettings(parsed);
-     }
-
-     // If user is logged in, try to load from API
-     if (user) {
-       const token = localStorage.getItem('token');
-       const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/api/settings`, {
-         headers: {
-           'Authorization': `Bearer ${token}`,
-           'Content-Type': 'application/json'
-         }
-       });
-
-       if (response.ok) {
-         const settings = await response.json();
-         const themeData = {
-           theme: settings.theme || 'light',
-           colorScheme: settings.colorScheme || 'blue', 
-           fontSize: settings.fontSize || 'medium',
-           animations: settings.animations !== false
-         };
-         setThemeSettings(themeData);
-         localStorage.setItem('mindfulTheme', JSON.stringify(themeData));
-       }
      }
    } catch (error) {
      console.error('Error loading theme settings:', error);
@@ -68,21 +43,21 @@ export const ThemeProvider = ({ children }) => {
  };
 
  const applyThemeToDocument = () => {
-   const { theme, colorScheme, fontSize, animations } = themeSettings;
-   
-   // Apply theme attributes
-   document.documentElement.setAttribute('data-theme', theme);
-   document.documentElement.setAttribute('data-color-scheme', colorScheme);
-   document.documentElement.setAttribute('data-font-size', fontSize);
-   document.documentElement.setAttribute('data-animations', animations.toString());
-   
-   // Apply body background based on theme
-   if (theme === 'dark') {
-     document.body.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
-   } else {
-     document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-   }
-   
+   const { theme, colorScheme, fontSize, animations, themeMode } = themeSettings;
+
+   // Define theme mode backgrounds
+   const themeModeBackgrounds = {
+     default: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+     pastel: 'linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 50%, #f5f0ff 100%)',
+     serious: 'linear-gradient(135deg, #f7fafc 0%, #edf2f7 50%, #e2e8f0 100%)',
+     bold: 'linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #45b7d1 100%)'
+   };
+
+   // Apply background based on theme mode
+   const currentMode = themeMode || 'default';
+   const background = themeModeBackgrounds[currentMode] || themeModeBackgrounds.default;
+   document.body.style.background = background;
+
    // Apply font size to root
    const fontSizes = {
      small: '14px',
@@ -90,7 +65,7 @@ export const ThemeProvider = ({ children }) => {
      large: '18px'
    };
    document.documentElement.style.fontSize = fontSizes[fontSize] || '16px';
-   
+
    // Save to localStorage for persistence
    localStorage.setItem('mindfulTheme', JSON.stringify(themeSettings));
  };
@@ -98,26 +73,7 @@ export const ThemeProvider = ({ children }) => {
  const updateTheme = async (newSettings) => {
    const updatedSettings = { ...themeSettings, ...newSettings };
    setThemeSettings(updatedSettings);
-   
-   // Save to localStorage immediately
    localStorage.setItem('mindfulTheme', JSON.stringify(updatedSettings));
-   
-   // Try to save to database if user is logged in
-   try {
-     if (user) {
-       const token = localStorage.getItem('token');
-       await fetch(`${process.env.REACT_APP_API_URL || ''}/api/settings`, {
-         method: 'PUT',
-         headers: {
-           'Authorization': `Bearer ${token}`,
-           'Content-Type': 'application/json'
-         },
-         body: JSON.stringify(updatedSettings)
-       });
-     }
-   } catch (error) {
-     console.error('Error saving theme to database:', error);
-   }
  };
 
  const value = {

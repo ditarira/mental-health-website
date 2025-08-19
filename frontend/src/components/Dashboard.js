@@ -1,159 +1,120 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user, token } = useAuth();
-  const navigate = useNavigate();
   const [stats, setStats] = useState({
-    totalJournalEntries: 0,
-    totalBreathingSessions: 0,
-    recentEntries: [],
-    recentSessions: [],
+    totalEntries: 0,
+    totalSessions: 0,
     currentStreak: 0,
-    favoriteExercise: null
+    averageMood: 0
   });
+  const [recentEntries, setRecentEntries] = useState([]);
+  const [recentSessions, setRecentSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshingStats, setRefreshingStats] = useState(false);
-  const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
-  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleJournalClick = () => {
-    navigate('/journal');
-  };
+  const moods = [
+    { value: 'very_sad', emoji: '😢', label: 'Very Sad', score: 1 },
+    { value: 'sad', emoji: '😞', label: 'Sad', score: 2 },
+    { value: 'neutral', emoji: '😐', label: 'Neutral', score: 3 },
+    { value: 'happy', emoji: '😊', label: 'Happy', score: 4 },
+    { value: 'very_happy', emoji: '😃', label: 'Very Happy', score: 5 }
+  ];
 
-  const handleBreathingClick = () => {
-    navigate('/breathing');
-  };
-
-  const handleLoginClick = () => {
-    navigate('/login');
-  };
-
-  const handleSignupClick = () => {
-    navigate('/register');
-  };
-
-  const fetchUserStats = async (isManualRefresh = false) => {
+  const fetchDashboardData = async () => {
     try {
       if (!token) return;
 
-      if (isManualRefresh) {
-        setRefreshingStats(true);
-        setError(null);
-      } else {
-        setLoading(true);
-        setError(null);
-      }
+      setLoading(true);
 
-      const response = await fetch(API_BASE + '/api/dashboard/personal-stats', {
-        method: 'GET',
+      // Fetch journal entries
+      const journalResponse = await fetch(`${API_BASE}/api/journal`, {
         headers: {
-          'Authorization': 'Bearer ' + token,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch personal stats: ' + response.status);
-      }
+      // Fetch breathing sessions
+      const breathingResponse = await fetch(`${API_BASE}/api/breathing`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-      const data = await response.json();
+      if (journalResponse.ok && breathingResponse.ok) {
+        const journalData = await journalResponse.json();
+        const breathingData = await breathingResponse.json();
 
-      if (data.success && data.data) {
-        setStats({
-          totalJournalEntries: data.data.totalJournalEntries || 0,
-          totalBreathingSessions: data.data.totalBreathingSessions || 0,
-          recentEntries: data.data.recentEntries || [],
-          recentSessions: data.data.recentSessions || [],
-          currentStreak: data.data.currentStreak || 0,
-          favoriteExercise: data.data.favoriteExercise || null
+        const entries = journalData.data || [];
+        const sessions = breathingData.data || [];
+
+        // Calculate stats
+        const totalEntries = entries.length;
+        const totalSessions = sessions.length;
+        
+        // Calculate average mood
+        const moodScores = entries.map(entry => {
+          const mood = moods.find(m => m.value === entry.mood);
+          return mood ? mood.score : 3;
         });
-        setError(null);
-      } else {
-        setError('Invalid personal stats data received');
+        const averageMood = moodScores.length > 0 
+          ? moodScores.reduce((a, b) => a + b, 0) / moodScores.length 
+          : 0;
+
+        // Calculate streak (simplified)
+        const currentStreak = Math.min(totalEntries, 7);
+
+        setStats({
+          totalEntries,
+          totalSessions,
+          currentStreak,
+          averageMood: Math.round(averageMood * 10) / 10
+        });
+
+        // Set recent data (last 3 items for mobile, 5 for desktop)
+        const recentLimit = isMobile ? 3 : 5;
+        setRecentEntries(entries.slice(0, recentLimit));
+        setRecentSessions(sessions.slice(0, recentLimit));
       }
     } catch (error) {
-      console.error('Error fetching personal stats:', error);
-      setError(error.message);
+      console.error('Error fetching dashboard data:', error);
     } finally {
-      if (isManualRefresh) {
-        setRefreshingStats(false);
-      } else {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
-
-  const handleRefreshStats = () => {
-    fetchUserStats(true);
-  };
-
-  // Calculate mood analytics
-  const getMoodAnalytics = () => {
-    if (!stats.recentEntries || stats.recentEntries.length === 0) {
-      return { averageMood: 0, moodTrend: 'neutral', moodDistribution: {} };
-    }
-
-    const moods = stats.recentEntries.map(entry => parseInt(entry.mood) || 3);
-    const averageMood = moods.reduce((sum, mood) => sum + mood, 0) / moods.length;
-    
-    const moodDistribution = moods.reduce((acc, mood) => {
-      acc[mood] = (acc[mood] || 0) + 1;
-      return acc;
-    }, {});
-
-    const halfPoint = Math.floor(moods.length / 2);
-    const firstHalf = moods.slice(0, halfPoint);
-    const secondHalf = moods.slice(halfPoint);
-    
-    const firstAvg = firstHalf.length > 0 ? firstHalf.reduce((sum, mood) => sum + mood, 0) / firstHalf.length : 0;
-    const secondAvg = secondHalf.length > 0 ? secondHalf.reduce((sum, mood) => sum + mood, 0) / secondHalf.length : 0;
-    
-    let moodTrend = 'neutral';
-    if (secondAvg > firstAvg + 0.3) moodTrend = 'improving';
-    else if (secondAvg < firstAvg - 0.3) moodTrend = 'declining';
-
-    return { averageMood, moodTrend, moodDistribution };
-  };
-
-  const moodAnalytics = getMoodAnalytics();
 
   useEffect(() => {
     if (user && token) {
-      fetchUserStats();
-      const interval = setInterval(() => fetchUserStats(true), 30000);
-
-      const handleJournalUpdate = () => {
-        fetchUserStats(true);
-      };
-
-      window.addEventListener('journalUpdated', handleJournalUpdate);
-
-      return () => {
-        clearInterval(interval);
-        window.removeEventListener('journalUpdated', handleJournalUpdate);
-      };
+      fetchDashboardData();
     }
-  }, [user, token]);
+
+    // Listen for updates from other components
+    const handleJournalUpdate = () => fetchDashboardData();
+    window.addEventListener('journalUpdated', handleJournalUpdate);
+    
+    return () => {
+      window.removeEventListener('journalUpdated', handleJournalUpdate);
+    };
+  }, [user, token, isMobile]);
 
   if (!user) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -161,73 +122,16 @@ const Dashboard = () => {
       }}>
         <div style={{
           background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '24px',
-          padding: isMobile ? '30px 20px' : '60px 40px',
+          borderRadius: '20px',
+          padding: '40px',
           textAlign: 'center',
-          maxWidth: '600px',
-          width: '100%',
+          maxWidth: '500px',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
           backdropFilter: 'blur(10px)'
         }}>
-          <div style={{ fontSize: isMobile ? '3rem' : '4rem', marginBottom: '20px' }}>??</div>
-          <h1 style={{ 
-            fontSize: isMobile ? '1.8rem' : '2.5rem', 
-            margin: '0 0 10px 0', 
-            color: '#1f2937' 
-          }}>
-            Welcome to MindfulMe
-          </h1>
-          <p style={{ 
-            fontSize: isMobile ? '1rem' : '1.2rem', 
-            color: '#6b7280', 
-            marginBottom: '30px' 
-          }}>
-            Your personal mental wellness companion
-          </p>
-          
-          <div style={{ 
-            display: 'flex', 
-            gap: '15px', 
-            justifyContent: 'center', 
-            flexDirection: isMobile ? 'column' : 'row',
-            alignItems: 'center'
-          }}>
-            <button 
-              onClick={handleLoginClick}
-              style={{
-                background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
-                color: 'white',
-                border: 'none',
-                padding: '14px 28px',
-                borderRadius: '12px',
-                fontSize: '1rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)',
-                width: isMobile ? '100%' : 'auto'
-              }}
-            >
-              Sign In
-            </button>
-            <button 
-              onClick={handleSignupClick}
-              style={{
-                background: 'transparent',
-                color: '#4f46e5',
-                border: '2px solid #4f46e5',
-                padding: '14px 28px',
-                borderRadius: '12px',
-                fontSize: '1rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                width: isMobile ? '100%' : 'auto'
-              }}
-            >
-              Create Account
-            </button>
-          </div>
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🏠</div>
+          <h2 style={{ color: '#1f2937', marginBottom: '10px' }}>Please log in</h2>
+          <p style={{ color: '#6b7280' }}>Sign in to access your dashboard</p>
         </div>
       </div>
     );
@@ -237,55 +141,21 @@ const Dashboard = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{ textAlign: 'center', color: 'white' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>??</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: '600' }}>Loading your wellness journey...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error && !refreshingStats) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '20px'
       }}>
         <div style={{
-          background: 'white',
+          background: 'rgba(255, 255, 255, 0.95)',
           borderRadius: '20px',
           padding: '40px',
           textAlign: 'center',
-          maxWidth: '400px',
-          width: '100%',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)'
+          backdropFilter: 'blur(10px)'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '20px' }}>??</div>
-          <h3 style={{ color: '#dc2626', marginBottom: '15px' }}>Error Loading Data</h3>
-          <p style={{ color: '#6b7280', marginBottom: '25px' }}>{error}</p>
-          <button 
-            onClick={() => fetchUserStats()}
-            style={{
-              background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
-            Try Again
-          </button>
+          <div style={{ fontSize: '3rem', marginBottom: '20px' }}>⏳</div>
+          <p style={{ color: '#6b7280', margin: 0 }}>Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -294,66 +164,45 @@ const Dashboard = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #e8f4f8 0%, #d1e7dd 100%)',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '0'
     }}>
       {/* Header */}
       <div style={{
         background: 'rgba(255, 255, 255, 0.1)',
         backdropFilter: 'blur(15px)',
-        padding: isMobile ? '15px 20px' : '30px 40px',
+        padding: isMobile ? '20px' : '40px',
         borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
       }}>
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '15px'
+          textAlign: 'center'
         }}>
-          <div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '15px',
+            marginBottom: '15px'
+          }}>
+            <span style={{ fontSize: isMobile ? '2.5rem' : '3rem' }}>✨</span>
             <h1 style={{
-              margin: '0 0 5px 0',
-              fontSize: isMobile ? '1.4rem' : '2.2rem',
-              color: 'white',
-              fontWeight: '700',
-              textShadow: '0 2px 10px rgba(0,0,0,0.2)'
-            }}>
-?? Welcome back, {user.firstName}!
-            </h1>
-            <p style={{
               margin: 0,
-              fontSize: isMobile ? '0.9rem' : '1.1rem',
-              color: 'rgba(255, 255, 255, 0.9)'
-            }}>
-              Continue your mindfulness journey ?
-            </p>
-          </div>
-          
-          <button 
-            onClick={handleRefreshStats}
-            disabled={refreshingStats}
-            style={{
-              background: refreshingStats ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.25)',
+              fontSize: isMobile ? '1.8rem' : '2.5rem',
               color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              padding: isMobile ? '8px 14px' : '12px 20px',
-              borderRadius: '10px',
-              cursor: refreshingStats ? 'not-allowed' : 'pointer',
-              fontSize: '0.85rem',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease',
-              backdropFilter: 'blur(5px)'
-            }}
-          >
-            <span>??</span>
-            {refreshingStats ? 'Updating...' : 'Refresh'}
-          </button>
+              fontWeight: '700'
+            }}>
+              Welcome back, {user?.firstName}!
+            </h1>
+          </div>
+          <p style={{
+            margin: 0,
+            fontSize: isMobile ? '1rem' : '1.1rem',
+            color: 'rgba(255, 255, 255, 0.9)'
+          }}>
+            Continue your mindfulness journey 🧘‍♀️
+          </p>
         </div>
       </div>
 
@@ -363,504 +212,490 @@ const Dashboard = () => {
         margin: '0 auto',
         padding: isMobile ? '20px' : '40px'
       }}>
-        {/* Error Banner */}
-        {error && refreshingStats && (
-          <div style={{
-            background: 'rgba(220, 38, 38, 0.1)',
-            border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: '12px',
-            padding: '15px 20px',
-            marginBottom: '20px',
-            color: '#dc2626',
-            backdropFilter: 'blur(5px)'
-          }}>
-?? {error}
-          </div>
-        )}
-
-        {/* Stats Grid */}
+        
+        {/* Stats Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: isMobile ? '12px' : '20px',
-          marginBottom: isMobile ? '25px' : '40px',
-          position: 'relative'
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+          gap: isMobile ? '15px' : '20px',
+          marginBottom: '30px'
         }}>
-          {/* Loading Overlay */}
-          {refreshingStats && (
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 10,
-              backdropFilter: 'blur(3px)'
-            }}>
-              <div style={{ textAlign: 'center', color: 'white' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>?</div>
-                <div style={{ fontWeight: '600', fontSize: '0.8rem' }}>Updating...</div>
-              </div>
-            </div>
-          )}
-
-          {/* Journal Card - Blue Gradient */}
-          <div onClick={!isMobile ? handleJournalClick : undefined} style={{
-            background: 'linear-gradient(135deg, #a7c7e7 0%, #6fa8dc 100%)',
-            borderRadius: isMobile ? '12px' : '20px',
-            padding: isMobile ? '15px' : '25px',
+          <div style={{
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            borderRadius: isMobile ? '15px' : '20px',
+            padding: isMobile ? '20px' : '25px',
+            color: 'white',
             textAlign: 'center',
             boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)',
-            color: 'white',
-            transition: 'all 0.3s ease',
-            cursor: !isMobile ? 'pointer' : 'default',
-            minHeight: isMobile ? '100px' : '140px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center'
-          }}>
-            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>\n              ??
+            transition: 'transform 0.2s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: isMobile ? '1.8rem' : '2.2rem', marginBottom: '8px' }}>📝</div>
+            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: '700', marginBottom: '5px' }}>
+              {stats.totalEntries}
             </div>
-            <div style={{
-              fontSize: isMobile ? '1.8rem' : '2.5rem',
-              fontWeight: '900',
-              marginBottom: '4px',
-              textShadow: '0 2px 8px rgba(0,0,0,0.2)'
-            }}>
-              {stats.totalJournalEntries}
-            </div>
-            <div style={{
-              fontSize: isMobile ? '0.75rem' : '1rem',
-              fontWeight: '700',
-              marginBottom: '2px'
-            }}>
+            <div style={{ fontSize: isMobile ? '0.8rem' : '0.9rem', opacity: 0.9 }}>
               Journal Entries
             </div>
-            <div style={{
-              fontSize: isMobile ? '0.65rem' : '0.8rem',
-              opacity: 0.9
-            }}>
-              Total written
-            </div>
           </div>
 
-          {/* Breathing Card - Coral Gradient */}
-          <div onClick={!isMobile ? handleBreathingClick : undefined} style={{
-            background: 'linear-gradient(135deg, #f4c2c2 0%, #dda0dd 100%)',
-            borderRadius: isMobile ? '12px' : '20px',
-            padding: isMobile ? '15px' : '25px',
-            textAlign: 'center',
-            boxShadow: '0 8px 25px rgba(255, 107, 107, 0.3)',
+          <div style={{
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            borderRadius: isMobile ? '15px' : '20px',
+            padding: isMobile ? '20px' : '25px',
             color: 'white',
-            transition: 'all 0.3s ease',
-            cursor: !isMobile ? 'pointer' : 'default',
-            minHeight: isMobile ? '100px' : '140px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center'
-          }}>
-            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>\n              ?????
-            </div>
-            <div style={{
-              fontSize: isMobile ? '1.8rem' : '2.5rem',
-              fontWeight: '900',
-              marginBottom: '4px',
-              textShadow: '0 2px 8px rgba(0,0,0,0.2)'
-            }}>
-              {stats.totalBreathingSessions}
-            </div>
-            <div style={{
-              fontSize: isMobile ? '0.75rem' : '1rem',
-              fontWeight: '700',
-              marginBottom: '2px'
-            }}>
-              {isMobile ? 'Sessions' : 'Breathing Sessions'}
-            </div>
-            <div style={{
-              fontSize: isMobile ? '0.65rem' : '0.8rem',
-              opacity: 0.9
-            }}>
-              Completed
-            </div>
-          </div>
-
-          {/* Streak Card - Gold Gradient */}
-          <div style={{
-            background: 'linear-gradient(135deg, #fff2cc 0%, #ffe599 100%)',
-            borderRadius: isMobile ? '12px' : '20px',
-            padding: isMobile ? '15px' : '25px',
-            textAlign: 'center',
-            boxShadow: '0 8px 25px rgba(255, 215, 0, 0.3)',
-            color: '#8b4513',
-            transition: 'all 0.3s ease',
-            minHeight: isMobile ? '100px' : '140px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center'
-          }}>
-            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>\n              ??
-            </div>
-            <div style={{
-              fontSize: isMobile ? '1.8rem' : '2.5rem',
-              fontWeight: '900',
-              marginBottom: '4px',
-              textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
-              {stats.currentStreak}
-            </div>
-            <div style={{
-              fontSize: isMobile ? '0.75rem' : '1rem',
-              fontWeight: '700',
-              marginBottom: '2px'
-            }}>
-              Day Streak
-            </div>
-            <div style={{
-              fontSize: isMobile ? '0.65rem' : '0.8rem',
-              opacity: 0.8
-            }}>
-              Consecutive days
-            </div>
-          </div>
-
-          {/* Mood Analytics Card - Emerald Gradient */}
-          <div style={{
-            background: 'linear-gradient(135deg, #c6efce 0%, #a9dfbf 100%)',
-            borderRadius: isMobile ? '12px' : '20px',
-            padding: isMobile ? '15px' : '25px',
             textAlign: 'center',
             boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)',
+            transition: 'transform 0.2s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: isMobile ? '1.8rem' : '2.2rem', marginBottom: '8px' }}>🧘‍♀️</div>
+            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: '700', marginBottom: '5px' }}>
+              {stats.totalSessions}
+            </div>
+            <div style={{ fontSize: isMobile ? '0.8rem' : '0.9rem', opacity: 0.9 }}>
+              Breathing Sessions
+            </div>
+          </div>
+
+          <div style={{
+            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            borderRadius: isMobile ? '15px' : '20px',
+            padding: isMobile ? '20px' : '25px',
             color: 'white',
-            transition: 'all 0.3s ease',
-            minHeight: isMobile ? '100px' : '140px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center'
-          }}>
-            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: isMobile ? '6px' : '10px' }}>\n              ??' : 
-??' : 
-????'}
+            textAlign: 'center',
+            boxShadow: '0 8px 25px rgba(245, 158, 11, 0.3)',
+            transition: 'transform 0.2s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: isMobile ? '1.8rem' : '2.2rem', marginBottom: '8px' }}>🔥</div>
+            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: '700', marginBottom: '5px' }}>
+              {stats.currentStreak}
             </div>
-            <div style={{
-              fontSize: isMobile ? '1.8rem' : '2.5rem',
-              fontWeight: '900',
-              marginBottom: '4px',
-              textShadow: '0 2px 8px rgba(0,0,0,0.2)'
-            }}>
-              {moodAnalytics.averageMood.toFixed(1)}
+            <div style={{ fontSize: isMobile ? '0.8rem' : '0.9rem', opacity: 0.9 }}>
+              Day Streak
             </div>
-            <div style={{
-              fontSize: isMobile ? '0.75rem' : '1rem',
-              fontWeight: '700',
-              marginBottom: '2px'
-            }}>
+          </div>
+
+          <div style={{
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+            borderRadius: isMobile ? '15px' : '20px',
+            padding: isMobile ? '20px' : '25px',
+            color: 'white',
+            textAlign: 'center',
+            boxShadow: '0 8px 25px rgba(139, 92, 246, 0.3)',
+            transition: 'transform 0.2s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: isMobile ? '1.8rem' : '2.2rem', marginBottom: '8px' }}>
+              {stats.averageMood >= 4 ? '😊' : stats.averageMood >= 3 ? '😐' : '😞'}
+            </div>
+            <div style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: '700', marginBottom: '5px' }}>
+              {stats.averageMood || '0.0'}
+            </div>
+            <div style={{ fontSize: isMobile ? '0.8rem' : '0.9rem', opacity: 0.9 }}>
               Avg Mood
-            </div>
-            <div style={{
-              fontSize: isMobile ? '0.65rem' : '0.8rem',
-              opacity: 0.9
-            }}>
-              {moodAnalytics.moodTrend === 'improving' ? 'Improving' :
-               moodAnalytics.moodTrend === 'declining' ? 'Needs attention' : 'Stable'}
             </div>
           </div>
         </div>
 
-        {/* Desktop Action Buttons */}
-        {!isMobile && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '20px',
-            marginBottom: '40px'
-          }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #a7c7e7 0%, #6fa8dc 100%)',
-              borderRadius: '20px',
-              padding: '30px',
-              textAlign: 'center',
-              boxShadow: '0 10px 30px rgba(59, 130, 246, 0.2)',
-              color: 'white',
-              transition: 'all 0.3s ease'
-            }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>??</div>
-              <h3 style={{ 
-                margin: '0 0 8px 0', 
-                fontSize: '1.3rem',
-                fontWeight: '700'
-              }}>
-                Write in Journal
-              </h3>
-              <p style={{ 
-                margin: '0 0 20px 0', 
-                fontSize: '0.95rem',
-                opacity: 0.9
-              }}>
-                Express your thoughts and feelings
-              </p>
-              <button 
-                onClick={handleJournalClick}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  color: 'white',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  padding: '12px 24px',
-                  borderRadius: '12px',
-                  fontSize: '0.95rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  backdropFilter: 'blur(5px)'
-                }}
-              >
-                Start Writing
-              </button>
-            </div>
+        {/* Quick Actions */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
+          gap: isMobile ? '12px' : '15px',
+          marginBottom: '30px'
+        }}>
+          <button
+            onClick={() => window.location.href = '/journal'}
+            style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              border: 'none',
+              borderRadius: isMobile ? '12px' : '15px',
+              padding: isMobile ? '15px 12px' : '20px 15px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(10px)',
+              fontSize: isMobile ? '0.8rem' : '0.9rem',
+              fontWeight: '600',
+              color: '#374151',
+              textAlign: 'center'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-3px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+            }}
+          >
+            <div style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', marginBottom: '8px' }}>✍️</div>
+            Write in Journal
+          </button>
 
-            <div style={{
-              background: 'linear-gradient(135deg, #f4c2c2 0%, #dda0dd 100%)',
-              borderRadius: '20px',
-              padding: '30px',
-              textAlign: 'center',
-              boxShadow: '0 10px 30px rgba(255, 107, 107, 0.2)',
-              color: 'white',
-              transition: 'all 0.3s ease'
-            }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>??</div>
-              <h3 style={{ 
-                margin: '0 0 8px 0', 
-                fontSize: '1.3rem',
-                fontWeight: '700'
-              }}>
-                Breathing Exercise
-              </h3>
-              <p style={{ 
-                margin: '0 0 20px 0', 
-                fontSize: '0.95rem',
-                opacity: 0.9
-              }}>
-                Find calm with guided breathing
-              </p>
-              <button 
-                onClick={handleBreathingClick}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  color: 'white',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  padding: '12px 24px',
-                  borderRadius: '12px',
-                  fontSize: '0.95rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  backdropFilter: 'blur(5px)'
-                }}
-              >
-                Start Breathing
-              </button>
-            </div>
-          </div>
-        )}
+          <button
+            onClick={() => window.location.href = '/breathing'}
+            style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              border: 'none',
+              borderRadius: isMobile ? '12px' : '15px',
+              padding: isMobile ? '15px 12px' : '20px 15px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(10px)',
+              fontSize: isMobile ? '0.8rem' : '0.9rem',
+              fontWeight: '600',
+              color: '#374151',
+              textAlign: 'center'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-3px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+            }}
+          >
+            <div style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', marginBottom: '8px' }}>🧘‍♀️</div>
+            Start Breathing
+          </button>
+
+          <button
+            onClick={() => window.location.href = '/resources'}
+            style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              border: 'none',
+              borderRadius: isMobile ? '12px' : '15px',
+              padding: isMobile ? '15px 12px' : '20px 15px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(10px)',
+              fontSize: isMobile ? '0.8rem' : '0.9rem',
+              fontWeight: '600',
+              color: '#374151',
+              textAlign: 'center'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-3px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+            }}
+          >
+            <div style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', marginBottom: '8px' }}>📚</div>
+            Get Help
+          </button>
+
+          <button
+            onClick={() => window.location.href = '/settings'}
+            style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              border: 'none',
+              borderRadius: isMobile ? '12px' : '15px',
+              padding: isMobile ? '15px 12px' : '20px 15px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(10px)',
+              fontSize: isMobile ? '0.8rem' : '0.9rem',
+              fontWeight: '600',
+              color: '#374151',
+              textAlign: 'center'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-3px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+            }}
+          >
+            <div style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', marginBottom: '8px' }}>⚙️</div>
+            Settings
+          </button>
+        </div>
 
         {/* Recent Activity */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(350px, 1fr))',
-          gap: isMobile ? '15px' : '20px'
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+          gap: isMobile ? '20px' : '30px'
         }}>
-          {/* Recent Journal Entries */}
+          
+          {/* Recent Journal Entries - CONDENSED */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.95)',
-            borderRadius: isMobile ? '12px' : '16px',
-            padding: isMobile ? '15px' : '25px',
+            borderRadius: isMobile ? '15px' : '20px',
+            padding: isMobile ? '20px' : '25px',
             boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)'
+            backdropFilter: 'blur(10px)'
           }}>
-            <h2 style={{
-              margin: '0 0 15px 0',
-              fontSize: isMobile ? '1rem' : '1.2rem',
-              color: '#1f2937',
-              fontWeight: '700'
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '20px'
             }}>
-?? Recent Journal Entries
-            </h2>
-            {stats.recentEntries.length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#6b7280', padding: '15px 0' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '10px' }}>??</div>
-                <p style={{ marginBottom: '15px', fontSize: '0.9rem' }}>No journal entries yet</p>
-                <button 
-                  onClick={handleJournalClick}
-                  style={{
-                    background: 'linear-gradient(135deg, #a7c7e7 0%, #6fa8dc 100%)',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    fontSize: '0.85rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
-                  }}
-                >
-                  Write First Entry
-                </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.3rem' }}>📝</span>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: isMobile ? '1.1rem' : '1.3rem',
+                  color: '#374151',
+                  fontWeight: '700'
+                }}>
+                  Recent Entries
+                </h3>
+              </div>
+              <button
+                onClick={() => window.location.href = '/journal'}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#667eea',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                View All →
+              </button>
+            </div>
+
+            {recentEntries.length === 0 ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '20px',
+                color: '#6b7280'
+              }}>
+                <div style={{ fontSize: '2rem', marginBottom: '10px' }}>📔</div>
+                <p style={{ margin: 0, fontSize: '0.9rem' }}>No entries yet</p>
               </div>
             ) : (
-              <div>
-                {stats.recentEntries.slice(0, 3).map(entry => (
-                  <div key={entry.id} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '10px 0',
-                    borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
-                  }}>
-                    <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>??</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ 
-                        fontWeight: '600', 
-                        color: '#1f2937', 
-                        fontSize: isMobile ? '0.8rem' : '0.9rem', 
-                        marginBottom: '2px',
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {recentEntries.map(entry => {
+                  const entryMood = moods.find(m => m.value === entry.mood);
+                  return (
+                    <div
+                      key={entry.id}
+                      style={{
+                        background: '#f8fafc',
+                        borderRadius: '10px',
+                        padding: isMobile ? '12px' : '15px',
+                        border: '1px solid #e2e8f0',
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => window.location.href = '/journal'}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px'
+                      }}>
+                        <h4 style={{
+                          margin: 0,
+                          fontSize: isMobile ? '0.9rem' : '1rem',
+                          fontWeight: '600',
+                          color: '#374151',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          flex: 1,
+                          marginRight: '10px'
+                        }}>
+                          {entry.title}
+                        </h4>
+                        {entryMood && (
+                          <span style={{ 
+                            fontSize: isMobile ? '1rem' : '1.2rem',
+                            background: 'rgba(102, 126, 234, 0.1)',
+                            padding: '4px 8px',
+                            borderRadius: '6px'
+                          }}>
+                            {entryMood.emoji}
+                          </span>
+                        )}
+                      </div>
+                      <p style={{
+                        margin: 0,
+                        fontSize: isMobile ? '0.75rem' : '0.8rem',
+                        color: '#6b7280',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap'
                       }}>
-                        {entry.title || 'Untitled Entry'}
-                      </div>
-                      <div style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: '#6b7280' }}>
+                        {entry.content}
+                      </p>
+                      <p style={{
+                        margin: '8px 0 0 0',
+                        fontSize: '0.7rem',
+                        color: '#9ca3af'
+                      }}>
                         {new Date(entry.createdAt).toLocaleDateString()}
-                      </div>
+                      </p>
                     </div>
-                    <div style={{ fontSize: '1.2rem', marginLeft: '8px' }}>
-??'}
-??'}
-??'}
-??'}
-??'}
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Breathing Sessions - CONDENSED */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: isMobile ? '15px' : '20px',
+            padding: isMobile ? '20px' : '25px',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '20px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.3rem' }}>🧘‍♀️</span>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: isMobile ? '1.1rem' : '1.3rem',
+                  color: '#374151',
+                  fontWeight: '700'
+                }}>
+                  Recent Sessions
+                </h3>
+              </div>
+              <button
+                onClick={() => window.location.href = '/breathing'}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#667eea',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                View All →
+              </button>
+            </div>
+
+            {recentSessions.length === 0 ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '20px',
+                color: '#6b7280'
+              }}>
+                <div style={{ fontSize: '2rem', marginBottom: '10px' }}>🧘‍♀️</div>
+                <p style={{ margin: 0, fontSize: '0.9rem' }}>No sessions yet</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {recentSessions.map(session => (
+                  <div
+                    key={session.id}
+                    style={{
+                      background: '#f8fafc',
+                      borderRadius: '10px',
+                      padding: isMobile ? '12px' : '15px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => window.location.href = '/breathing'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <h4 style={{
+                        margin: 0,
+                        fontSize: isMobile ? '0.9rem' : '1rem',
+                        fontWeight: '600',
+                        color: '#374151'
+                      }}>
+                        {session.type}
+                      </h4>
+                      <span style={{
+                        background: session.completed ? '#dcfce7' : '#fef3c7',
+                        color: session.completed ? '#166534' : '#92400e',
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        fontSize: '0.7rem',
+                        fontWeight: '600'
+                      }}>
+                        {session.completed ? '✅ Done' : '⏸️ Paused'}
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <p style={{
+                        margin: 0,
+                        fontSize: isMobile ? '0.75rem' : '0.8rem',
+                        color: '#6b7280'
+                      }}>
+                        Duration: {Math.round(session.duration)}s
+                      </p>
+                      <p style={{
+                        margin: 0,
+                        fontSize: '0.7rem',
+                        color: '#9ca3af'
+                      }}>
+                        {new Date(session.createdAt).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
-
-          {/* Recent Breathing Sessions */}
-         <div style={{
-           background: 'rgba(255, 255, 255, 0.95)',
-           borderRadius: isMobile ? '12px' : '16px',
-           padding: isMobile ? '15px' : '25px',
-           boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
-           backdropFilter: 'blur(10px)',
-           border: '1px solid rgba(255, 255, 255, 0.3)'
-         }}>
-           <h2 style={{
-             margin: '0 0 15px 0',
-             fontSize: isMobile ? '1rem' : '1.2rem',
-             color: '#1f2937',
-             fontWeight: '700'
-           }}>
-????? Recent Breathing Sessions
-           </h2>
-           {stats.recentSessions.length === 0 ? (
-             <div style={{ textAlign: 'center', color: '#6b7280', padding: '15px 0' }}>
-               <div style={{ fontSize: '2rem', marginBottom: '10px' }}>??</div>
-               <p style={{ marginBottom: '15px', fontSize: '0.9rem' }}>No breathing sessions yet</p>
-               <button 
-                 onClick={handleBreathingClick}
-                 style={{
-                   background: 'linear-gradient(135deg, #f4c2c2 0%, #dda0dd 100%)',
-                   color: 'white',
-                   border: 'none',
-                   padding: '10px 20px',
-                   borderRadius: '8px',
-                   fontSize: '0.85rem',
-                   fontWeight: '600',
-                   cursor: 'pointer',
-                   boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)'
-                 }}
-               >
-                 Start First Session
-               </button>
-             </div>
-           ) : (
-             <div>
-               {stats.recentSessions.slice(0, 3).map(session => (
-                 <div key={session.id} style={{
-                   display: 'flex',
-                   alignItems: 'center',
-                   padding: '10px 0',
-                   borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
-                 }}>
-                   <div style={{ fontSize: '1.3rem', marginRight: '10px' }}>??</div>
-                   <div style={{ flex: 1, minWidth: 0 }}>
-                     <div style={{ 
-                       fontWeight: '600', 
-                       color: '#1f2937', 
-                       fontSize: isMobile ? '0.8rem' : '0.9rem', 
-                       marginBottom: '2px',
-                       overflow: 'hidden',
-                       textOverflow: 'ellipsis',
-                       whiteSpace: 'nowrap'
-                     }}>
-                       {session.type}
-                     </div>
-                     <div style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: '#6b7280' }}>
-                       {new Date(session.createdAt).toLocaleDateString()}
-                     </div>
-                   </div>
-                   <div style={{
-                     background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
-                     color: 'white',
-                     padding: '3px 6px',
-                     borderRadius: '4px',
-                     fontSize: isMobile ? '0.65rem' : '0.7rem',
-                     fontWeight: '600',
-                     marginLeft: '8px'
-                   }}>
-                     {Math.round(session.duration)}s
-                   </div>
-                 </div>
-               ))}
-             </div>
-           )}
-         </div>
-       </div>
-     </div>
-
-     <style>
-       {`
-         div:hover {
-           transform: ${isMobile ? 'none' : 'translateY(-3px)'};
-         }
-         
-         button:hover {
-           transform: translateY(-2px);
-           box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
-         }
-       `}
-     </style>
-   </div>
- );
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Dashboard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-

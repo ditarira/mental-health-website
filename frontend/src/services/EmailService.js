@@ -13,7 +13,7 @@ class EmailService {
   // Send verification code for registration
   async sendVerificationCode(userEmail, verificationCode, userName) {
     const templateParams = {
-      to_email: userEmail,
+      email: userEmail,
       to_name: userName,
       verification_code: verificationCode,
       app_name: "MindfulMe",
@@ -23,7 +23,7 @@ class EmailService {
     try {
       const response = await emailjs.send(
         this.serviceId,
-        "verification_template",
+        "template_verification",
         templateParams
       );
       
@@ -38,7 +38,7 @@ class EmailService {
   // Send password reset code
   async sendPasswordReset(userEmail, resetCode, userName) {
     const templateParams = {
-      to_email: userEmail,
+      email: userEmail,
       to_name: userName,
       reset_code: resetCode,
       app_name: "MindfulMe",
@@ -48,7 +48,7 @@ class EmailService {
     try {
       const response = await emailjs.send(
         this.serviceId,
-        "password_reset_template",
+        "template_password_reset",
         templateParams
       );
       
@@ -63,7 +63,7 @@ class EmailService {
   // Send settings change notification
   async sendSettingsChangeNotification(userEmail, userName, changedSetting) {
     const templateParams = {
-      to_email: userEmail,
+      email: userEmail,
       to_name: userName,
       app_name: "MindfulMe",
       setting_changed: changedSetting,
@@ -73,7 +73,7 @@ class EmailService {
     try {
       const response = await emailjs.send(
         this.serviceId,
-        "settings_change_template",
+        "template_settings",
         templateParams
       );
       
@@ -92,3 +92,6 @@ class EmailService {
 }
 
 export default new EmailService();
+
+
+
