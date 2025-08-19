@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 
@@ -378,7 +378,7 @@ const Settings = () => {
       const responseData = await response.json();
 
       if (response.ok) {
-        setMessage('✅ Profile updated successfully!');
+        setMessage('âœ… Profile updated successfully!');
         if (updateUser && responseData.user) {
           updateUser(responseData.user);
         }
@@ -386,7 +386,7 @@ const Settings = () => {
         throw new Error(responseData.error || 'Failed to update profile');
       }
     } catch (error) {
-      setMessage('❌ Failed to update profile: ' + error.message);
+      setMessage('âŒ Failed to update profile: ' + error.message);
     } finally {
       setLoading(false);
       setTimeout(() => setMessage(''), 4000);
@@ -414,19 +414,19 @@ const Settings = () => {
 
   const sendVerificationEmail = async () => {
   if (securityData.newPassword !== securityData.confirmPassword) {
-    setMessage('❌ Passwords do not match');
+    setMessage('âŒ Passwords do not match');
     setTimeout(() => setMessage(''), 3000);
     return;
   }
 
   if (securityData.newPassword.length < 6) {
-    setMessage('❌ Password must be at least 6 characters');
+    setMessage('âŒ Password must be at least 6 characters');
     setTimeout(() => setMessage(''), 3000);
     return;
   }
 
   if (!profileData.email) {
-    setMessage('❌ No email address found. Please update your profile first.');
+    setMessage('âŒ No email address found. Please update your profile first.');
     setTimeout(() => setMessage(''), 3000);
     return;
   }
@@ -455,7 +455,7 @@ const Settings = () => {
 
     if (response.ok && result.success) {
       setVerificationStep('code');
-      setMessage('✅ Verification code sent to your email! Check your inbox and spam folder.');
+      setMessage('âœ… Verification code sent to your email! Check your inbox and spam folder.');
     } else {
       throw new Error(result.error || 'Failed to send email');
     }
@@ -464,7 +464,7 @@ const Settings = () => {
     console.error('Email sending error:', error);
     
     // User-friendly error messages
-    let errorMessage = '❌ Failed to send verification email. ';
+    let errorMessage = 'âŒ Failed to send verification email. ';
     
     if (error.message.includes('Failed to send email')) {
       errorMessage += 'Email service temporarily unavailable.';
@@ -480,8 +480,47 @@ const Settings = () => {
     setLoading(false);
     setTimeout(() => setMessage(''), 5000);
   }
-};
-  if (loadingProfile) {
+
+ const verifyCodeAndChangePassword = async () => {
+   if (verificationCode !== generatedCode) {
+     setMessage('❌ Invalid verification code. Please check your email.');
+     setTimeout(() => setMessage(''), 3000);
+     return;
+   }
+
+   setLoading(true);
+   try {
+     const response = await fetch(https://mental-health-backend-2mtp.onrender.com/api/users/change-password, {
+       method: 'PUT',
+       headers: {
+         'Authorization': Bearer ,
+         'Content-Type': 'application/json'
+       },
+       body: JSON.stringify({
+         currentPassword: securityData.currentPassword,
+         newPassword: securityData.newPassword
+       })
+     });
+
+     const result = await response.json();
+
+     if (response.ok) {
+       setVerificationStep('success');
+       setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+       setVerificationCode('');
+       setGeneratedCode('');
+       setMessage('✅ Password changed successfully!');
+     } else {
+       throw new Error(result.error || 'Failed to change password');
+     }
+   } catch (error) {
+     console.error('Password change error:', error);
+     setMessage('❌ Failed to change password: ' + error.message);
+   } finally {
+     setLoading(false);
+     setTimeout(() => setMessage(''), 4000);
+   }
+ }; {
     return (
       <div style={{
         minHeight: '100vh',
@@ -540,7 +579,7 @@ const Settings = () => {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
           }}>
-            ⚙️ Settings
+            âš™ï¸ Settings
           </h1>
           <p style={{
             margin: 0,
@@ -555,7 +594,7 @@ const Settings = () => {
         {/* Message */}
         {message && (
           <div style={{
-            background: message.includes('✅') 
+            background: message.includes('âœ…') 
               ? 'linear-gradient(135deg, #10b981, #059669)' 
               : 'linear-gradient(135deg, #ef4444, #dc2626)',
             color: 'white',
@@ -582,7 +621,7 @@ const Settings = () => {
           {/* Profile Card */}
           <SettingsCard 
             title="Profile Settings" 
-            icon="👤"
+            icon="ðŸ‘¤"
             gradient="linear-gradient(135deg, #667eea, #764ba2)"
           >
             <div style={{
@@ -592,7 +631,7 @@ const Settings = () => {
             }}>
               <StyledInput
                 label="First Name"
-                icon="👤"
+                icon="ðŸ‘¤"
                 value={profileData.firstName}
                 onChange={(e) => updateProfileData('firstName', e.target.value)}
                 placeholder="Enter first name"
@@ -600,7 +639,7 @@ const Settings = () => {
               />
               <StyledInput
                 label="Last Name"
-                icon="👤"
+                icon="ðŸ‘¤"
                 value={profileData.lastName}
                 onChange={(e) => updateProfileData('lastName', e.target.value)}
                 placeholder="Enter last name"
@@ -610,7 +649,7 @@ const Settings = () => {
 
             <StyledInput
               label="Email Address"
-              icon="📧"
+              icon="ðŸ“§"
               type="email"
               value={profileData.email}
               onChange={(e) => updateProfileData('email', e.target.value)}
@@ -620,7 +659,7 @@ const Settings = () => {
 
             <StyledInput
               label="Bio"
-              icon="📝"
+              icon="ðŸ“"
               value={profileData.bio}
               onChange={(e) => updateProfileData('bio', e.target.value)}
               placeholder="Tell us about yourself..."
@@ -636,20 +675,20 @@ const Settings = () => {
               style={{ width: '100%' }}
               isMobile={isMobile}
             >
-              {loading ? 'Saving Profile...' : '💾 Save Profile'}
+              {loading ? 'Saving Profile...' : 'ðŸ’¾ Save Profile'}
             </StyledButton>
           </SettingsCard>
 
           {/* Appearance Card */}
           <SettingsCard 
             title="Appearance" 
-            icon="🎨"
+            icon="ðŸŽ¨"
             gradient="linear-gradient(135deg, #10b981, #059669)"
           >
             {/* Font Size */}
             <div style={{ marginBottom: '32px' }}>
               <h3 style={{ marginBottom: '16px', color: '#475569', fontSize: '1.2rem', fontWeight: '700' }}>
-                🔤 Font Size
+                ðŸ”¤ Font Size
               </h3>
               <div style={{
                 display: 'grid',
@@ -664,7 +703,7 @@ const Settings = () => {
                     style={{ textTransform: 'capitalize' }}
                     isMobile={isMobile}
                   >
-                    {size === 'small' && '🔤'} {size === 'medium' && '🔠'} {size === 'large' && '🔡'} {size}
+                    {size === 'small' && 'ðŸ”¤'} {size === 'medium' && 'ðŸ” '} {size === 'large' && 'ðŸ”¡'} {size}
                   </StyledButton>
                 ))}
               </div>
@@ -673,7 +712,7 @@ const Settings = () => {
             {/* Font Weight */}
             <div>
               <h3 style={{ marginBottom: '16px', color: '#475569', fontSize: '1.2rem', fontWeight: '700' }}>
-                💪 Font Weight
+                ðŸ’ª Font Weight
               </h3>
               <div style={{
                 display: 'grid',
@@ -691,7 +730,7 @@ const Settings = () => {
                     }}
                     isMobile={isMobile}
                   >
-                    {weight === 'light' && '📝'} {weight === 'normal' && '📄'} {weight === 'bold' && '📋'} {weight}
+                    {weight === 'light' && 'ðŸ“'} {weight === 'normal' && 'ðŸ“„'} {weight === 'bold' && 'ðŸ“‹'} {weight}
                   </StyledButton>
                 ))}
               </div>
@@ -704,14 +743,14 @@ const Settings = () => {
         <div style={{ animation: 'slideUp 0.9s ease-out' }}>
           <SettingsCard 
             title="Security" 
-            icon="🔐"
+            icon="ðŸ”"
             gradient="linear-gradient(135deg, #ef4444, #dc2626)"
           >
             {verificationStep === 'form' && (
               <div>
                 <StyledInput
                   label="Current Password"
-                  icon="🔒"
+                  icon="ðŸ”’"
                   type="password"
                   value={securityData.currentPassword}
                   onChange={(e) => updateSecurityData('currentPassword', e.target.value)}
@@ -721,7 +760,7 @@ const Settings = () => {
 
                 <StyledInput
                   label="New Password"
-                  icon="🆕"
+                  icon="ðŸ†•"
                   type="password"
                   value={securityData.newPassword}
                   onChange={(e) => updateSecurityData('newPassword', e.target.value)}
@@ -731,7 +770,7 @@ const Settings = () => {
 
                 <StyledInput
                   label="Confirm New Password"
-                  icon="✅"
+                  icon="âœ…"
                   type="password"
                   value={securityData.confirmPassword}
                   onChange={(e) => updateSecurityData('confirmPassword', e.target.value)}
@@ -747,14 +786,14 @@ const Settings = () => {
                   style={{ width: '100%' }}
                   isMobile={isMobile}
                 >
-                  {loading ? 'Sending...' : '📧 Send Verification Code'}
+                  {loading ? 'Sending...' : 'ðŸ“§ Send Verification Code'}
                 </StyledButton>
               </div>
             )}
 
             {verificationStep === 'code' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ marginBottom: '16px', color: '#1e293b', fontSize: '1.5rem' }}>📧 Enter Verification Code</h3>
+                <h3 style={{ marginBottom: '16px', color: '#1e293b', fontSize: '1.5rem' }}>ðŸ“§ Enter Verification Code</h3>
                 <p style={{ marginBottom: '24px', color: '#6b7280' }}>Check your email: {profileData.email}</p>
                 
                 <input
@@ -784,7 +823,7 @@ const Settings = () => {
                     variant="success"
                     isMobile={isMobile}
                   >
-                    {loading ? 'Verifying...' : '✅ Verify & Change'}
+                    {loading ? 'Verifying...' : 'âœ… Verify & Change'}
                   </StyledButton>
 
                   <StyledButton
@@ -796,7 +835,7 @@ const Settings = () => {
                     variant="secondary"
                     isMobile={isMobile}
                   >
-                    ⬅️ Back
+                    â¬…ï¸ Back
                   </StyledButton>
                 </div>
               </div>
@@ -804,7 +843,7 @@ const Settings = () => {
 
             {verificationStep === 'success' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ marginBottom: '16px', color: '#1e293b', fontSize: '1.5rem' }}>🎉 Password Changed!</h3>
+                <h3 style={{ marginBottom: '16px', color: '#1e293b', fontSize: '1.5rem' }}>ðŸŽ‰ Password Changed!</h3>
                 <p style={{ marginBottom: '24px', color: '#6b7280' }}>Your account is now more secure.</p>
                 
                 <StyledButton
@@ -812,7 +851,7 @@ const Settings = () => {
                   variant="primary"
                   isMobile={isMobile}
                 >
-                  ✅ Done
+                  âœ… Done
                 </StyledButton>
               </div>
             )}
@@ -826,38 +865,5 @@ const Settings = () => {
 
 export default Settings;
 
-const verifyCodeAndChangePassword = async (email, verificationCode, newPassword) => {
- try {
-   setVerificationLoading(true);
-   
-   const response = await fetch(\\/api/users/verify-password-change\, {
-     method: 'POST',
-     headers: {
-       'Content-Type': 'application/json',
-       'Authorization': Bearer 
-     },
-     body: JSON.stringify({
-       email,
-       verificationCode,
-       newPassword
-     })
-   });
 
-   const data = await response.json();
 
-   if (response.ok) {
-     setShowVerification(false);
-     setFormData(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
-     setVerificationCode('');
-     setSuccessMessage('Password changed successfully!');
-     setTimeout(() => setSuccessMessage(''), 3000);
-   } else {
-     setError(data.error || 'Verification failed. Please try again.');
-   }
- } catch (error) {
-   console.error('Password verification error:', error);
-   setError('Network error. Please try again.');
- } finally {
-   setVerificationLoading(false);
- }
-};
