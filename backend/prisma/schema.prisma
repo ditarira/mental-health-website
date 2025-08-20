@@ -14,7 +14,7 @@ model User {
   firstName          String
   lastName           String
   createdAt          DateTime           @default(now())
-  updatedAt          DateTime
+  updatedAt          DateTime           @updatedAt
   bio                String?
   role               String             @default("USER")
   preferences        Json?

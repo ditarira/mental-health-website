@@ -92,16 +92,16 @@ router.post('/register', async (req, res) => {
     console.log('✅ Role determined:', role);
     
     // Create user
-    const user = await prisma.user.create({
-      data: {
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        role
-      }
-    });
-
+const user = await prisma.user.create({
+  data: {
+    email: email.toLowerCase(),
+    password: hashedPassword,
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
+    role,
+    updatedAt: new Date() // ADD THIS LINE
+  }
+});
     console.log('✅ User created successfully:', user.email, 'ID:', user.id);
 
     // Generate token
