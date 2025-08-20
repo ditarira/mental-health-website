@@ -25,11 +25,11 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      console.log('✅ User already logged in, redirecting to dashboard...');
-      navigate('/dashboard', { replace: true });
-    }
-  }, [user, navigate]);
+  if (user) {
+    console.log('User state updated, redirecting to dashboard...');
+    navigate('/dashboard', { replace: true });
+  }
+}, [user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -57,25 +57,28 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    setLoading(true);
-    setError('');
-    try {
-      const result = await login(formData.email.trim(), formData.password);
-      if (result && result.success) {
-        // Redirect handled by useEffect
-      } else {
-        setError(result?.error || result?.message || 'Login failed. Please check your credentials.');
-      }
-    } catch (err) {
-      console.error('❌ Login error:', err);
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
+  e.preventDefault();
+  if (!validateForm()) return;
+  
+  setLoading(true);
+  setError('');
+  
+  try {
+    const result = await login(formData.email.trim(), formData.password);
+    
+    if (result && result.success) {
+      console.log('Login successful, user:', result.user);
+      // The useEffect should handle redirect when user state updates
+    } else {
+      setError(result?.error || 'Login failed. Please check your credentials.');
     }
-  };
-
+  } catch (err) {
+    console.error('❌ Login error:', err);
+    setError('An unexpected error occurred. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
   // ADD FORGOT PASSWORD FUNCTIONS
   const sendResetCode = async () => {
     if (!forgotEmail) {
@@ -160,7 +163,8 @@ const Login = () => {
     } else {
       setError(result.error || 'Failed to reset password');
     }
-  } catch (error) {
+  } 
+   catch (error) {
     console.error('Reset password error:', error);
     setError('❌ Network error. Please try again.');
   } finally {

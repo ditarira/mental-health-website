@@ -26,37 +26,46 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
-      
-      console.log('🔐 Login attempt for:', email);
-      
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+const login = async (email, password) => {
+  try {
+    console.log('🔐 Attempting login...', { email });
+    
+    const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
 
-      const data = await response.json();
+    const data = await response.json();
+    console.log('🔐 Login response:', data);
 
-      if (data.success) {
-        setUser(data.user);
-        setToken(data.token);
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        return { success: true, user: data.user };
-      } else {
-        return { success: false, message: data.message };
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, message: 'Login failed. Please try again.' };
+    if (response.ok && data.token) {
+      // Save token to localStorage
+      localStorage.setItem('token', data.token);
+      console.log('🔐 Token saved:', data.token);
+      
+      // Save user to localStorage (THIS WAS MISSING!)
+      localStorage.setItem('user', JSON.stringify(data.user));
+      console.log('🔐 User saved to localStorage:', data.user);
+      
+      // Update states
+      setToken(data.token);
+      setUser(data.user);
+      console.log('🔐 User state updated:', data.user);
+      
+      // Return success
+      return { success: true, user: data.user };
+    } else {
+      console.log('🔐 Login failed:', data.error);
+      return { success: false, error: data.error || 'Login failed' };
     }
-  };
-
+  } catch (error) {
+    console.error('🔐 Login error:', error);
+    return { success: false, error: 'Network error' };
+  }
+};
   const register = async (userData) => {
     try {
       const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
