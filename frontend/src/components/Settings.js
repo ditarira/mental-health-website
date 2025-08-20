@@ -350,19 +350,52 @@ const Settings = () => {
       setLoadingProfile(false);
     }
   };
+const applyAppearanceSettings = (settings) => {
+  // Apply font size to root element (this works well)
+  const fontSize = settings.fontSize === 'small' ? '14px' :
+                  settings.fontSize === 'large' ? '18px' : '16px';
+  document.documentElement.style.fontSize = fontSize;
 
-  const applyAppearanceSettings = (settings) => {
-    // Apply font size
-    const fontSize = settings.fontSize === 'small' ? '14px' :
-                    settings.fontSize === 'large' ? '18px' : '16px';
-    document.documentElement.style.fontSize = fontSize;
+  // Enhanced font weight application
+  const fontWeight = settings.fontWeight === 'light' ? '300' :
+                    settings.fontWeight === 'bold' ? '700' : '400';
+  
+  // Apply to body
+  document.body.style.fontWeight = fontWeight;
+  
+  // Create/update global style for font weight
+  let fontWeightStyle = document.getElementById('global-font-weight');
+  if (!fontWeightStyle) {
+    fontWeightStyle = document.createElement('style');
+    fontWeightStyle.id = 'global-font-weight';
+    document.head.appendChild(fontWeightStyle);
+  }
+  
+  // Apply font weight to all text elements
+  fontWeightStyle.textContent = `
+    * {
+      font-weight: ${fontWeight} !important;
+    }
+    
+    /* Ensure it works on all common elements */
+    body, p, div, span, h1, h2, h3, h4, h5, h6, 
+    input, textarea, button, label, a {
+      font-weight: ${fontWeight} !important;
+    }
+    
+    /* Preserve specific font weights for icons and special elements */
+    .icon, [class*="icon"], 
+    .emoji {
+      font-weight: normal !important;
+    }
+  `;
+  
+  console.log('🎨 Applied appearance settings:', settings);
+  console.log('📝 Font size:', fontSize);
+  console.log('💪 Font weight:', fontWeight);
+};
 
-    // Apply font weight
-    const fontWeight = settings.fontWeight === 'light' ? '300' :
-                      settings.fontWeight === 'bold' ? '700' : '400';
-    document.body.style.fontWeight = fontWeight;
-  };
-
+  
   const saveProfile = async () => {
     setLoading(true);
     try {
