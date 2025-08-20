@@ -87,17 +87,19 @@ const Login = () => {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedCode(code);
     try {
-      await emailjs.send(
-        'service_124ityi',
-        'template_obyjj06',
-        {
-          email: forgotEmail,
-          user_name: 'User',
-          reset_code: code
-        },
-        'oFTP-7JkGYa9jCIZK'
-      );
-      setResetStep('code');
+     // Try different variable names
+          await emailjs.send(
+         'service_124ityi',
+          'template_obyjj06',
+           {
+             to_email: forgotEmail,      // Try 'to_email' instead of 'email'
+             to_name: 'User',           // Try 'to_name' instead of 'user_name'  
+             code: code                 // Try 'code' instead of 'reset_code'
+            },
+            'oFTP-7JkGYa9jCIZK'
+    );  
+    
+  setResetStep('code');
       setMessage('✅ Reset code sent to your email! Check your inbox and spam folder.');
     } catch (error) {
       console.error('EmailJS error:', error);
@@ -117,43 +119,55 @@ const Login = () => {
     setError('');
   };
 
-  const resetPassword = async () => {
-    if (newPassword !== confirmPassword) {
-      setError('❌ Passwords do not match');
-      return;
-    }
-    if (newPassword.length < 6) {
-      setError('❌ Password must be at least 6 characters');
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail, newPassword: newPassword })
-      });
-      const result = await response.json();
-      if (response.ok) {
-        setMessage('✅ Password reset successfully! You can now login with your new password.');
+ const resetPassword = async () => {
+  if (newPassword !== confirmPassword) {
+    setError('❌ Passwords do not match');
+    return;
+  }
+  if (newPassword.length < 6) {
+    setError('❌ Password must be at least 6 characters');
+    return;
+  }
+  setLoading(true);
+  try {
+    const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: forgotEmail, newPassword: newPassword })
+    });
+    const result = await response.json();
+    if (response.ok) {
+      // AUTO-LOGIN AFTER PASSWORD RESET
+      setMessage('✅ Password reset successfully! Logging you in...');
+      
+      // Login with new password
+      const loginResult = await login(forgotEmail, newPassword);
+      
+      if (loginResult.success) {
+        // Will redirect to dashboard automatically
+        navigate('/dashboard');
+      } else {
+        setMessage('✅ Password reset successfully! Please login with your new password.');
         setShowForgotPassword(false);
         setResetStep('email');
+        // Clear form
         setForgotEmail('');
         setResetCode('');
         setNewPassword('');
         setConfirmPassword('');
         setGeneratedCode('');
-      } else {
-        setError(result.error || 'Failed to reset password');
       }
-    } catch (error) {
-      console.error('Reset password error:', error);
-      setError('❌ Network error. Please try again.');
-    } finally {
-      setLoading(false);
-      setTimeout(() => setMessage(''), 5000);
+    } else {
+      setError(result.error || 'Failed to reset password');
     }
-  };
+  } catch (error) {
+    console.error('Reset password error:', error);
+    setError('❌ Network error. Please try again.');
+  } finally {
+    setLoading(false);
+    setTimeout(() => setMessage(''), 5000);
+  }
+};
 
   if (user) {
     return (
