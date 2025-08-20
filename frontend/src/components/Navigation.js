@@ -86,6 +86,20 @@ const Navigation = () => {
       .nav-text {
         font-family: 'Inter', sans-serif;
       }
+
+      .profile-hover {
+        transition: all 0.3s ease;
+      }
+
+      .profile-hover:hover {
+        background: rgba(102, 126, 234, 0.15) !important;
+        transform: translateY(-1px);
+      }
+
+      .profile-hover:active {
+        background: rgba(102, 126, 234, 0.2) !important;
+        transform: translateY(0px);
+      }
     `;
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
@@ -124,6 +138,12 @@ const Navigation = () => {
   const handleLogout = () => {
     logout();
     navigate("/login");
+    setShowMobileMenu(false);
+  };
+
+  // Handle mobile profile click
+  const handleMobileProfileClick = () => {
+    navigate("/settings");
     setShowMobileMenu(false);
   };
 
@@ -403,7 +423,7 @@ const Navigation = () => {
               background: "linear-gradient(135deg, #667eea, #764ba2)",
               color: "white",
               border: "none",
-              borderRadius: "16px", // More rounded edges
+              borderRadius: "16px",
               cursor: "pointer",
               fontSize: "1.2rem",
               boxShadow: "0 4px 15px rgba(102, 126, 234, 0.3)",
@@ -517,17 +537,24 @@ const Navigation = () => {
             border: "1px solid rgba(102, 126, 234, 0.1)"
           }}
         >
-          {/* User Profile in Mobile Menu */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "1rem",
-            padding: "1rem",
-            background: "rgba(102, 126, 234, 0.08)",
-            borderRadius: "15px",
-            marginBottom: "1rem",
-            border: "1px solid rgba(102, 126, 234, 0.1)"
-          }}>
+          {/* Enhanced Clickable User Profile in Mobile Menu */}
+          <div 
+            className="profile-hover"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              padding: "1rem",
+              background: "rgba(102, 126, 234, 0.08)",
+              borderRadius: "15px",
+              marginBottom: "1rem",
+              border: "1px solid rgba(102, 126, 234, 0.1)",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              position: "relative"
+            }}
+            onClick={handleMobileProfileClick}
+          >
             <div style={{
               width: "40px",
               height: "40px",
@@ -543,7 +570,7 @@ const Navigation = () => {
             }}>
               {user?.firstName?.[0]}{user?.lastName?.[0]}
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <div style={{
                 fontSize: "1rem",
                 fontWeight: "600",
@@ -557,8 +584,16 @@ const Navigation = () => {
                 color: "#667eea",
                 fontWeight: "500"
               }}>
-                {user?.role === "ADMIN" ? "Administrator" : "Member"}
+                {user?.role === "ADMIN" ? "Administrator" : "Member"} • Tap to edit
               </div>
+            </div>
+            <div style={{
+              fontSize: "1.2rem",
+              color: "#667eea",
+              opacity: 0.5,
+              transition: "all 0.3s ease"
+            }}>
+              ⚙️
             </div>
           </div>
 
