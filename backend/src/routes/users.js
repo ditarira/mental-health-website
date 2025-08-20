@@ -1,47 +1,33 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');  // ADD THIS MISSING IMPORT
 const { PrismaClient } = require('@prisma/client');
-
-// Check if auth middleware exists, if not create a simple one
-let authMiddleware;
-try {
-  const authModule = require('../middleware/auth');
-  authMiddleware = authModule.authMiddleware || authModule;
-} catch (error) {
-  // Simple auth middleware if the file doesn't exist
-  authMiddleware = (req, res, next) => {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-    
-    try {
-      const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-      req.user = decoded;
-      next();
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-  };
-}
 
 const prisma = new PrismaClient();
 
+// Import the correct auth middleware
+const verifyToken = require('../middleware/auth');
+
 // Get user profile
-router.get('/profile', authMiddleware, async (req, res) => {
+router.get('/profile', verifyToken, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
+      where: { id: req.userId },  // Use req.userId consistently
       select: {
         id: true,
         email: true,
         firstName: true,
         lastName: true,
+        bio: true,
         role: true,
         createdAt: true
       }
     });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     res.json({ user });
   } catch (error) {
     console.error('Profile error:', error);
@@ -49,74 +35,18 @@ router.get('/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Get user settings
-router.get('/settings', authMiddleware, async (req, res) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: {
-        preferences: true
-      }
-    });
-    
-    const defaultSettings = {
-      fontSize: 'medium',
-      colorScheme: 'purple'
-    };
-    
-    res.json({ 
-      settings: user?.preferences || defaultSettings 
-    });
-  } catch (error) {
-    console.error('Get settings error:', error);
-    res.status(500).json({ error: 'Failed to get settings' });
-  }
-});
-
-// Update user settings
-router.put('/settings', authMiddleware, async (req, res) => {
-  try {
-    const { fontSize, colorScheme } = req.body;
-    
-    const user = await prisma.user.update({
-      where: { id: req.user.id },
-      data: {
-        preferences: {
-          fontSize: fontSize || 'medium',
-          colorScheme: colorScheme || 'purple'
-        }
-      },
-      select: {
-        preferences: true
-      }
-    });
-    
-    res.json({ 
-      message: 'Settings updated successfully',
-      settings: user.preferences 
-    });
-  } catch (error) {
-    console.error('Update settings error:', error);
-    res.status(500).json({ error: 'Failed to update settings' });
-  }
-});
-
-module.exports = router;
-
 // Update user profile
-router.put('/profile', authMiddleware, async (req, res) => {
+router.put('/profile', verifyToken, async (req, res) => {
   try {
-    const { firstName, lastName, email, bio, phone, location } = req.body;
+    const { firstName, lastName, email, bio } = req.body;
     
     const user = await prisma.user.update({
-      where: { id: req.user.id },
+      where: { id: req.userId },
       data: {
-        firstName: firstName || undefined,
-        lastName: lastName || undefined,
-        email: email || undefined,
-        bio: bio || undefined,
-        phone: phone || undefined,
-        location: location || undefined
+        firstName,
+        lastName,
+        email,
+        bio
       },
       select: {
         id: true,
@@ -124,8 +54,6 @@ router.put('/profile', authMiddleware, async (req, res) => {
         firstName: true,
         lastName: true,
         bio: true,
-        phone: true,
-        location: true,
         role: true,
         createdAt: true
       }
@@ -141,35 +69,108 @@ router.put('/profile', authMiddleware, async (req, res) => {
   }
 });
 
+// Get user settings
+router.get('/settings', verifyToken, async (req, res) => {
+  try {
+    const settings = await prisma.userSettings.findUnique({
+      where: { userId: req.userId }
+    });
+
+    if (!settings) {
+      // Create default settings if none exist
+      const defaultSettings = await prisma.userSettings.create({
+        data: {
+          userId: req.userId,
+          fontSize: 'medium',
+          fontWeight: 'normal'
+        }
+      });
+      return res.json({ settings: defaultSettings });
+    }
+
+    res.json({ settings });
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+// Update user settings
+router.put('/settings', verifyToken, async (req, res) => {
+  try {
+    const { fontSize, fontWeight } = req.body;
+
+    const settings = await prisma.userSettings.upsert({
+      where: { userId: req.userId },
+      update: {
+        fontSize,
+        fontWeight
+      },
+      create: {
+        userId: req.userId,
+        fontSize,
+        fontWeight
+      }
+    });
+
+    res.json({ settings });
+  } catch (error) {
+    console.error('Error updating settings:', error);
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
+});
+
 // Change password
-router.put('/change-password', authMiddleware, async (req, res) => {
+router.put('/change-password', verifyToken, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const bcrypt = require('bcrypt');
     
-    // Get current user with password
+    console.log('🔐 Password change request for user:', req.userId);
+    console.log('🔐 Current password provided:', currentPassword ? 'Yes' : 'No');
+    console.log('🔐 New password provided:', newPassword ? 'Yes' : 'No');
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+
+    // Get user with current password
     const user = await prisma.user.findUnique({
-      where: { id: req.user.id }
+      where: { id: req.userId }
     });
-    
+
+    if (!user) {
+      console.log('🔐 User not found:', req.userId);
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    console.log('🔐 User found, email:', user.email);
+    console.log('🔐 Stored password hash exists:', !!user.password);
+
     // Verify current password
     const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    console.log('🔐 Password comparison result:', isValidPassword);
+
     if (!isValidPassword) {
+      console.log('🔐 Password verification failed for user:', user.email);
       return res.status(400).json({ error: 'Current password is incorrect' });
     }
-    
+
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    
+    console.log('🔐 New password hashed successfully');
+
     // Update password
     await prisma.user.update({
-      where: { id: req.user.id },
+      where: { id: req.userId },
       data: { password: hashedNewPassword }
     });
-    
+
+    console.log('🔐 Password updated successfully for user:', user.email);
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
-    console.error('Password change error:', error);
+    console.error('🔐 Password change error:', error);
     res.status(500).json({ error: 'Failed to change password' });
   }
 });
+
+module.exports = router;
