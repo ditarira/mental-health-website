@@ -411,8 +411,7 @@ const Settings = () => {
       console.error('Failed to save appearance:', error);
     }
   };
-
- const sendVerificationEmail = async () => {
+const sendVerificationEmail = async () => {
   if (securityData.newPassword !== securityData.confirmPassword) {
     setMessage('❌ Passwords do not match');
     setTimeout(() => setMessage(''), 3000);
@@ -436,16 +435,16 @@ const Settings = () => {
   setGeneratedCode(code);
 
   try {
-    // Send email via EmailJS - Template 2 (Password Change)
+    // Updated EmailJS credentials for Settings
     await emailjs.send(
-      'service_770dbc6',      // Your service ID
-      'template_lugzz24',     // Password change template
+      'service_124ityi',        // NEW Service ID
+      'template_g324dl9',       // NEW Template 2 (Password Change)
       {
-        email: profileData.email,
-        user_name: profileData.firstName || 'User',
-        verification_code: code
+        email: profileData.email,              // Template expects: email
+        user_name: profileData.firstName || 'User',  // Template expects: user_name
+        verification_code: code                // Template expects: verification_code
       },
-      'vbeur3IfUOfHG1olR'     // Your public key
+      'oFTP-7JkGYa9jCIZK'      // NEW Public Key
     );
 
     setVerificationStep('code');
@@ -453,8 +452,20 @@ const Settings = () => {
     
   } catch (error) {
     console.error('EmailJS error:', error);
-    setMessage('❌ Failed to send verification email. Please try again.');
-    setGeneratedCode('');
+    
+    // User-friendly error messages
+    let errorMessage = '❌ Failed to send verification email. ';
+    
+    if (error.message.includes('Failed to send email')) {
+      errorMessage += 'Email service temporarily unavailable.';
+    } else if (error.message.includes('network') || error.name === 'TypeError') {
+      errorMessage += 'Check your internet connection.';
+    } else {
+      errorMessage += 'Please try again or contact support.';
+    }
+    
+    setMessage(errorMessage);
+    setGeneratedCode(''); // Clear the code if email failed
   } finally {
     setLoading(false);
     setTimeout(() => setMessage(''), 5000);

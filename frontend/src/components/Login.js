@@ -53,36 +53,49 @@ const Login = () => {
   };
 
   const sendResetCode = async () => {
-    if (!forgotEmail) {
-      setError('Please enter your email address');
-      return;
-    }
-    setLoading(true);
-    setError('');
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedCode(code);
-    try {
-      await emailjs.send(
-        'service_770dbc6',
-        'template_ggoczaq',
-        {
-          email: forgotEmail,
-          user_name: 'User',
-          reset_code: code
-        },
-        'vbeur3IfUOfHG1olR'
-      );
-      setResetStep('code');
-      setMessage('✅ Reset code sent to your email! Check your inbox and spam folder.');
-    } catch (error) {
-      console.error('EmailJS error:', error);
-      setError('❌ Failed to send reset code. Please try again.');
-    } finally {
-      setLoading(false);
-      setTimeout(() => setMessage(''), 5000);
-    }
-  };
+  if (!forgotEmail) {
+    setError('Please enter your email address');
+    return;
+  }
 
+  setLoading(true);
+  setError('');
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  setGeneratedCode(code);
+
+  console.log('🔍 Sending reset code...');
+  console.log('Email:', forgotEmail);
+  console.log('Code:', code);
+
+  try {
+    const result = await emailjs.send(
+      'service_770dbc6',
+      'template_ggoczaq',
+      {
+        user_email: forgotEmail,
+        user_name: 'User',
+        reset_code: code
+      },
+      'vbeur3IfUOfHG1olR'
+    );
+    
+    console.log('✅ EmailJS Success:', result);
+    setResetStep('code');
+    setMessage('✅ Reset code sent to your email! Check your inbox and spam folder.');
+    
+  } 
+catch (error) {
+    console.error('❌ EmailJS Error Details:');
+    console.error('Status:', error.status);
+    console.error('Text:', error.text);
+    console.error('Full Error:', error);
+    
+    setError(`❌ Failed to send reset code. Error: ${error.text || error.message || 'Unknown error'}`);
+  } finally {
+    setLoading(false);
+    setTimeout(() => setMessage(''), 5000);
+  }
+};
   const verifyResetCode = () => {
     if (resetCode !== generatedCode) {
       setError('❌ Invalid reset code. Please check your email.');

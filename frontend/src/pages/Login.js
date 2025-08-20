@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import emailjs from '@emailjs/browser';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,10 +11,19 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
+  // ADD THESE FORGOT PASSWORD STATES
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [resetStep, setResetStep] = useState('email');
+  const [resetCode, setResetCode] = useState('');
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [message, setMessage] = useState('');
+  
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   useEffect(() => {
     if (user) {
       console.log('✅ User already logged in, redirecting to dashboard...');
@@ -27,7 +37,6 @@ const Login = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (error) setError('');
   };
 
@@ -36,36 +45,26 @@ const Login = () => {
       setError('Email address is required');
       return false;
     }
-    
     if (!formData.password || !formData.password.trim()) {
       setError('Password is required');
       return false;
     }
-
     if (!formData.email.includes('@')) {
       setError('Please enter a valid email address');
       return false;
     }
-
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate form before submission
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setLoading(true);
     setError('');
-
     try {
       const result = await login(formData.email.trim(), formData.password);
-      
       if (result && result.success) {
-        // The useEffect above will handle the redirect when user state updates
+        // Redirect handled by useEffect
       } else {
         setError(result?.error || result?.message || 'Login failed. Please check your credentials.');
       }
@@ -77,7 +76,85 @@ const Login = () => {
     }
   };
 
-  // Don't render login form if user is already logged in
+  // ADD FORGOT PASSWORD FUNCTIONS
+  const sendResetCode = async () => {
+    if (!forgotEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code);
+    try {
+      await emailjs.send(
+        'service_124ityi',
+        'template_obyjj06',
+        {
+          email: forgotEmail,
+          user_name: 'User',
+          reset_code: code
+        },
+        'oFTP-7JkGYa9jCIZK'
+      );
+      setResetStep('code');
+      setMessage('✅ Reset code sent to your email! Check your inbox and spam folder.');
+    } catch (error) {
+      console.error('EmailJS error:', error);
+      setError('❌ Failed to send reset code. Please try again.');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage(''), 5000);
+    }
+  };
+
+  const verifyResetCode = () => {
+    if (resetCode !== generatedCode) {
+      setError('❌ Invalid reset code. Please check your email.');
+      return;
+    }
+    setResetStep('newpassword');
+    setError('');
+  };
+
+  const resetPassword = async () => {
+    if (newPassword !== confirmPassword) {
+      setError('❌ Passwords do not match');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError('❌ Password must be at least 6 characters');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail, newPassword: newPassword })
+      });
+      const result = await response.json();
+      if (response.ok) {
+        setMessage('✅ Password reset successfully! You can now login with your new password.');
+        setShowForgotPassword(false);
+        setResetStep('email');
+        setForgotEmail('');
+        setResetCode('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setGeneratedCode('');
+      } else {
+        setError(result.error || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      setError('❌ Network error. Please try again.');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage(''), 5000);
+    }
+  };
+
   if (user) {
     return (
       <div style={{
@@ -92,6 +169,249 @@ const Login = () => {
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔄</div>
           <div>Redirecting to dashboard...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ADD FORGOT PASSWORD FORM UI
+  if (showForgotPassword) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem'
+      }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '20px',
+          padding: '3rem',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          width: '100%',
+          maxWidth: '450px',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔑</div>
+            <h1 style={{
+              color: '#2d4654',
+              fontSize: '2.5rem',
+              fontWeight: 'bold',
+              marginBottom: '0.5rem'
+            }}>
+              {resetStep === 'email' && 'Forgot Password'}
+              {resetStep === 'code' && 'Enter Reset Code'}
+              {resetStep === 'newpassword' && 'Set New Password'}
+            </h1>
+          </div>
+
+          {(error || message) && (
+            <div style={{
+              background: error ? '#fee' : '#f0f9ff',
+              color: error ? '#c53030' : '#1e40af',
+              padding: '1rem',
+              borderRadius: '10px',
+              marginBottom: '1.5rem',
+              border: `1px solid ${error ? '#fecaca' : '#bfdbfe'}`,
+              textAlign: 'center',
+              fontSize: '0.9rem'
+            }}>
+              {error || message}
+            </div>
+          )}
+
+          {resetStep === 'email' && (
+            <div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  color: '#374151',
+                  fontWeight: '600'
+                }}>
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '10px',
+                    fontSize: '1rem',
+                    boxSizing: 'border-box'
+                  }}
+                  placeholder="Enter your email"
+                />
+              </div>
+              <button
+                onClick={sendResetCode}
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  background: loading ? '#9ca3af' : 'linear-gradient(135deg, #7ca5b8, #4d7a97)',
+                  color: 'white',
+                  padding: '1.2rem',
+                  border: 'none',
+                  borderRadius: '15px',
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  marginBottom: '1.5rem'
+                }}
+              >
+                {loading ? 'Sending...' : '📧 Send Reset Code'}
+              </button>
+            </div>
+          )}
+
+          {resetStep === 'code' && (
+            <div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  color: '#374151',
+                  fontWeight: '600'
+                }}>
+                  Reset Code
+                </label>
+                <input
+                  type="text"
+                  value={resetCode}
+                  onChange={(e) => setResetCode(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '10px',
+                    fontSize: '1.5rem',
+                    fontFamily: 'monospace',
+                    textAlign: 'center',
+                    boxSizing: 'border-box'
+                  }}
+                  placeholder="000000"
+                  maxLength="6"
+                />
+              </div>
+              <button
+                onClick={verifyResetCode}
+                disabled={resetCode.length !== 6}
+                style={{
+                  width: '100%',
+                  background: resetCode.length !== 6 ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
+                  color: 'white',
+                  padding: '1.2rem',
+                  border: 'none',
+                  borderRadius: '15px',
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  cursor: resetCode.length !== 6 ? 'not-allowed' : 'pointer',
+                  marginBottom: '1.5rem'
+                }}
+              >
+                ✅ Verify Code
+              </button>
+            </div>
+          )}
+
+          {resetStep === 'newpassword' && (
+            <div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  color: '#374151',
+                  fontWeight: '600'
+                }}>
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '10px',
+                    fontSize: '1rem',
+                    boxSizing: 'border-box'
+                  }}
+                  placeholder="Enter new password"
+                />
+              </div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  color: '#374151',
+                  fontWeight: '600'
+                }}>
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '10px',
+                    fontSize: '1rem',
+                    boxSizing: 'border-box'
+                  }}
+                  placeholder="Confirm new password"
+                />
+              </div>
+              <button
+                onClick={resetPassword}
+                disabled={loading || !newPassword || !confirmPassword}
+                style={{
+                  width: '100%',
+                  background: loading || !newPassword || !confirmPassword ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
+                  color: 'white',
+                  padding: '1.2rem',
+                  border: 'none',
+                  borderRadius: '15px',
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  cursor: loading || !newPassword || !confirmPassword ? 'not-allowed' : 'pointer',
+                  marginBottom: '1.5rem'
+                }}
+              >
+                {loading ? 'Resetting...' : '🔐 Reset Password'}
+              </button>
+            </div>
+          )}
+
+          <div style={{ textAlign: 'center' }}>
+            <button
+              onClick={() => {
+                setShowForgotPassword(false);
+                setResetStep('email');
+                setError('');
+                setMessage('');
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#7ca5b8',
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
+            >
+              ← Back to Login
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -115,12 +435,8 @@ const Login = () => {
         maxWidth: '450px',
         backdropFilter: 'blur(10px)'
       }}>
-        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            fontSize: '3rem',
-            marginBottom: '1rem'
-          }}>🧠</div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🧠</div>
           <h1 style={{
             color: '#2d4654',
             fontSize: '2.5rem',
@@ -129,33 +445,27 @@ const Login = () => {
           }}>
             Welcome Back
           </h1>
-          <p style={{
-            color: '#666',
-            fontSize: '1.1rem'
-          }}>
+          <p style={{ color: '#666', fontSize: '1.1rem' }}>
             Sign in to continue your mental wellness journey
           </p>
         </div>
 
-        {/* Error Message */}
-        {error && (
+        {(error || message) && (
           <div style={{
-            background: '#fee',
-            color: '#c53030',
+            background: error ? '#fee' : '#f0f9ff',
+            color: error ? '#c53030' : '#1e40af',
             padding: '1rem',
             borderRadius: '10px',
             marginBottom: '1.5rem',
-            border: '1px solid #fecaca',
+            border: `1px solid ${error ? '#fecaca' : '#bfdbfe'}`,
             textAlign: 'center',
             fontSize: '0.9rem'
           }}>
-            ⚠️ {error}
+            ⚠️ {error || message}
           </div>
         )}
 
-        {/* Login Form */}
         <form onSubmit={handleSubmit}>
-          {/* Email Field */}
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{
               display: 'block',
@@ -195,8 +505,7 @@ const Login = () => {
             />
           </div>
 
-          {/* Password Field */}
-          <div style={{ marginBottom: '2rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <label style={{
               display: 'block',
               marginBottom: '0.5rem',
@@ -235,7 +544,24 @@ const Login = () => {
             />
           </div>
 
-          {/* Submit Button */}
+          <div style={{ textAlign: 'right', marginBottom: '2rem' }}>
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#7ca5b8',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
+            >
+              Forgot your password?
+            </button>
+          </div>
+
           <button
             type="submit"
             disabled={loading || !formData.email.trim() || !formData.password.trim()}
@@ -253,18 +579,6 @@ const Login = () => {
               cursor: loading || !formData.email.trim() || !formData.password.trim() ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
               marginBottom: '1.5rem'
-            }}
-            onMouseOver={(e) => {
-              if (!loading && formData.email.trim() && formData.password.trim()) {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 10px 25px rgba(124, 165, 184, 0.4)';
-              }
-            }}
-            onMouseOut={(e) => {
-              if (!loading && formData.email.trim() && formData.password.trim()) {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = 'none';
-              }
             }}
           >
             {loading ? (
@@ -285,36 +599,14 @@ const Login = () => {
               '🚀 Sign In'
             )}
           </button>
-          
-          {/* Forgot Password Link */}
-          <div style={{
-            textAlign: 'center',
-            marginBottom: '1.5rem'
-          }}>
-            <Link
-              to="/reset-password"
-              style={{
-                color: '#7ca5b8',
-                textDecoration: 'none',
-                fontSize: '0.9rem',
-                fontWeight: '500'
-              }}
-            >
-              Forgot your password?
-            </Link>
-          </div>
         </form>
 
-        {/* Register Link */}
         <div style={{
           textAlign: 'center',
           paddingTop: '1.5rem',
           borderTop: '1px solid #e5e7eb'
         }}>
-          <p style={{
-            color: '#666',
-            marginBottom: '1rem'
-          }}>
+          <p style={{ color: '#666', marginBottom: '1rem' }}>
             Don't have an account?
           </p>
           <Link
@@ -337,11 +629,7 @@ const Login = () => {
           </Link>
         </div>
 
-        {/* Back to Home */}
-        <div style={{
-          textAlign: 'center',
-          marginTop: '1.5rem'
-        }}>
+        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
           <Link
             to="/"
             style={{
@@ -355,7 +643,6 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Loading Animation Styles */}
       <style jsx>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }

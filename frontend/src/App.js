@@ -4,8 +4,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Navigation from './components/Navigation';
 import Settings from './components/Settings';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Login from './components/Login';
+import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Journal from './components/Journal';
 import BreathingExercises from './components/BreathingExercises';
@@ -32,7 +32,7 @@ const ProtectedRoute = ({ children }) => {
         color: 'white'
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>??</div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🧠</div>
           <div>Loading MindfulMe...</div>
         </div>
       </div>
