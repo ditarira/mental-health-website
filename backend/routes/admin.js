@@ -51,8 +51,8 @@ router.get('/users', async (req, res) => {
         lastName: true,
         role: true,
         createdAt: true,
-        lastActiveAt: true, // ADD THIS
-        isOnline: true      // ADD THIS
+        lastActiveAt: true,
+        isOnline: true
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -74,6 +74,35 @@ router.get('/users', async (req, res) => {
       success: false,
       message: 'Failed to fetch users',
       error: error.message
+    });
+  }
+});
+
+// ADD THIS RESET ROUTE
+router.post('/reset-activity', async (req, res) => {
+  try {
+    console.log('🔄 Resetting all user activity...');
+    
+    // Set everyone to inactive (2 hours ago)
+    const result = await prisma.user.updateMany({
+      data: { 
+        lastActiveAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        isOnline: false 
+      }
+    });
+    
+    console.log(`✅ Reset ${result.count} users to inactive`);
+    
+    res.json({ 
+      success: true, 
+      message: `Reset ${result.count} users to inactive`,
+      count: result.count
+    });
+  } catch (error) {
+    console.error('❌ Reset failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
     });
   }
 });
