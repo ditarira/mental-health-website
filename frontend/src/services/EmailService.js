@@ -1,97 +1,108 @@
-import emailjs from "@emailjs/browser";
+import emailjs from '@emailjs/browser';
 
 class EmailService {
   constructor() {
-    // Replace these with your EmailJS credentials
-    this.serviceId = "service_wo991hq";
-    this.publicKey = "W42E2JtVKWVg1M3t-";
+    // EmailJS Configuration (from Login.js)
+    this.serviceId = 'service_124ityi';
+    this.publicKey = 'oFTP-7JkGYa9jCIZK';
     
-    // Initialize EmailJS
-    emailjs.init(this.publicKey);
-  }
-
-  // Send verification code for registration
-  async sendVerificationCode(userEmail, verificationCode, userName) {
-    const templateParams = {
-      email: userEmail,
-      to_name: userName,
-      verification_code: verificationCode,
-      app_name: "MindfulMe",
-      message: `Welcome to MindfulMe! Your verification code is: ${verificationCode}`
+    // Template IDs
+    this.templates = {
+      verification: 'template_g324dl9',  // For registration verification
+      passwordReset: 'template_obyjj06'
     };
-
-    try {
-      const response = await emailjs.send(
-        this.serviceId,
-        "template_verification",
-        templateParams
-      );
-      
-      console.log("✅ Verification email sent:", response);
-      return { success: true, response };
-    } catch (error) {
-      console.error("❌ Email send failed:", error);
-      return { success: false, error: error.message };
-    }
   }
 
-  // Send password reset code
-  async sendPasswordReset(userEmail, resetCode, userName) {
-    const templateParams = {
-      email: userEmail,
-      to_name: userName,
-      reset_code: resetCode,
-      app_name: "MindfulMe",
-      message: `Your password reset code is: ${resetCode}. This code expires in 10 minutes.`
-    };
-
-    try {
-      const response = await emailjs.send(
-        this.serviceId,
-        "template_password_reset",
-        templateParams
-      );
-      
-      console.log("✅ Password reset email sent:", response);
-      return { success: true, response };
-    } catch (error) {
-      console.error("❌ Password reset email failed:", error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // Send settings change notification
-  async sendSettingsChangeNotification(userEmail, userName, changedSetting) {
-    const templateParams = {
-      email: userEmail,
-      to_name: userName,
-      app_name: "MindfulMe",
-      setting_changed: changedSetting,
-      message: `Your ${changedSetting} settings have been updated successfully.`
-    };
-
-    try {
-      const response = await emailjs.send(
-        this.serviceId,
-        "template_settings",
-        templateParams
-      );
-      
-      console.log("✅ Settings change email sent:", response);
-      return { success: true, response };
-    } catch (error) {
-      console.error("❌ Settings change email failed:", error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // Generate random verification code
+  // Generate 6-digit verification code
   generateVerificationCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
+
+  // Send verification code for registration
+  async sendVerificationCode(email, code, userName) {
+    try {
+      console.log('📧 Sending verification code to:', email);
+      
+      const templateParams = {
+        to_email: email,           // To match your template
+        user_name: userName,       // User's name
+        verification_code: code,   // 6-digit code
+        email: email              // Backup field
+      };
+
+      console.log('📧 Template params:', templateParams);
+
+      const result = await emailjs.send(
+        this.serviceId,
+        this.templates.verification,
+        templateParams,
+        this.publicKey
+      );
+
+      console.log('✅ Verification email sent successfully:', result);
+      return { success: true, result };
+
+    } catch (error) {
+      console.error('❌ Email send failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Send welcome email after successful registration
+  async sendWelcomeEmail(email, firstName) {
+    try {
+      console.log('📧 Sending welcome email to:', email);
+
+      const templateParams = {
+        to_email: email,
+        user_name: firstName,
+        email: email
+      };
+
+      const result = await emailjs.send(
+        this.serviceId,
+        this.templates.welcome,
+        templateParams,
+        this.publicKey
+      );
+
+      console.log('✅ Welcome email sent successfully:', result);
+      return { success: true, result };
+
+    } catch (error) {
+      console.error('❌ Welcome email failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Send password reset code (used in Login.js)
+  async sendPasswordResetCode(email, code, userName = 'User') {
+    try {
+      console.log('📧 Sending password reset code to:', email);
+
+      const templateParams = {
+        to_email: email,
+        to_name: userName,
+        code: code,
+        email: email
+      };
+
+      const result = await emailjs.send(
+        this.serviceId,
+        this.templates.passwordReset,
+        templateParams,
+        this.publicKey
+      );
+
+      console.log('✅ Password reset email sent successfully:', result);
+      return { success: true, result };
+
+    } catch (error) {
+      console.error('❌ Password reset email failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
+// Export singleton instance
 export default new EmailService();
-
-
-

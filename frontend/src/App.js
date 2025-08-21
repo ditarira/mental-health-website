@@ -5,7 +5,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import Navigation from './components/Navigation';
 import Settings from './components/Settings';
 import Login from './pages/Login';
-import Register from './pages/Register';
+import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Journal from './components/Journal';
 import BreathingExercises from './components/BreathingExercises';

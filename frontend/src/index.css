@@ -244,10 +244,8 @@ div[style*="Loading your wellness"] div[style*="fontSize: '1.8rem'"] {
     font-size: 1.5rem !important;
   }
 }
+   /* dekstop */ 
 
-/* =================
-   DESKTOP STYLES
-   ================= */
 @media (min-width: 1024px) {
   /* Stats Grid - 4 columns on desktop */
   div[style*="gridTemplateColumns"] {
@@ -10562,4 +10560,3 @@ html {
    color: #93c5fd;
  }
 }
-

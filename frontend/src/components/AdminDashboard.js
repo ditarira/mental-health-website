@@ -185,15 +185,16 @@ const AdminDashboard = () => {
        maxWidth: '1400px',
        margin: '0 auto'
      }}>
-       {/* Header Section */}
-       <div style={{
-         background: 'rgba(255, 255, 255, 0.95)',
-         borderRadius: '20px',
-         padding: '30px',
-         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-         backdropFilter: 'blur(10px)',
-         marginBottom: '25px'
-       }}>
+      {/* Header Section - Make Transparent */}
+	<div style={{
+	  background: 'rgba(255, 255, 255, 0.1)', // Make transparent like other components
+  	backdropFilter: 'blur(15px)',
+ 	 borderRadius: '20px',
+  	padding: '30px',
+  	boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+  	marginBottom: '25px',
+  	border: '1px solid rgba(255, 255, 255, 0.2)' // Add subtle border
+   }}>
          <div style={{
            display: 'flex',
            justifyContent: 'space-between',

@@ -119,8 +119,8 @@ const login = async (email, password) => {
         console.log('✅ Registration successful, user logged in');
         return { success: true, user: data.user };
       } else {
-        return { success: false, message: data.message };
-      }
+  	return { success: false, message: data.message || data.error || 'Registration failed' };
+	}
     } catch (error) {
       console.error('❌ Registration error:', error);
       return { success: false, message: 'Registration failed. Please try again.' };
@@ -133,6 +133,13 @@ const login = async (email, password) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   };
+ 
+const updateUser = (newUserData) => {
+  const updatedUser = { ...user, ...newUserData };
+  setUser(updatedUser);
+  localStorage.setItem('user', JSON.stringify(updatedUser));
+  console.log('🔄 User updated in AuthContext:', updatedUser);
+};
 
   const value = {
     user,
@@ -140,6 +147,7 @@ const login = async (email, password) => {
     login,
     register,
     logout,
+    updateUser,
     loading,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'ADMIN' || user?.email === 'admin@mindfulme.com'

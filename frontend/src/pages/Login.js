@@ -10,6 +10,7 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   // ADD THESE FORGOT PASSWORD STATES
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -25,11 +26,19 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-  if (user) {
-    console.log('User state updated, redirecting to dashboard...');
-    navigate('/dashboard', { replace: true });
-  }
-}, [user, navigate]);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      console.log('User state updated, redirecting to dashboard...');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -57,28 +66,29 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validateForm()) return;
-  
-  setLoading(true);
-  setError('');
-  
-  try {
-    const result = await login(formData.email.trim(), formData.password);
+    e.preventDefault();
+    if (!validateForm()) return;
     
-    if (result && result.success) {
-      console.log('Login successful, user:', result.user);
-      // The useEffect should handle redirect when user state updates
-    } else {
-      setError(result?.error || 'Login failed. Please check your credentials.');
+    setLoading(true);
+    setError('');
+    
+    try {
+      const result = await login(formData.email.trim(), formData.password);
+      
+      if (result && result.success) {
+        console.log('Login successful, user:', result.user);
+        // The useEffect should handle redirect when user state updates
+      } else {
+        setError(result?.error || 'Login failed. Please check your credentials.');
+      }
+    } catch (err) {
+      console.error('❌ Login error:', err);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error('❌ Login error:', err);
-    setError('An unexpected error occurred. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
   // ADD FORGOT PASSWORD FUNCTIONS
   const sendResetCode = async () => {
     if (!forgotEmail) {
@@ -90,19 +100,19 @@ const Login = () => {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedCode(code);
     try {
-     // Try different variable names
-          await emailjs.send(
-         'service_124ityi',
-          'template_obyjj06',
-           {
-             to_email: forgotEmail,      // Try 'to_email' instead of 'email'
-             to_name: 'User',           // Try 'to_name' instead of 'user_name'  
-             code: code                 // Try 'code' instead of 'reset_code'
-            },
-            'oFTP-7JkGYa9jCIZK'
-    );  
-    
-  setResetStep('code');
+      // Try different variable names
+      await emailjs.send(
+        'service_124ityi',
+        'template_obyjj06',
+        {
+          to_email: forgotEmail,      // Try 'to_email' instead of 'email'
+          to_name: 'User',           // Try 'to_name' instead of 'user_name'  
+          code: code                 // Try 'code' instead of 'reset_code'
+        },
+        'oFTP-7JkGYa9jCIZK'
+      );  
+      
+      setResetStep('code');
       setMessage('✅ Reset code sent to your email! Check your inbox and spam folder.');
     } catch (error) {
       console.error('EmailJS error:', error);
@@ -122,56 +132,55 @@ const Login = () => {
     setError('');
   };
 
- const resetPassword = async () => {
-  if (newPassword !== confirmPassword) {
-    setError('❌ Passwords do not match');
-    return;
-  }
-  if (newPassword.length < 6) {
-    setError('❌ Password must be at least 6 characters');
-    return;
-  }
-  setLoading(true);
-  try {
-    const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/auth/reset-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: forgotEmail, newPassword: newPassword })
-    });
-    const result = await response.json();
-    if (response.ok) {
-      // AUTO-LOGIN AFTER PASSWORD RESET
-      setMessage('✅ Password reset successfully! Logging you in...');
-      
-      // Login with new password
-      const loginResult = await login(forgotEmail, newPassword);
-      
-      if (loginResult.success) {
-        // Will redirect to dashboard automatically
-        navigate('/dashboard');
-      } else {
-        setMessage('✅ Password reset successfully! Please login with your new password.');
-        setShowForgotPassword(false);
-        setResetStep('email');
-        // Clear form
-        setForgotEmail('');
-        setResetCode('');
-        setNewPassword('');
-        setConfirmPassword('');
-        setGeneratedCode('');
-      }
-    } else {
-      setError(result.error || 'Failed to reset password');
+  const resetPassword = async () => {
+    if (newPassword !== confirmPassword) {
+      setError('❌ Passwords do not match');
+      return;
     }
-  } 
-   catch (error) {
-    console.error('Reset password error:', error);
-    setError('❌ Network error. Please try again.');
-  } finally {
-    setLoading(false);
-    setTimeout(() => setMessage(''), 5000);
-  }
-};
+    if (newPassword.length < 6) {
+      setError('❌ Password must be at least 6 characters');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail, newPassword: newPassword })
+      });
+      const result = await response.json();
+      if (response.ok) {
+        // AUTO-LOGIN AFTER PASSWORD RESET
+        setMessage('✅ Password reset successfully! Logging you in...');
+        
+        // Login with new password
+        const loginResult = await login(forgotEmail, newPassword);
+        
+        if (loginResult.success) {
+          // Will redirect to dashboard automatically
+          navigate('/dashboard');
+        } else {
+          setMessage('✅ Password reset successfully! Please login with your new password.');
+          setShowForgotPassword(false);
+          setResetStep('email');
+          // Clear form
+          setForgotEmail('');
+          setResetCode('');
+          setNewPassword('');
+          setConfirmPassword('');
+          setGeneratedCode('');
+        }
+      } else {
+        setError(result.error || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      setError('❌ Network error. Please try again.');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage(''), 5000);
+    }
+  };
 
   if (user) {
     return (
@@ -201,57 +210,86 @@ const Login = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '1rem'
+        padding: isMobile ? '1rem' : '2rem'
       }}>
         <div style={{
           background: 'rgba(255, 255, 255, 0.95)',
           borderRadius: '20px',
-          padding: '3rem',
+          padding: isMobile ? '2.5rem' : '3.5rem',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(10px)',
           width: '100%',
-          maxWidth: '450px',
-          backdropFilter: 'blur(10px)'
+          maxWidth: isMobile ? '400px' : '550px',
+          margin: '0 auto'
         }}>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔑</div>
+            <div style={{
+              fontSize: isMobile ? '3rem' : '3.5rem',
+              marginBottom: '1rem',
+              background: 'linear-gradient(135deg, #667eea, #764ba2)',
+              borderRadius: '50%',
+              width: isMobile ? '80px' : '100px',
+              height: isMobile ? '80px' : '100px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1rem'
+            }}>
+              <span style={{ color: 'white' }}>🔑</span>
+            </div>
             <h1 style={{
-              color: '#2d4654',
-              fontSize: '2.5rem',
+              fontSize: isMobile ? '2rem' : '2.5rem',
               fontWeight: 'bold',
+              background: 'linear-gradient(135deg, #667eea, #764ba2)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
               marginBottom: '0.5rem'
             }}>
               {resetStep === 'email' && 'Forgot Password'}
               {resetStep === 'code' && 'Enter Reset Code'}
               {resetStep === 'newpassword' && 'Set New Password'}
             </h1>
+            <p style={{ 
+              color: '#666', 
+              fontSize: isMobile ? '1rem' : '1.1rem',
+              lineHeight: '1.5'
+            }}>
+              {resetStep === 'email' && 'Enter your email to reset password'}
+              {resetStep === 'code' && `We sent a code to ${forgotEmail}`}
+              {resetStep === 'newpassword' && 'Choose your new password'}
+            </p>
           </div>
 
-          {(error || message) && (
+          {error && (
             <div style={{
-              background: error ? '#fee' : '#f0f9ff',
-              color: error ? '#c53030' : '#1e40af',
-              padding: '1rem',
-              borderRadius: '10px',
+              background: '#fee2e2',
+              color: '#dc2626',
+              padding: isMobile ? '1rem' : '1.2rem',
+              borderRadius: '12px',
               marginBottom: '1.5rem',
-              border: `1px solid ${error ? '#fecaca' : '#bfdbfe'}`,
-              textAlign: 'center',
-              fontSize: '0.9rem'
+              fontSize: isMobile ? '0.9rem' : '1rem'
             }}>
-              {error || message}
+              {error}
+            </div>
+          )}
+
+          {message && (
+            <div style={{
+              background: '#dcfce7',
+              color: '#166534',
+              padding: isMobile ? '1rem' : '1.2rem',
+              borderRadius: '12px',
+              marginBottom: '1.5rem',
+              fontSize: isMobile ? '0.9rem' : '1rem'
+            }}>
+              {message}
             </div>
           )}
 
           {resetStep === 'email' && (
             <div>
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  color: '#374151',
-                  fontWeight: '600'
-                }}>
-                  Email Address
-                </label>
                 <input
                   type="email"
                   value={forgotEmail}
@@ -259,10 +297,11 @@ const Login = () => {
                   disabled={loading}
                   style={{
                     width: '100%',
-                    padding: '1rem',
+                    padding: isMobile ? '1rem' : '1.2rem',
                     border: '2px solid #e5e7eb',
-                    borderRadius: '10px',
-                    fontSize: '1rem',
+                    borderRadius: '12px',
+                    fontSize: isMobile ? '1rem' : '1.1rem',
+                    outline: 'none',
                     boxSizing: 'border-box'
                   }}
                   placeholder="Enter your email"
@@ -273,15 +312,15 @@ const Login = () => {
                 disabled={loading}
                 style={{
                   width: '100%',
-                  background: loading ? '#9ca3af' : 'linear-gradient(135deg, #7ca5b8, #4d7a97)',
+                  background: loading ? '#9ca3af' : 'linear-gradient(135deg, #667eea, #764ba2)',
                   color: 'white',
-                  padding: '1.2rem',
                   border: 'none',
-                  borderRadius: '15px',
-                  fontSize: '1.1rem',
-                  fontWeight: 'bold',
+                  padding: isMobile ? '1rem' : '1.2rem',
+                  borderRadius: '12px',
+                  fontSize: isMobile ? '1rem' : '1.1rem',
+                  fontWeight: '600',
                   cursor: loading ? 'not-allowed' : 'pointer',
-                  marginBottom: '1.5rem'
+                  marginBottom: '1rem'
                 }}
               >
                 {loading ? 'Sending...' : '📧 Send Reset Code'}
@@ -292,26 +331,19 @@ const Login = () => {
           {resetStep === 'code' && (
             <div>
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  color: '#374151',
-                  fontWeight: '600'
-                }}>
-                  Reset Code
-                </label>
                 <input
                   type="text"
                   value={resetCode}
                   onChange={(e) => setResetCode(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '1rem',
+                    padding: isMobile ? '1rem' : '1.2rem',
                     border: '2px solid #e5e7eb',
-                    borderRadius: '10px',
-                    fontSize: '1.5rem',
-                    fontFamily: 'monospace',
+                    borderRadius: '12px',
+                    fontSize: isMobile ? '1.5rem' : '1.8rem',
                     textAlign: 'center',
+                    letterSpacing: '0.5rem',
+                    outline: 'none',
                     boxSizing: 'border-box'
                   }}
                   placeholder="000000"
@@ -325,13 +357,13 @@ const Login = () => {
                   width: '100%',
                   background: resetCode.length !== 6 ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
                   color: 'white',
-                  padding: '1.2rem',
                   border: 'none',
-                  borderRadius: '15px',
-                  fontSize: '1.1rem',
-                  fontWeight: 'bold',
+                  padding: isMobile ? '1rem' : '1.2rem',
+                  borderRadius: '12px',
+                  fontSize: isMobile ? '1rem' : '1.1rem',
+                  fontWeight: '600',
                   cursor: resetCode.length !== 6 ? 'not-allowed' : 'pointer',
-                  marginBottom: '1.5rem'
+                  marginBottom: '1rem'
                 }}
               >
                 ✅ Verify Code
@@ -341,52 +373,38 @@ const Login = () => {
 
           {resetStep === 'newpassword' && (
             <div>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  color: '#374151',
-                  fontWeight: '600'
-                }}>
-                  New Password
-                </label>
+              <div style={{ marginBottom: '1rem' }}>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '1rem',
+                    padding: isMobile ? '1rem' : '1.2rem',
                     border: '2px solid #e5e7eb',
-                    borderRadius: '10px',
-                    fontSize: '1rem',
+                    borderRadius: '12px',
+                    fontSize: isMobile ? '1rem' : '1.1rem',
+                    outline: 'none',
                     boxSizing: 'border-box'
                   }}
-                  placeholder="Enter new password"
+                  placeholder="New Password"
                 />
               </div>
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  color: '#374151',
-                  fontWeight: '600'
-                }}>
-                  Confirm Password
-                </label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '1rem',
+                    padding: isMobile ? '1rem' : '1.2rem',
                     border: '2px solid #e5e7eb',
-                    borderRadius: '10px',
-                    fontSize: '1rem',
+                    borderRadius: '12px',
+                    fontSize: isMobile ? '1rem' : '1.1rem',
+                    outline: 'none',
                     boxSizing: 'border-box'
                   }}
-                  placeholder="Confirm new password"
+                  placeholder="Confirm Password"
                 />
               </div>
               <button
@@ -396,13 +414,13 @@ const Login = () => {
                   width: '100%',
                   background: loading || !newPassword || !confirmPassword ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
                   color: 'white',
-                  padding: '1.2rem',
                   border: 'none',
-                  borderRadius: '15px',
-                  fontSize: '1.1rem',
-                  fontWeight: 'bold',
+                  padding: isMobile ? '1rem' : '1.2rem',
+                  borderRadius: '12px',
+                  fontSize: isMobile ? '1rem' : '1.1rem',
+                  fontWeight: '600',
                   cursor: loading || !newPassword || !confirmPassword ? 'not-allowed' : 'pointer',
-                  marginBottom: '1.5rem'
+                  marginBottom: '1rem'
                 }}
               >
                 {loading ? 'Resetting...' : '🔐 Reset Password'}
@@ -421,8 +439,8 @@ const Login = () => {
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#7ca5b8',
-                fontSize: '0.9rem',
+                color: '#667eea',
+                fontSize: isMobile ? '0.9rem' : '1rem',
                 cursor: 'pointer',
                 textDecoration: 'underline'
               }}
@@ -442,57 +460,81 @@ const Login = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '1rem'
+      padding: isMobile ? '1rem' : '2rem'
     }}>
       <div style={{
         background: 'rgba(255, 255, 255, 0.95)',
         borderRadius: '20px',
-        padding: '3rem',
+        padding: isMobile ? '2.5rem' : '3.5rem',
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(10px)',
         width: '100%',
-        maxWidth: '450px',
-        backdropFilter: 'blur(10px)'
+        maxWidth: isMobile ? '400px' : '550px',
+        margin: '0 auto'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🧠</div>
+          <div style={{
+            fontSize: isMobile ? '3rem' : '3.5rem',
+            marginBottom: '1rem',
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+            borderRadius: '50%',
+            width: isMobile ? '80px' : '100px',
+            height: isMobile ? '80px' : '100px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem'
+          }}>
+            <span style={{ color: 'white' }}>🧠</span>
+          </div>
           <h1 style={{
-            color: '#2d4654',
-            fontSize: '2.5rem',
+            fontSize: isMobile ? '2rem' : '2.5rem',
             fontWeight: 'bold',
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
             marginBottom: '0.5rem'
           }}>
             Welcome Back
           </h1>
-          <p style={{ color: '#666', fontSize: '1.1rem' }}>
+          <p style={{ 
+            color: '#666', 
+            fontSize: isMobile ? '1rem' : '1.1rem',
+            lineHeight: '1.5'
+          }}>
             Sign in to continue your mental wellness journey
           </p>
         </div>
 
-        {(error || message) && (
+        {error && (
           <div style={{
-            background: error ? '#fee' : '#f0f9ff',
-            color: error ? '#c53030' : '#1e40af',
-            padding: '1rem',
-            borderRadius: '10px',
+            background: '#fee2e2',
+            color: '#dc2626',
+            padding: isMobile ? '1rem' : '1.2rem',
+            borderRadius: '12px',
             marginBottom: '1.5rem',
-            border: `1px solid ${error ? '#fecaca' : '#bfdbfe'}`,
-            textAlign: 'center',
-            fontSize: '0.9rem'
+            fontSize: isMobile ? '0.9rem' : '1rem'
           }}>
-            ⚠️ {error || message}
+            {error}
+          </div>
+        )}
+
+        {message && (
+          <div style={{
+            background: '#dcfce7',
+            color: '#166534',
+            padding: isMobile ? '1rem' : '1.2rem',
+            borderRadius: '12px',
+            marginBottom: '1.5rem',
+            fontSize: isMobile ? '0.9rem' : '1rem'
+          }}>
+            {message}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              color: '#374151',
-              fontWeight: '600'
-            }}>
-              Email Address
-            </label>
+          <div style={{ marginBottom: '1rem' }}>
             <input
               type="email"
               name="email"
@@ -503,35 +545,18 @@ const Login = () => {
               required
               style={{
                 width: '100%',
-                padding: '1rem',
+                padding: isMobile ? '1rem' : '1.2rem',
                 border: '2px solid #e5e7eb',
-                borderRadius: '10px',
-                fontSize: '1rem',
-                transition: 'all 0.3s ease',
-                backgroundColor: loading ? '#f9fafb' : 'white',
-                cursor: loading ? 'not-allowed' : 'text'
+                borderRadius: '12px',
+                fontSize: isMobile ? '1rem' : '1.1rem',
+                outline: 'none',
+                boxSizing: 'border-box'
               }}
-              placeholder="Enter your email"
-              onFocus={(e) => {
-                e.target.style.borderColor = '#7ca5b8';
-                e.target.style.boxShadow = '0 0 0 3px rgba(124, 165, 184, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e5e7eb';
-                e.target.style.boxShadow = 'none';
-              }}
+              placeholder="Email Address"
             />
           </div>
 
           <div style={{ marginBottom: '1rem' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              color: '#374151',
-              fontWeight: '600'
-            }}>
-              Password
-            </label>
             <input
               type="password"
               name="password"
@@ -542,36 +567,26 @@ const Login = () => {
               required
               style={{
                 width: '100%',
-                padding: '1rem',
+                padding: isMobile ? '1rem' : '1.2rem',
                 border: '2px solid #e5e7eb',
-                borderRadius: '10px',
-                fontSize: '1rem',
-                transition: 'all 0.3s ease',
-                backgroundColor: loading ? '#f9fafb' : 'white',
-                cursor: loading ? 'not-allowed' : 'text'
+                borderRadius: '12px',
+                fontSize: isMobile ? '1rem' : '1.1rem',
+                outline: 'none',
+                boxSizing: 'border-box'
               }}
-              placeholder="Enter your password"
-              onFocus={(e) => {
-                e.target.style.borderColor = '#7ca5b8';
-                e.target.style.boxShadow = '0 0 0 3px rgba(124, 165, 184, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e5e7eb';
-                e.target.style.boxShadow = 'none';
-              }}
+              placeholder="Password"
             />
           </div>
 
-          <div style={{ textAlign: 'right', marginBottom: '2rem' }}>
+          <div style={{ textAlign: 'right', marginBottom: '1.5rem' }}>
             <button
               type="button"
               onClick={() => setShowForgotPassword(true)}
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#7ca5b8',
-                fontSize: '0.9rem',
-                fontWeight: '500',
+                color: '#667eea',
+                fontSize: isMobile ? '0.9rem' : '1rem',
                 cursor: 'pointer',
                 textDecoration: 'underline'
               }}
@@ -586,87 +601,61 @@ const Login = () => {
             style={{
               width: '100%',
               background: loading || !formData.email.trim() || !formData.password.trim()
-                ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                : 'linear-gradient(135deg, #7ca5b8, #4d7a97)',
+                ? '#9ca3af' 
+                : 'linear-gradient(135deg, #667eea, #764ba2)',
               color: 'white',
-              padding: '1.2rem',
               border: 'none',
-              borderRadius: '15px',
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
+              padding: isMobile ? '1rem' : '1.2rem',
+              borderRadius: '12px',
+              fontSize: isMobile ? '1rem' : '1.1rem',
+              fontWeight: '600',
               cursor: loading || !formData.email.trim() || !formData.password.trim() ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s ease',
-              marginBottom: '1.5rem'
+              marginBottom: '1rem'
             }}
           >
-            {loading ? (
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{
-                  display: 'inline-block',
-                  width: '20px',
-                  height: '20px',
-                  border: '2px solid transparent',
-                  borderTop: '2px solid white',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite',
-                  marginRight: '0.5rem'
-                }}></span>
-                Signing In...
-              </span>
-            ) : (
-              '🚀 Sign In'
-            )}
+            {loading ? 'Signing In...' : '🚀 Sign In'}
           </button>
         </form>
 
-        <div style={{
-          textAlign: 'center',
-          paddingTop: '1.5rem',
-          borderTop: '1px solid #e5e7eb'
-        }}>
-          <p style={{ color: '#666', marginBottom: '1rem' }}>
-            Don't have an account?
-          </p>
+        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+          <span style={{ 
+            color: '#666',
+            fontSize: isMobile ? '0.9rem' : '1rem'
+          }}>
+            Don't have an account? 
+          </span>
           <Link
             to="/register"
             style={{
-              color: '#7ca5b8',
+              color: '#667eea',
               textDecoration: 'none',
               fontWeight: '600',
-              fontSize: '1.1rem',
-              transition: 'color 0.3s ease'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.color = '#4d7a97';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.color = '#7ca5b8';
+              fontSize: isMobile ? '0.9rem' : '1rem',
+              marginLeft: '0.25rem'
             }}
           >
-            ✨ Create New Account
+            Create New Account
           </Link>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-          <Link
-            to="/"
-            style={{
-              color: '#9ca3af',
-              textDecoration: 'none',
-              fontSize: '0.9rem'
+        {/* Back to Home Link */}
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+          <Link 
+            to="/" 
+            style={{ 
+              color: '#9ca3af', 
+              textDecoration: 'none', 
+              fontSize: isMobile ? '0.9rem' : '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
             }}
           >
             ← Back to Home
           </Link>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };

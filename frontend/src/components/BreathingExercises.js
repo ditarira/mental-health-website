@@ -1,81 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 const BreathingExercise = () => {
   const { user, token } = useAuth();
+  const [currentExercise, setCurrentExercise] = useState(null);
   const [isActive, setIsActive] = useState(false);
-  const [phase, setPhase] = useState('inhale');
+  const [phase, setPhase] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
-  const [currentCycle, setCurrentCycle] = useState(0);
-  const [selectedExercise, setSelectedExercise] = useState(null);
+  const [cycle, setCycle] = useState(0);
+  const [totalCycles, setTotalCycles] = useState(5);
   const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState('');
+  const [startTime, setStartTime] = useState(null);
+  const [message, setMessage] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [completedCycles, setCompletedCycles] = useState([]); // NEW: Track completed cycles
-  
-  // Fixed timing configurations
-  const exercises = [
-    {
-      id: 'basic',
-      name: '4-4-4 Basic Breathing',
-      description: 'Simple and calming breathing pattern for beginners',
-      icon: '🌸',
-      color: 'linear-gradient(135deg, #a7c7e7 0%, #6fa8dc 100%)',
-      pattern: {
-        inhale: 4,
-        hold: 4,
-        exhale: 4,
-        pause: 0
-      },
-      totalCycles: 8
-    },
-    {
-      id: 'box',
-      name: '4-4-4-4 Box Breathing',
-      description: 'Equal timing for maximum focus and calm',
-      icon: '📦',
-      color: 'linear-gradient(135deg, #c6efce 0%, #a9dfbf 100%)',
-      pattern: {
-        inhale: 4,
-        hold: 4,
-        exhale: 4,
-        pause: 4
-      },
-      totalCycles: 6
-    },
-    {
-      id: 'triangle',
-      name: '4-4-6 Triangle Breathing',
-      description: 'Longer exhale for deep relaxation',
-      icon: '🔺',
-      color: 'linear-gradient(135deg, #f4c2c2 0%, #dda0dd 100%)',
-      pattern: {
-        inhale: 4,
-        hold: 4,
-        exhale: 6,
-        pause: 0
-      },
-      totalCycles: 7
-    },
-    {
-      id: 'advanced',
-      name: '4-7-8 Advanced Relaxation',
-      description: 'Powerful technique for deep relaxation and sleep',
-      icon: '🌙',
-      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      pattern: {
-        inhale: 4,
-        hold: 7,
-        exhale: 8,
-        pause: 0
-      },
-      totalCycles: 5
-    }
-  ];
+  const [showExerciseList, setShowExerciseList] = useState(true); // NEW STATE
+  const [showDetails, setShowDetails] = useState(null); // For details modal
 
-  const intervalRef = useRef(null);
-  const sessionStartRef = useRef(null);
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
   useEffect(() => {
@@ -86,62 +26,106 @@ const BreathingExercise = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    if (user && token) {
-      fetchSessions();
+  // Format date in a simple, universal way
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+  };
+
+  // Format duration in a simple way
+  const formatDuration = (seconds) => {
+    return Math.round(seconds) + 's';
+  };
+
+  const exercises = [
+    {
+      id: 1,
+      name: '4•4•4 Breathing',
+      description: 'Equal breathing for relaxation',
+      inhale: 4,
+      hold: 4,
+      exhale: 4,
+      emoji: '🌸',
+      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      difficulty: 'Beginner'
+    },
+    {
+      id: 2,
+      name: '4•7•8 Breathing',
+      description: 'Calming, best before sleep',
+      inhale: 4,
+      hold: 7,
+      exhale: 8,
+      emoji: '🌙',
+      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      difficulty: 'Intermediate'
+    },
+    {
+      id: 3,
+      name: 'Box Breathing',
+      description: 'Stress relief & focus',
+      inhale: 4,
+      hold: 4,
+      exhale: 4,
+      hold2: 4,
+      emoji: '📦',
+      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      difficulty: 'Intermediate'
+    },
+    {
+      id: 4,
+      name: 'Quick Calm',
+      description: 'Fast relaxation, anywhere',
+      inhale: 3,
+      hold: 3,
+      exhale: 3,
+      emoji: '⚡',
+      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      difficulty: 'Beginner'
+    },
+    {
+      id: 5,
+      name: 'Alternate Nostril',
+      description: 'Balances mind & body',
+      inhale: 4,
+      hold: 4,
+      exhale: 4,
+      special: 'alternate', // Special breathing pattern
+      emoji: '🔄',
+      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      difficulty: 'Advanced'
+    },
+    {
+      id: 6,
+      name: 'Resonance Breathing',
+      description: 'Heart-rate coherence, ~5.5 breaths/min',
+      inhale: 5.5,
+      exhale: 5.5,
+      emoji: '🎵',
+      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      difficulty: 'All levels'
     }
-  }, [user, token]);
+  ];
 
-  // Add CSS for better number rendering
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.textContent = `
-      .mobile-numbers {
-        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-        font-variant-numeric: tabular-nums;
-        letter-spacing: 0;
-        font-feature-settings: "tnum";
-      }
-      
-      .mobile-date {
-        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-        font-variant-numeric: normal;
-        white-space: nowrap;
-      }
-
-      .mobile-pattern {
-        font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-        letter-spacing: 1px;
-        font-weight: 600;
-      }
-
-      .cycle-complete {
-        animation: cycleComplete 0.8s ease-in-out;
-      }
-
-      @keyframes cycleComplete {
-        0% { transform: scale(1); background: #10b981; }
-        50% { transform: scale(1.2); background: #059669; }
-        100% { transform: scale(1); background: #10b981; }
-      }
-    `;
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
-  }, []);
-
-  const showNotification = (message) => {
-    setNotification(message);
-    setTimeout(() => setNotification(''), 3000);
+  const showNotification = (message, type = 'success') => {
+    setMessage(message);
+    setTimeout(() => setMessage(''), 3000);
   };
 
   const fetchSessions = async () => {
     try {
+      if (!token) return;
+
       const response = await fetch(`${API_BASE}/api/breathing`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+
       if (response.ok) {
         const data = await response.json();
         setSessions(data.data || []);
@@ -151,15 +135,11 @@ const BreathingExercise = () => {
     }
   };
 
-  const saveSession = async (exerciseData, completed = false) => {
-    if (!user || !token) return;
-
+  const saveSession = async (exerciseData, duration, completed = false) => {
     try {
-      const duration = sessionStartRef.current 
-        ? (Date.now() - sessionStartRef.current) / 1000 
-        : 0;
+      if (!token) return;
 
-      await fetch(`${API_BASE}/api/breathing`, {
+      const response = await fetch(`${API_BASE}/api/breathing`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -167,183 +147,127 @@ const BreathingExercise = () => {
         },
         body: JSON.stringify({
           type: exerciseData.name,
-          duration: Math.round(duration),
-          cycles: currentCycle,
-          completed: completed
+          duration: duration,
+          completed: completed,
+          cycles: cycle
         })
       });
 
-      fetchSessions();
-      window.dispatchEvent(new CustomEvent('journalUpdated'));
+      if (response.ok) {
+        showNotification(completed ? 'Breathing session completed! 🧘‍♀️' : 'Session saved! 💾', 'success');
+        fetchSessions();
+        // Refresh dashboard
+        window.dispatchEvent(new CustomEvent('journalUpdated'));
+      }
     } catch (error) {
       console.error('Error saving session:', error);
     }
   };
 
   const startExercise = (exercise) => {
-    setSelectedExercise(exercise);
+    setCurrentExercise(exercise);
     setIsActive(true);
     setPhase('inhale');
-    setTimeLeft(exercise.pattern.inhale);
-    setCurrentCycle(0);
-    setCompletedCycles([]); // Reset completed cycles
-    sessionStartRef.current = Date.now();
-    
+    setTimeLeft(exercise.inhale);
+    setCycle(1);
+    setStartTime(Date.now());
+    setShowExerciseList(false); // Hide exercise list
   };
 
   const stopExercise = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+    if (currentExercise && startTime) {
+      const duration = (Date.now() - startTime) / 1000;
+      saveSession(currentExercise, duration, false);
     }
     
-    if (selectedExercise && sessionStartRef.current) {
-      saveSession(selectedExercise, currentCycle >= selectedExercise.totalCycles);
-    }
-    
+    setCurrentExercise(null);
     setIsActive(false);
-    setPhase('inhale');
+    setPhase('');
     setTimeLeft(0);
-    setCurrentCycle(0);
-    setCompletedCycles([]);
-    setSelectedExercise(null);
-    sessionStartRef.current = null;
+    setCycle(0);
+    setStartTime(null);
+    setShowExerciseList(true); // Show exercise list
+  };
+
+  const completeExercise = () => {
+    if (currentExercise && startTime) {
+      const duration = (Date.now() - startTime) / 1000;
+      saveSession(currentExercise, duration, true);
+    }
     
-     };
+    setCurrentExercise(null);
+    setIsActive(false);
+    setPhase('');
+    setTimeLeft(0);
+    setCycle(0);
+    setStartTime(null);
+    setShowExerciseList(true); // Show exercise list
+  };
 
-  // CORE TIMING ENGINE - PROPERLY FIXED!
-useEffect(() => {
-  if (!isActive || !selectedExercise) return;
+  const getPhaseText = (currentPhase, exercise) => {
+    if (exercise?.special === 'alternate') {
+      if (currentPhase === 'inhale') return cycle % 2 === 1 ? 'Inhale Left' : 'Inhale Right';
+      if (currentPhase === 'hold') return 'Hold';
+      if (currentPhase === 'exhale') return cycle % 2 === 1 ? 'Exhale Right' : 'Exhale Left';
+    }
+    if (currentPhase === 'hold2') return 'Hold';
+    return currentPhase.charAt(0).toUpperCase() + currentPhase.slice(1);
+  };
 
-  intervalRef.current = setInterval(() => {
-    setTimeLeft(prevTime => {
-      if (prevTime <= 1) {
-        setPhase(prevPhase => {
-          const pattern = selectedExercise.pattern;
-          
-          switch (prevPhase) {
-            case 'inhale':
-              return pattern.hold > 0 ? 'hold' : 'exhale';
-            case 'hold':
-              return 'exhale';
-            case 'exhale':
-              // If no pause, complete cycle here
-              if (pattern.pause === 0) {
-                setCurrentCycle(prev => {
-                  const newCycle = prev + 1;
-                  console.log(`Cycle ${prev + 1} completed! Moving to cycle ${newCycle + 1}`);
-                  
-                  // Mark this cycle as completed
-                  setCompletedCycles(prevCompleted => [...prevCompleted, prev]);
-                  
-                  if (newCycle >= selectedExercise.totalCycles) {
-                    console.log('All cycles completed!');
-                    setTimeout(() => stopExercise(), 1000);
-                    return prev;
-                  }
-                  return newCycle;
-                });
-                return 'inhale';
-              } else {
-                return 'pause';
-              }
-            case 'pause':
-              // Complete cycle after pause
-              setCurrentCycle(prev => {
-                const newCycle = prev + 1;
-                console.log(`Cycle ${prev + 1} completed! Moving to cycle ${newCycle + 1}`);
-                
-                // Mark this cycle as completed
-                setCompletedCycles(prevCompleted => [...prevCompleted, prev]);
-                
-                if (newCycle >= selectedExercise.totalCycles) {
-                  console.log('All cycles completed!');
-                  setTimeout(() => stopExercise(), 1000);
-                  return prev;
-                }
-                return newCycle;
-              });
-              return 'inhale';
-            default:
-              return 'inhale';
-          }
-        });
-        
-        // Set correct timing for next phase
-        const pattern = selectedExercise.pattern;
-        switch (phase) {
-          case 'inhale':
-            return pattern.hold > 0 ? pattern.hold : pattern.exhale;
-          case 'hold':
-            return pattern.exhale;
-          case 'exhale':
-            return pattern.pause > 0 ? pattern.pause : pattern.inhale;
-          case 'pause':
-            return pattern.inhale;
-          default:
-            return pattern.inhale;
+  useEffect(() => {
+    let interval = null;
+
+    if (isActive && currentExercise && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prevTime => prevTime - 1);
+      }, 1000);
+    } else if (isActive && currentExercise && timeLeft === 0) {
+      // Move to next phase
+      if (phase === 'inhale') {
+        if (currentExercise.hold) {
+          setPhase('hold');
+          setTimeLeft(currentExercise.hold);
+        } else {
+          setPhase('exhale');
+          setTimeLeft(currentExercise.exhale);
         }
+      } else if (phase === 'hold') {
+        setPhase('exhale');
+        setTimeLeft(currentExercise.exhale);
+      } else if (phase === 'exhale') {
+        if (currentExercise.hold2) {
+          setPhase('hold2');
+          setTimeLeft(currentExercise.hold2);
+        } else {
+          // Complete cycle
+          if (cycle >= totalCycles) {
+            completeExercise();
+            return;
+          }
+          setCycle(prev => prev + 1);
+          setPhase('inhale');
+          setTimeLeft(currentExercise.inhale);
+        }
+      } else if (phase === 'hold2') {
+        // Complete cycle
+        if (cycle >= totalCycles) {
+          completeExercise();
+          return;
+        }
+        setCycle(prev => prev + 1);
+        setPhase('inhale');
+        setTimeLeft(currentExercise.inhale);
       }
-      return prevTime - 1;
-    });
-  }, 1000);
+    }
 
-  return () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-  };
-}, [isActive, selectedExercise, phase]);
-  // Visual breathing guide
-  const getCircleScale = () => {
-    if (!selectedExercise) return 1;
-    
-    const pattern = selectedExercise.pattern;
-    const totalPhaseTime = pattern[phase] || 4;
-    const progress = (totalPhaseTime - timeLeft) / totalPhaseTime;
-    
-    switch (phase) {
-      case 'inhale':
-        return 0.7 + (progress * 0.6);
-      case 'hold':
-        return 1.3;
-      case 'exhale':
-        return 1.3 - (progress * 0.6);
-      case 'pause':
-        return 0.7;
-      default:
-        return 1;
-    }
-  };
+    return () => clearInterval(interval);
+  }, [isActive, timeLeft, phase, currentExercise, cycle, totalCycles]);
 
-  const getPhaseInstruction = () => {
-    switch (phase) {
-      case 'inhale':
-        return 'Breathe In 🌬️';
-      case 'hold':
-        return 'Hold 🫁';
-      case 'exhale':
-        return 'Breathe Out 💨';
-      case 'pause':
-        return 'Pause ⏸️';
-      default:
-        return 'Ready 🧘‍♀️';
+  useEffect(() => {
+    if (user && token) {
+      fetchSessions();
     }
-  };
-
-  const getPhaseColor = () => {
-    switch (phase) {
-      case 'inhale':
-        return '#10b981';
-      case 'hold':
-        return '#3b82f6';
-      case 'exhale':
-        return '#ef4444';
-      case 'pause':
-        return '#6b7280';
-      default:
-        return '#667eea';
-    }
-  };
+  }, [user, token]);
 
   if (!user) {
     return (
@@ -379,12 +303,14 @@ useEffect(() => {
       padding: '0'
     }}>
       {/* Notification */}
-      {notification && (
+      {message && (
         <div style={{
           position: 'fixed',
           top: '20px',
           right: '20px',
-          background: 'linear-gradient(135deg, #10b981, #059669)',
+          background: message.includes('completed') || message.includes('saved') ?
+            'linear-gradient(135deg, #10b981, #059669)' :
+            'linear-gradient(135deg, #ef4444, #dc2626)',
           color: 'white',
           padding: '15px 20px',
           borderRadius: '12px',
@@ -393,15 +319,128 @@ useEffect(() => {
           maxWidth: isMobile ? '300px' : '400px',
           fontSize: isMobile ? '0.9rem' : '1rem'
         }}>
-          {notification}
+          {message}
         </div>
       )}
 
-      {/* Header */}
+      {/* Details Modal */}
+      {showDetails && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            padding: isMobile ? '25px' : '30px',
+            maxWidth: isMobile ? '320px' : '400px',
+            width: '100%',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '15px' }}>{showDetails.emoji}</div>
+            <h3 style={{
+              color: '#374151',
+              fontSize: isMobile ? '1.2rem' : '1.4rem',
+              fontWeight: '700',
+              margin: '0 0 15px 0'
+            }}>
+              {showDetails.name}
+            </h3>
+            <p style={{
+              color: '#6b7280',
+              fontSize: isMobile ? '0.9rem' : '1rem',
+              margin: '0 0 20px 0',
+              lineHeight: '1.5'
+            }}>
+              {showDetails.description}
+            </p>
+            
+            {/* Phases Display */}
+            <div style={{
+              background: '#f8fafc',
+              borderRadius: '12px',
+              padding: '15px',
+              marginBottom: '20px',
+              fontFamily: 'Arial, sans-serif'
+            }}>
+              <h4 style={{ color: '#374151', margin: '0 0 10px 0', fontSize: '0.9rem' }}>Phases:</h4>
+              {showDetails.special === 'alternate' ? (
+                <div style={{ fontSize: '0.8rem', color: '#6b7280', lineHeight: '1.4' }}>
+                  <div>Inhale Left {showDetails.inhale}s • Hold {showDetails.hold}s • Exhale Right {showDetails.exhale}s</div>
+                  <div>Inhale Right {showDetails.inhale}s • Hold {showDetails.hold}s • Exhale Left {showDetails.exhale}s</div>
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                  Inhale {showDetails.inhale}s
+                  {showDetails.hold && ` • Hold ${showDetails.hold}s`}
+                  • Exhale {showDetails.exhale}s
+                  {showDetails.hold2 && ` • Hold ${showDetails.hold2}s`}
+                </div>
+              )}
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: '10px',
+              justifyContent: 'center'
+            }}>
+              <button
+                onClick={() => setShowDetails(null)}
+                style={{
+                  background: '#f3f4f6',
+                  color: '#374151',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: isMobile ? '10px 20px' : '12px 24px',
+                  fontSize: isMobile ? '0.9rem' : '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Close
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowDetails(null);
+                  startExercise(showDetails);
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: isMobile ? '10px 20px' : '12px 24px',
+                  fontSize: isMobile ? '0.9rem' : '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+                }}
+              >
+                ▶ Start
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header - SMALLER */}
       <div style={{
         background: 'rgba(255, 255, 255, 0.1)',
         backdropFilter: 'blur(15px)',
-        padding: isMobile ? '20px' : '40px',
+        padding: isMobile ? '15px 20px' : '25px 40px',
         borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
       }}>
         <div style={{
@@ -413,13 +452,13 @@ useEffect(() => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '15px',
-            marginBottom: '15px'
+            gap: '10px',
+            marginBottom: '8px'
           }}>
-            <span style={{ fontSize: isMobile ? '2.5rem' : '3rem' }}>🧘‍♀️</span>
+            <span style={{ fontSize: isMobile ? '2rem' : '2.5rem' }}>🧘‍♀️</span>
             <h1 style={{
               margin: 0,
-              fontSize: isMobile ? '1.8rem' : '2.5rem',
+              fontSize: isMobile ? '1.5rem' : '2rem',
               color: 'white',
               fontWeight: '700'
             }}>
@@ -428,498 +467,934 @@ useEffect(() => {
           </div>
           <p style={{
             margin: 0,
-            fontSize: isMobile ? '1rem' : '1.1rem',
+            fontSize: isMobile ? '0.9rem' : '1rem',
             color: 'rgba(255, 255, 255, 0.9)'
           }}>
-            Find your calm with guided breathing techniques 🌸
+            Find your calm through mindful breathing 🌸
           </p>
         </div>
       </div>
 
       {/* Main Content */}
       <div style={{
-        maxWidth: '1000px',
+        maxWidth: '1200px',
         margin: '0 auto',
         padding: isMobile ? '20px' : '40px'
       }}>
 
-        {/* Active Exercise View - NO RECENT SESSIONS HERE! */}
-        {isActive && selectedExercise && (
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            borderRadius: isMobile ? '15px' : '20px',
-            padding: isMobile ? '30px' : '40px',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-            backdropFilter: 'blur(10px)',
-            textAlign: 'center',
-            marginBottom: '30px'
-          }}>
-            {/* Exercise Header */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '30px',
-              flexWrap: 'wrap',
-              gap: '10px'
-            }}>
-              <div style={{ textAlign: 'left' }}>
-                <h3 style={{
-                  margin: '0 0 5px 0',
-                  fontSize: isMobile ? '1.2rem' : '1.4rem',
-                  color: '#374151',
-                  fontWeight: '700'
-                }}>
-                  {selectedExercise.icon} {selectedExercise.name}
-                </h3>
-                <p style={{
-                  margin: 0,
-                  color: '#6b7280',
-                  fontSize: '0.9rem'
-                }}>
-                  Cycle {currentCycle + 1} of {selectedExercise.totalCycles}
-                </p>
-              </div>
-              <button
-                onClick={stopExercise}
-                style={{
-                  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '10px',
-                  padding: '8px 16px',
-                  fontSize: '0.9rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Stop Exercise
-              </button>
-            </div>
-
-            {/* Breathing Circle */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '30px',
-              marginBottom: '30px'
-            }}>
-              <div style={{
-                width: isMobile ? '200px' : '250px',
-                height: isMobile ? '200px' : '250px',
-                borderRadius: '50%',
-                background: `radial-gradient(circle, ${getPhaseColor()}20, ${getPhaseColor()}10)`,
-                border: `4px solid ${getPhaseColor()}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transform: `scale(${getCircleScale()})`,
-                transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: `0 0 40px ${getPhaseColor()}40`
-              }}>
+        {/* MOBILE LAYOUT */}
+        {isMobile ? (
+          <div>
+            {/* Show Exercise List OR Active Exercise */}
+            {showExerciseList ? (
+              /* EXERCISE LIST - MOBILE */
+              <div>
+                {/* Header Card */}
                 <div style={{
-                  textAlign: 'center',
-                  color: getPhaseColor(),
-                  fontWeight: '700'
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '20px',
+                  padding: '25px',
+                  marginBottom: '20px',
+                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  textAlign: 'center'
                 }}>
-                  <div style={{
-                    fontSize: isMobile ? '3rem' : '4rem',
-                    marginBottom: '10px'
-                  }} className="mobile-numbers">
-                    {timeLeft}
-                  </div>
-                  <div style={{
-                    fontSize: isMobile ? '1rem' : '1.2rem'
+                  <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🌬️</div>
+                  <h2 style={{ 
+                    color: '#374151', 
+                    fontSize: '1.3rem', 
+                    fontWeight: '700',
+                    margin: '0 0 8px 0'
                   }}>
-                    {getPhaseInstruction()}
-                  </div>
+                    Breathing Exercises
+                  </h2>
+                  <p style={{ 
+                    color: '#6b7280', 
+                    fontSize: '1rem',
+                    margin: 0
+                  }}>
+                    Choose a technique to begin
+                  </p>
                 </div>
-              </div>
-            </div>
 
-            {/* VISUAL CYCLE PROGRESS - NEW! */}
-            <div style={{
-              marginBottom: '30px'
-            }}>
-              <h4 style={{
-                color: '#374151',
-                fontSize: '1rem',
-                fontWeight: '600',
-                marginBottom: '15px'
-              }}>
-                Cycles Progress
-              </h4>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '8px',
-                flexWrap: 'wrap'
-              }}>
-                {Array.from({ length: selectedExercise.totalCycles }, (_, index) => (
-                  <div
-                    key={index}
-                    className={completedCycles.includes(index) ? 'cycle-complete' : ''}
-                    style={{
-                      width: isMobile ? '12px' : '16px',
-                      height: isMobile ? '12px' : '16px',
-                      borderRadius: '50%',
-                      background: index < currentCycle 
-                        ? '#10b981' 
-                        : index === currentCycle 
-                          ? getPhaseColor() 
-                          : '#e5e7eb',
-                      border: index === currentCycle ? `2px solid ${getPhaseColor()}` : 'none',
-                      transition: 'all 0.3s ease',
-                      boxShadow: index === currentCycle ? `0 0 10px ${getPhaseColor()}50` : 'none'
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div style={{
-              width: '100%',
-              height: '8px',
-              background: '#e5e7eb',
-              borderRadius: '4px',
-              overflow: 'hidden',
-              marginBottom: '20px'
-            }}>
-              <div style={{
-                width: `${((currentCycle) / selectedExercise.totalCycles) * 100}%`,
-                height: '100%',
-                background: getPhaseColor(),
-                borderRadius: '4px',
-                transition: 'width 0.5s ease'
-              }} />
-            </div>
-
-            {/* Pattern Display */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: selectedExercise.pattern.pause > 0 
-                ? 'repeat(4, 1fr)' 
-                : 'repeat(3, 1fr)',
-              gap: '10px',
-              maxWidth: '400px',
-              margin: '0 auto'
-            }}>
-              <div style={{
-                padding: '8px',
-                borderRadius: '8px',
-                background: phase === 'inhale' ? '#10b98120' : '#f3f4f6',
-                color: phase === 'inhale' ? '#10b981' : '#6b7280',
-                fontSize: '0.8rem',
-                fontWeight: '600',
-                textAlign: 'center'
-              }} className="mobile-pattern">
-                Inhale {selectedExercise.pattern.inhale}s
-              </div>
-              {selectedExercise.pattern.hold > 0 && (
+                {/* Exercise List */}
                 <div style={{
-                  padding: '8px',
-                  borderRadius: '8px',
-                  background: phase === 'hold' ? '#3b82f620' : '#f3f4f6',
-                  color: phase === 'hold' ? '#3b82f6' : '#6b7280',
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                  textAlign: 'center'
-                }} className="mobile-pattern">
-                  Hold {selectedExercise.pattern.hold}s
-                </div>
-              )}
-              <div style={{
-                padding: '8px',
-                borderRadius: '8px',
-                background: phase === 'exhale' ? '#ef444420' : '#f3f4f6',
-                color: phase === 'exhale' ? '#ef4444' : '#6b7280',
-                fontSize: '0.8rem',
-                fontWeight: '600',
-                textAlign: 'center'
-              }} className="mobile-pattern">
-                Exhale {selectedExercise.pattern.exhale}s
-              </div>
-              {selectedExercise.pattern.pause > 0 && (
-                <div style={{
-                  padding: '8px',
-                  borderRadius: '8px',
-                  background: phase === 'pause' ? '#6b728020' : '#f3f4f6',
-                  color: phase === 'pause' ? '#6b7280' : '#6b7280',
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                  textAlign: 'center'
-                }} className="mobile-pattern">
-                  Pause {selectedExercise.pattern.pause}s
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Exercise Selection - ONLY SHOW WHEN NOT ACTIVE */}
-        {!isActive && (
-          <>
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: isMobile ? '15px' : '20px',
-              padding: isMobile ? '25px' : '30px',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-              backdropFilter: 'blur(10px)',
-              marginBottom: '30px'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                marginBottom: '25px'
-              }}>
-                <span style={{ fontSize: '1.5rem' }}>🌸</span>
-                <h3 style={{
-                  margin: 0,
-                  fontSize: isMobile ? '1.3rem' : '1.5rem',
-                  color: '#374151',
-                  fontWeight: '700'
+                  display: 'grid',
+                  gap: '15px'
                 }}>
-                  Choose Your Breathing Exercise
-                </h3>
-              </div>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-                gap: isMobile ? '15px' : '20px'
-              }}>
-                {exercises.map(exercise => (
-                  <div
-                    key={exercise.id}
-                    style={{
-                      background: exercise.color,
-                      borderRadius: '15px',
-                      padding: isMobile ? '20px' : '25px',
-                      color: 'white',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)'
-                    }}
-                    onClick={() => startExercise(exercise)}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                  >
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '15px',
-                      marginBottom: '15px'
-                    }}>
-                      <span style={{ fontSize: '2rem' }}>{exercise.icon}</span>
-                      <div>
-                        <h4 style={{
-                          margin: '0 0 5px 0',
-                          fontSize: isMobile ? '1.1rem' : '1.2rem',
-                          fontWeight: '700'
+                  {exercises.map((exercise, index) => (
+                    <div
+                      key={exercise.id}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        borderRadius: '15px',
+                        padding: '20px',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.1)';
+                      }}
+                    >
+                      {/* Exercise Header */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginBottom: '12px'
+                      }}>
+                        <span style={{ 
+                          fontSize: '1.5rem', 
+                          marginRight: '10px' 
                         }}>
-                          {exercise.name}
-                        </h4>
-                        <p style={{
-                          margin: 0,
-                          fontSize: '0.85rem',
-                          opacity: 0.9
-                        }} className="mobile-numbers">
-                          {exercise.totalCycles} cycles
-                        </p>
+                          {exercise.emoji}
+                        </span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{
+                            color: '#6b7280',
+                            fontSize: '0.8rem',
+                            fontFamily: 'Arial, sans-serif',
+                            marginBottom: '2px'
+                          }}>
+                            Exercise #{index + 1} ({exercise.difficulty})
+                          </div>
+                          <h4 style={{
+                            margin: 0,
+                            color: '#374151',
+                            fontSize: '1.1rem',
+                            fontWeight: '600'
+                          }}>
+                            {exercise.name}
+                          </h4>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p style={{
+                        color: '#6b7280',
+                        fontSize: '0.9rem',
+                        margin: '0 0 12px 0',
+                        lineHeight: '1.4'
+                      }}>
+                        Description: {exercise.description}
+                      </p>
+
+                      {/* Phases */}
+                      <div style={{
+                        background: '#f8fafc',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        marginBottom: '15px',
+                        fontSize: '0.8rem',
+                        color: '#6b7280',
+                        fontFamily: 'Arial, sans-serif'
+                      }}>
+                        <strong>Phases:</strong>{' '}
+                        {exercise.special === 'alternate' ? (
+                          <>
+                            Inhale Left {exercise.inhale}s • Hold {exercise.hold}s • Exhale Right {exercise.exhale}s
+                            <br />
+                            Inhale Right {exercise.inhale}s • Hold {exercise.hold}s • Exhale Left {exercise.exhale}s
+                          </>
+                        ) : (
+                          <>
+                            Inhale {exercise.inhale}s
+                            {exercise.hold && ` • Hold ${exercise.hold}s`}
+                            • Exhale {exercise.exhale}s
+                            {exercise.hold2 && ` • Hold ${exercise.hold2}s`}
+                          </>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div style={{
+                        display: 'flex',
+                        gap: '10px'
+                      }}>
+                        <button
+                          onClick={() => startExercise(exercise)}
+                          style={{
+                            flex: 1,
+                            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '12px 16px',
+                            fontSize: '0.9rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <span>▶</span>
+                          <span>Start Exercise</span>
+                        </button>
+
+                        <button
+                          onClick={() => setShowDetails(exercise)}
+                          style={{
+                            background: 'rgba(102, 126, 234, 0.1)',
+                            color: '#667eea',
+                            border: '2px solid #667eea',
+                            borderRadius: '10px',
+                            padding: '12px 16px',
+                            fontSize: '0.9rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <span>ℹ</span>
+                          <span>Details</span>
+                        </button>
                       </div>
                     </div>
-
-                    <p style={{
-                      fontSize: '0.9rem',
-                      opacity: 0.9,
-                      margin: '0 0 15px 0',
-                      lineHeight: '1.4'
+                  ))}
+                </div>
+              </div>
+            ) : (
+              /* ACTIVE EXERCISE - MOBILE */
+              currentExercise && (
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '20px',
+                  padding: '25px',
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  textAlign: 'center',
+                  border: '3px solid #667eea'
+                }}>
+                  {/* Back Button */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '20px'
+                  }}>
+                    <button
+                      onClick={stopExercise}
+                      style={{
+                        background: '#f3f4f6',
+                        color: '#6b7280',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '8px 12px',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      ← Back
+                    </button>
+                    <h3 style={{
+                      margin: 0,
+                      fontSize: '1.2rem',
+                      color: '#374151',
+                      fontWeight: '700'
                     }}>
-                      {exercise.description}
-                    </p>
+                      {currentExercise.name}
+                    </h3>
+                    <div style={{ width: '60px' }}></div>
+                  </div>
 
-                    {/* Pattern Preview */}
+                  {/* Breathing Circle */}
+                  <div style={{
+                    width: '200px',
+                    height: '200px',
+                    margin: '0 auto 25px auto',
+                    borderRadius: '50%',
+                    background: currentExercise.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    transform: phase === 'inhale' ? 'scale(1.1)' : 'scale(1)',
+                    transition: 'transform 0.5s ease',
+                    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.3)'
+                  }}>
                     <div style={{
-                      display: 'flex',
-                      gap: '8px',
-                      flexWrap: 'wrap',
-                      marginBottom: '15px'
-                    }}>
-                      <span style={{
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: '600'
-                      }} className="mobile-pattern">
-                        {exercise.pattern.inhale}s in
-                      </span>
-                      {exercise.pattern.hold > 0 && (
-                        <span style={{
-                          background: 'rgba(255, 255, 255, 0.2)',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          fontSize: '0.75rem',
-                          fontWeight: '600'
-                        }} className="mobile-pattern">
-                          {exercise.pattern.hold}s hold
-                        </span>
-                      )}
-                      <span style={{
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: '600'
-                      }} className="mobile-pattern">
-                        {exercise.pattern.exhale}s out
-                      </span>
-                      {exercise.pattern.pause > 0 && (
-                        <span style={{
-                          background: 'rgba(255, 255, 255, 0.2)',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          fontSize: '0.75rem',
-                          fontWeight: '600'
-                        }} className="mobile-pattern">
-                          {exercise.pattern.pause}s pause
-                        </span>
-                      )}
-                    </div>
-
-                    <button style={{
-                      background: 'rgba(255, 255, 255, 0.2)',
                       color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '10px 20px',
-                      fontSize: '0.9rem',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      width: '100%',
-                      transition: 'all 0.2s ease'
+                      textAlign: 'center'
                     }}>
-                      Start Exercise 🧘‍♀️
+                      <div style={{
+                        fontSize: '1rem',
+                        fontWeight: '600',
+                        marginBottom: '10px',
+                        textTransform: 'capitalize'
+                      }}>
+                        {getPhaseText(phase, currentExercise)}
+                      </div>
+                      <div style={{
+                        fontSize: '2.5rem',
+                        fontWeight: '700',
+                        fontFamily: 'Arial, sans-serif'
+                      }}>
+                        {Math.ceil(timeLeft)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress */}
+                  <div style={{
+                    marginBottom: '25px'
+                  }}>
+                    <p style={{
+                      fontSize: '1.1rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      margin: '0 0 10px 0',
+                      fontFamily: 'Arial, sans-serif'
+                    }}>
+                      Cycle {cycle} of {totalCycles}
+                    </p>
+                    <div style={{
+                      background: '#e5e7eb',
+                      borderRadius: '10px',
+                      height: '8px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                        height: '100%',
+                        width: `${(cycle / totalCycles) * 100}%`,
+                        borderRadius: '10px',
+                        transition: 'width 0.5s ease'
+                      }}></div>
+                    </div>
+                  </div>
+
+                  {/* Controls */}
+                  <div style={{
+                    display: 'flex',
+                    gap: '15px',
+                    justifyContent: 'center',
+                    flexWrap: 'wrap'
+                  }}>
+                    <button
+                      onClick={stopExercise}
+                      style={{
+                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '12px 20px',
+                        fontSize: '1rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <span>⏹️</span>
+                      <span>Stop</span>
+                    </button>
+
+                    <button
+                      onClick={completeExercise}
+                      style={{
+                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '12px 20px',
+                        fontSize: '1rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxboxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <span>✅</span>
+                      <span>Complete</span>
                     </button>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )
+            )}
 
-            {/* Recent Sessions - ONLY SHOW WHEN NOT ACTIVE */}
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: isMobile ? '15px' : '20px',
-              padding: isMobile ? '25px' : '30px',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-              backdropFilter: 'blur(10px)'
-            }}>
+            {/* Sessions History - MOBILE */}
+            {sessions.length > 0 && showExerciseList && (
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                marginBottom: '25px'
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '20px',
+                padding: '25px',
+                marginTop: '20px',
+                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                backdropFilter: 'blur(10px)'
               }}>
-                <span style={{ fontSize: '1.5rem' }}>📊</span>
                 <h3 style={{
-                  margin: 0,
-                  fontSize: isMobile ? '1.3rem' : '1.5rem',
                   color: '#374151',
-                  fontWeight: '700'
+                  fontSize: '1.2rem',
+                  fontWeight: '700',
+                  margin: '0 0 20px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}>
+                  <span>📊</span>
                   Recent Sessions
                 </h3>
-              </div>
-
-              {sessions.length === 0 ? (
-                <div style={{
-                  textAlign: 'center',
-                  padding: isMobile ? '30px 20px' : '40px',
-                  color: '#6b7280'
-                }}>
-                  <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🧘‍♀️</div>
-                  <h3 style={{ color: '#374151', marginBottom: '10px' }}>No sessions yet</h3>
-                  <p style={{ margin: 0 }}>Start your first breathing exercise above!</p>
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  {sessions.slice(0, 5).map((session, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        background: '#f8fafc',
+                        borderRadius: '12px',
+                        padding: '15px',
+                        border: '1px solid #e5e7eb'
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px'
+                      }}>
+                        <span style={{
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          color: '#374151'
+                        }}>
+                          {session.type}
+                        </span>
+                        <span style={{
+                          fontSize: '0.8rem',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          background: session.completed ? '#dcfce7' : '#fef3c7',
+                          color: session.completed ? '#166534' : '#92400e'
+                        }}>
+                          {session.completed ? '✅ Completed' : '💾 Saved'}
+                        </span>
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '0.8rem',
+                        color: '#6b7280'
+                      }}>
+                        <span>{formatDate(session.createdAt)}</span>
+                        <span>{formatDuration(session.duration)}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ) : (
+              </div>
+            )}
+          </div>
+        ) : (
+          /* DESKTOP LAYOUT */
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: showExerciseList ? '2fr 1fr' : '1fr',
+            gap: '30px',
+            alignItems: 'start'
+          }}>
+            {/* Left Column - Exercise List OR Active Exercise */}
+            {showExerciseList ? (
+              /* EXERCISE LIST - DESKTOP */
+              <div>
+                {/* Header Card */}
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '20px',
+                  padding: '30px',
+                  marginBottom: '25px',
+                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🌬️</div>
+                  <h2 style={{ 
+                    color: '#374151', 
+                    fontSize: '1.8rem', 
+                    fontWeight: '700',
+                    margin: '0 0 10px 0'
+                  }}>
+                    Breathing Exercises
+                  </h2>
+                  <p style={{ 
+                    color: '#6b7280', 
+                    fontSize: '1.1rem',
+                    margin: 0
+                  }}>
+                    Choose a technique to begin
+                  </p>
+                </div>
+
+                {/* Exercise Grid */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+                  gap: '20px'
+                }}>
+                  {exercises.map((exercise, index) => (
+                    <div
+                      key={exercise.id}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        borderRadius: '20px',
+                        padding: '25px',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-5px)';
+                        e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 0, 0, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.1)';
+                      }}
+                    >
+                      {/* Exercise Header */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginBottom: '15px'
+                      }}>
+                        <span style={{ 
+                          fontSize: '2rem', 
+                          marginRight: '12px' 
+                        }}>
+                          {exercise.emoji}
+                        </span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{
+                            color: '#6b7280',
+                            fontSize: '0.9rem',
+                            fontFamily: 'Arial, sans-serif',
+                            marginBottom: '4px'
+                          }}>
+                            Exercise #{index + 1} ({exercise.difficulty})
+                          </div>
+                          <h4 style={{
+                            margin: 0,
+                            color: '#374151',
+                            fontSize: '1.3rem',
+                            fontWeight: '700'
+                          }}>
+                            {exercise.name}
+                          </h4>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p style={{
+                        color: '#6b7280',
+                        fontSize: '1rem',
+                        margin: '0 0 15px 0',
+                        lineHeight: '1.5'
+                      }}>
+                        {exercise.description}
+                      </p>
+
+                      {/* Phases */}
+                      <div style={{
+                        background: '#f8fafc',
+                        borderRadius: '12px',
+                        padding: '15px',
+                        marginBottom: '20px',
+                        fontSize: '0.9rem',
+                        color: '#6b7280',
+                        fontFamily: 'Arial, sans-serif'
+                      }}>
+                        <strong style={{ color: '#374151' }}>Phases:</strong>
+                        <div style={{ marginTop: '5px' }}>
+                          {exercise.special === 'alternate' ? (
+                            <>
+                              <div>Inhale Left {exercise.inhale}s • Hold {exercise.hold}s • Exhale Right {exercise.exhale}s</div>
+                              <div>Inhale Right {exercise.inhale}s • Hold {exercise.hold}s • Exhale Left {exercise.exhale}s</div>
+                            </>
+                          ) : (
+                            <>
+                              Inhale {exercise.inhale}s
+                              {exercise.hold && ` • Hold ${exercise.hold}s`}
+                              • Exhale {exercise.exhale}s
+                              {exercise.hold2 && ` • Hold ${exercise.hold2}s`}
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div style={{
+                        display: 'flex',
+                        gap: '12px'
+                      }}>
+                        <button
+                          onClick={() => startExercise(exercise)}
+                          style={{
+                            flex: 1,
+                            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '12px',
+                            padding: '14px 20px',
+                            fontSize: '1rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.4)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.3)';
+                          }}
+                        >
+                          <span>▶</span>
+                          <span>Start Exercise</span>
+                        </button>
+
+                        <button
+                          onClick={() => setShowDetails(exercise)}
+                          style={{
+                            background: 'rgba(102, 126, 234, 0.1)',
+                            color: '#667eea',
+                            border: '2px solid #667eea',
+                            borderRadius: '12px',
+                            padding: '14px 20px',
+                            fontSize: '1rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#667eea';
+                            e.currentTarget.style.color = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)';
+                            e.currentTarget.style.color = '#667eea';
+                          }}
+                        >
+                          <span>ℹ</span>
+                          <span>Details</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              /* ACTIVE EXERCISE - DESKTOP */
+              currentExercise && (
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '20px',
+                  padding: '40px',
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  textAlign: 'center',
+                  border: '3px solid #667eea',
+                  gridColumn: '1 / -1'
+                }}>
+                  {/* Back Button */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '30px'
+                  }}>
+                    <button
+                      onClick={stopExercise}
+                      style={{
+                        background: '#f3f4f6',
+                        color: '#6b7280',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '10px 16px',
+                        fontSize: '1rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#e5e7eb';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#f3f4f6';
+                      }}
+                    >
+                      ← Back
+                    </button>
+                    <h2 style={{
+                      margin: 0,
+                      fontSize: '2rem',
+                      color: '#374151',
+                      fontWeight: '700'
+                    }}>
+                      {currentExercise.name}
+                    </h2>
+                    <div style={{ width: '80px' }}></div>
+                  </div>
+
+                  {/* Breathing Circle */}
+                  <div style={{
+                    width: '300px',
+                    height: '300px',
+                    margin: '0 auto 30px auto',
+                    borderRadius: '50%',
+                    background: currentExercise.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    transform: phase === 'inhale' ? 'scale(1.1)' : 'scale(1)',
+                    transition: 'transform 1s ease',
+                    boxShadow: '0 30px 80px rgba(102, 126, 234, 0.4)'
+                  }}>
+                    <div style={{
+                      color: 'white',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{
+                        fontSize: '1.3rem',
+                        fontWeight: '600',
+                        marginBottom: '15px',
+                        textTransform: 'capitalize'
+                      }}>
+                        {getPhaseText(phase, currentExercise)}
+                      </div>
+                      <div style={{
+                        fontSize: '4rem',
+                        fontWeight: '700',
+                        fontFamily: 'Arial, sans-serif'
+                      }}>
+                        {Math.ceil(timeLeft)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress */}
+                  <div style={{
+                    marginBottom: '30px'
+                  }}>
+                    <p style={{
+                      fontSize: '1.3rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      margin: '0 0 15px 0',
+                      fontFamily: 'Arial, sans-serif'
+                    }}>
+                      Cycle {cycle} of {totalCycles}
+                    </p>
+                    <div style={{
+                      background: '#e5e7eb',
+                      borderRadius: '15px',
+                      height: '12px',
+                      overflow: 'hidden',
+                      maxWidth: '400px',
+                      margin: '0 auto'
+                    }}>
+                      <div style={{
+                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                        height: '100%',
+                        width: `${(cycle / totalCycles) * 100}%`,
+                        borderRadius: '15px',
+                        transition: 'width 0.5s ease'
+                      }}></div>
+                    </div>
+                  </div>
+
+                  {/* Controls */}
+                  <div style={{
+                    display: 'flex',
+                    gap: '20px',
+                    justifyContent: 'center'
+                  }}>
+                    <button
+                      onClick={stopExercise}
+                      style={{
+                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '15px',
+                        padding: '16px 24px',
+                        fontSize: '1.1rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 12px 30px rgba(239, 68, 68, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(239, 68, 68, 0.3)';
+                      }}
+                    >
+                      <span>⏹️</span>
+                      <span>Stop</span>
+                    </button>
+
+                    <button
+                      onClick={completeExercise}
+                      style={{
+                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '15px',
+                        padding: '16px 24px',
+                        fontSize: '1.1rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 12px 30px rgba(16, 185, 129, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.3)';
+                      }}
+                    >
+                      <span>✅</span>
+                      <span>Complete</span>
+                    </button>
+                  </div>
+                </div>
+              )
+            )}
+
+            {/* Right Column - Sessions History (Desktop Only) */}
+            {showExerciseList && sessions.length > 0 && (
               <div style={{
-                 display: 'grid',
-                 gap: isMobile ? '12px' : '15px'
-               }}>
-                 {sessions.slice(0, 5).map(session => (
-                   <div
-                     key={session.id}
-                     style={{
-                       background: '#f8fafc',
-                       borderRadius: '10px',
-                       padding: isMobile ? '15px' : '20px',
-                       border: '2px solid #e2e8f0',
-                       transition: 'all 0.2s ease'
-                     }}
-                     onMouseEnter={(e) => {
-                       e.currentTarget.style.transform = 'translateY(-2px)';
-                       e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
-                     }}
-                     onMouseLeave={(e) => {
-                       e.currentTarget.style.transform = 'translateY(0)';
-                       e.currentTarget.style.boxShadow = 'none';
-                     }}
-                   >
-                     <div style={{
-                       display: 'flex',
-                       justifyContent: 'space-between',
-                       alignItems: 'center',
-                       marginBottom: '10px',
-                       flexWrap: 'wrap',
-                       gap: '10px'
-                     }}>
-                       <h4 style={{
-                         margin: 0,
-                         color: '#374151',
-                         fontSize: isMobile ? '1rem' : '1.1rem',
-                         fontWeight: '600'
-                       }}>
-                         {session.type}
-                       </h4>
-                       <span style={{
-                         background: session.completed ? '#dcfce7' : '#fef3c7',
-                         color: session.completed ? '#166534' : '#92400e',
-                         padding: '4px 8px',
-                         borderRadius: '6px',
-                         fontSize: '0.75rem',
-                         fontWeight: '600'
-                       }}>
-                         {session.completed ? '✅ Completed' : '⏸️ Paused'}
-                       </span>
-                     </div>
-                     <div style={{
-                       display: 'flex',
-                       justifyContent: 'space-between',
-                       alignItems: 'center',
-                       fontSize: '0.85rem',
-                       color: '#6b7280'
-                     }}>
-                       <span className="mobile-numbers">Duration: {Math.round(session.duration)} sec</span>
-                       <span className="mobile-date">{new Date(session.createdAt).toLocaleDateString('en-US', {
-                         month: 'short',
-                         day: 'numeric',
-                         year: 'numeric'
-                       })}</span>
-                     </div>
-                   </div>
-                 ))}
-               </div>
-             )}
-           </div>
-         </>
-       )}
-     </div>
-   </div>
- );
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '20px',
+                padding: '30px',
+                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                backdropFilter: 'blur(10px)',
+                height: 'fit-content',
+                position: 'sticky',
+                top: '20px'
+              }}>
+                <h3 style={{
+                  color: '#374151',
+                  fontSize: '1.4rem',
+                  fontWeight: '700',
+                  margin: '0 0 25px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  <span>📊</span>
+                  Recent Sessions
+                </h3>
+                <div style={{ display: 'grid', gap: '15px' }}>
+                  {sessions.slice(0, 8).map((session, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        background: '#f8fafc',
+                        borderRadius: '12px',
+                        padding: '18px',
+                        border: '1px solid #e5e7eb',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f1f5f9';
+                        e.currentTarget.style.borderColor = '#d1d5db';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#f8fafc';
+                        e.currentTarget.style.borderColor = '#e5e7eb';
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '10px'
+                      }}>
+                        <span style={{
+                          fontSize: '1rem',
+                          fontWeight: '600',
+                          color: '#374151'
+                        }}>
+                          {session.type}
+                        </span>
+                        <span style={{
+                          fontSize: '0.8rem',
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          background: session.completed ? '#dcfce7' : '#fef3c7',
+                          color: session.completed ? '#166534' : '#92400e',
+                          fontWeight: '600'
+                        }}>
+                          {session.completed ? '✅ Done' : '💾 Saved'}
+                        </span>
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '0.9rem',
+                        color: '#6b7280'
+                      }}>
+                        <span>{formatDate(session.createdAt)}</span>
+                        <span style={{ fontWeight: '600' }}>{formatDuration(session.duration)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default BreathingExercise;
+

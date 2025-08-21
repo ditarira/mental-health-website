@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import emailjs from '@emailjs/browser';
 
+
+
+
 // MOVE COMPONENTS OUTSIDE - THIS IS THE KEY FIX
 const StyledInput = ({ label, type = 'text', value, onChange, placeholder, icon, isTextarea = false, isMobile, ...props }) => {
   const inputStyle = {
@@ -230,7 +233,9 @@ const SettingsCard = ({ title, icon, children, gradient }) => (
 
 // NOW THE MAIN COMPONENT
 const Settings = () => {
+
   const { user, updateUser } = useAuth();
+
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [message, setMessage] = useState('');
@@ -395,37 +400,48 @@ const applyAppearanceSettings = (settings) => {
   console.log('💪 Font weight:', fontWeight);
 };
 
+ const saveProfile = async () => {
+  console.log('💾 Starting profile save...');
+  console.log('📝 Profile data to save:', profileData);
   
-  const saveProfile = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/profile`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(profileData)
-      });
+  setLoading(true);
+  try {
+    const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/users/profile`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(profileData)
+    });
 
-      const responseData = await response.json();
+    const responseData = await response.json();
+    console.log('📨 Backend response:', responseData);
 
-      if (response.ok) {
-        setMessage('✅ Profile updated successfully!');
-        if (updateUser && responseData.user) {
-          updateUser(responseData.user);
-        }
+    if (response.ok) {
+      setMessage('✅ Profile updated successfully!');
+      
+      // Update AuthContext with new user data
+      if (updateUser && responseData.user) {
+        console.log('🔄 Calling updateUser with:', responseData.user);
+        updateUser(responseData.user);
+        console.log('✅ updateUser called successfully');
       } else {
-        throw new Error(responseData.error || 'Failed to update profile');
+        console.log('❌ updateUser not available or no user data in response');
+        console.log('updateUser exists:', !!updateUser);
+        console.log('responseData.user exists:', !!responseData.user);
       }
-    } catch (error) {
-      setMessage('❌ Failed to update profile: ' + error.message);
-    } finally {
-      setLoading(false);
-      setTimeout(() => setMessage(''), 4000);
+    } else {
+      throw new Error(responseData.error || 'Failed to update profile');
     }
-  };
-
+  } catch (error) {
+    console.log('❌ Error in saveProfile:', error);
+    setMessage('❌ Failed to update profile: ' + error.message);
+  } finally {
+    setLoading(false);
+    setTimeout(() => setMessage(''), 4000);
+  }
+};
   const saveAppearance = async (key, value) => {
     const newSettings = { ...appearanceData, [key]: value };
     setAppearanceData(newSettings);
@@ -580,40 +596,54 @@ const verifyCodeAndChangePassword = async () => {
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: isMobile ? '20px' : '40px',
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
+      padding: '0'
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        
-        {/* Header */}
+      
+      {/* Header - FIXED TO MATCH OTHER COMPONENTS */}
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(15px)',
+        padding: isMobile ? '20px' : '40px',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+      }}>
         <div style={{
-          background: 'rgba(255, 255, 255, 0.98)',
-          borderRadius: '24px',
-          padding: isMobile ? '32px' : '48px',
-          marginBottom: '32px',
-          textAlign: 'center',
-          animation: 'slideUp 0.5s ease-out',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)'
+          maxWidth: '1200px',
+          margin: '0 auto',
+          textAlign: 'center'
         }}>
-          <h1 style={{
-            margin: '0 0 16px 0',
-            fontSize: isMobile ? '2.5rem' : '3.2rem',
-            fontWeight: '900',
-            background: 'linear-gradient(135deg, #667eea, #764ba2)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '15px',
+            marginBottom: '15px'
           }}>
-            ⚙️ Settings
-          </h1>
+            <span style={{ fontSize: isMobile ? '2.5rem' : '3rem' }}>⚙️</span>
+            <h1 style={{
+              margin: 0,
+              fontSize: isMobile ? '1.8rem' : '2.5rem',
+              color: 'white',
+              fontWeight: '700'
+            }}>
+              Account Settings
+            </h1>
+          </div>
           <p style={{
             margin: 0,
-            color: '#64748b',
-            fontSize: isMobile ? '1.1rem' : '1.3rem',
-            fontWeight: '500'
+            fontSize: isMobile ? '1rem' : '1.1rem',
+            color: 'rgba(255, 255, 255, 0.9)'
           }}>
-            Customize your experience and manage your account
+            Personalize your MindfulMe experience 🎨
           </p>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{ 
+        maxWidth: '1200px', 
+        margin: '0 auto',
+        padding: isMobile ? '20px' : '40px'
+      }}>
 
         {/* Message */}
         {message && (
@@ -808,83 +838,83 @@ const verifyCodeAndChangePassword = async () => {
                   isLoading={loading}
                   variant="danger"
                   style={{ width: '100%' }}
-                  isMobile={isMobile}
-                >
-                  {loading ? 'Sending...' : '📧 Send Verification Code'}
-                </StyledButton>
-              </div>
-            )}
+                 isMobile={isMobile}
+               >
+                 {loading ? 'Sending...' : '📧 Send Verification Code'}
+               </StyledButton>
+             </div>
+           )}
 
-            {verificationStep === 'code' && (
-              <div style={{ textAlign: 'center' }}>
-                <h3 style={{ marginBottom: '16px', color: '#1e293b', fontSize: '1.5rem' }}>📧 Enter Verification Code</h3>
-                <p style={{ marginBottom: '24px', color: '#6b7280' }}>Check your email: {profileData.email}</p>
-                
-                <input
-                  type="text"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder="000000"
-                  maxLength="6"
-                  style={{
-                    width: '200px',
-                    padding: '20px',
-                    borderRadius: '12px',
-                    border: '3px solid #e2e8f0',
-                    fontSize: '1.5rem',
-                    fontFamily: 'monospace',
-                    textAlign: 'center',
-                    marginBottom: '24px',
-                    outline: 'none'
-                  }}
-                />
+           {verificationStep === 'code' && (
+             <div style={{ textAlign: 'center' }}>
+               <h3 style={{ marginBottom: '16px', color: '#1e293b', fontSize: '1.5rem' }}>📧 Enter Verification Code</h3>
+               <p style={{ marginBottom: '24px', color: '#6b7280' }}>Check your email: {profileData.email}</p>
+               
+               <input
+                 type="text"
+                 value={verificationCode}
+                 onChange={(e) => setVerificationCode(e.target.value)}
+                 placeholder="000000"
+                 maxLength="6"
+                 style={{
+                   width: '200px',
+                   padding: '20px',
+                   borderRadius: '12px',
+                   border: '3px solid #e2e8f0',
+                   fontSize: '1.5rem',
+                   fontFamily: 'monospace',
+                   textAlign: 'center',
+                   marginBottom: '24px',
+                   outline: 'none'
+                 }}
+               />
 
-                <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                  <StyledButton
-                    onClick={verifyCodeAndChangePassword}
-                    disabled={loading || verificationCode.length !== 6}
-                    isLoading={loading}
-                    variant="success"
-                    isMobile={isMobile}
-                  >
-                    {loading ? 'Verifying...' : '✅ Verify & Change'}
-                  </StyledButton>
+               <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                 <StyledButton
+                   onClick={verifyCodeAndChangePassword}
+                   disabled={loading || verificationCode.length !== 6}
+                   isLoading={loading}
+                   variant="success"
+                   isMobile={isMobile}
+                 >
+                   {loading ? 'Verifying...' : '✅ Verify & Change'}
+                 </StyledButton>
 
-                  <StyledButton
-                    onClick={() => {
-                      setVerificationStep('form');
-                      setVerificationCode('');
-                      setGeneratedCode('');
-                    }}
-                    variant="secondary"
-                    isMobile={isMobile}
-                  >
-                    ⬅️ Back
-                  </StyledButton>
-                </div>
-              </div>
-            )}
+                 <StyledButton
+                   onClick={() => {
+                     setVerificationStep('form');
+                     setVerificationCode('');
+                     setGeneratedCode('');
+                   }}
+                   variant="secondary"
+                   isMobile={isMobile}
+                 >
+                   ⬅️ Back
+                 </StyledButton>
+               </div>
+             </div>
+           )}
 
-            {verificationStep === 'success' && (
-              <div style={{ textAlign: 'center' }}>
-                <h3 style={{ marginBottom: '16px', color: '#1e293b', fontSize: '1.5rem' }}>🎉 Password Changed!</h3>
-                <p style={{ marginBottom: '24px', color: '#6b7280' }}>Your account is now more secure.</p>
-                
-                <StyledButton
-                  onClick={() => setVerificationStep('form')}
-                  variant="primary"
-                  isMobile={isMobile}
-                >
-                  ✅ Done
-                </StyledButton>
-              </div>
-            )}
-          </SettingsCard>
-        </div>
+           {verificationStep === 'success' && (
+             <div style={{ textAlign: 'center' }}>
+               <h3 style={{ marginBottom: '16px', color: '#1e293b', fontSize: '1.5rem' }}>🎉 Password Changed!</h3>
+               <p style={{ marginBottom: '24px', color: '#6b7280' }}>Your account is now more secure.</p>
+               
+               <StyledButton
+                 onClick={() => setVerificationStep('form')}
+                 variant="primary"
+                 isMobile={isMobile}
+               >
+                 ✅ Done
+               </StyledButton>
+             </div>
+           )}
+         </SettingsCard>
+       </div>
 
-      </div>
-    </div>
-  );
+     </div>
+   </div>
+ );
 };
 
 export default Settings;
