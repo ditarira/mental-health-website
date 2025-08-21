@@ -191,6 +191,14 @@ router.post('/login', async (req, res) => {
 
     console.log('✅ Password valid for:', email);
     
+await prisma.user.update({
+  where: { id: user.id },
+  data: { 
+    lastActiveAt: new Date(),
+    isOnline: true 
+  }
+});
+
     // Generate JWT token
     const token = jwt.sign(
       { 
