@@ -20,8 +20,8 @@ model User {
   preferences        Json?
   location           String?
   phone              String?
-  lastActiveAt       DateTime           @default(now())  # ADD THIS
-  isOnline           Boolean            @default(false)  # ADD THIS
+  lastActiveAt       DateTime           @default(now())  
+  isOnline           Boolean            @default(false)  
   breathing_sessions BreathingSession[]
   journal_entries    JournalEntry[]
   settings           UserSettings?
