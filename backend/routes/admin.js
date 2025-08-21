@@ -52,14 +52,22 @@ router.get('/users', async (req, res) => {
         role: true,
         createdAt: true,
         lastActiveAt: true,
-        isOnline: true
+        isOnline: true,
+        _count: {
+ 	 select: {
+    	 journal_entries: true,
+   	 breathing_sessions: true
+  	}
+       }
       },
       orderBy: { createdAt: 'desc' }
     });
 
-    // Add activity status to each user
+    // Add activity status and rename _count fields to match frontend expectations
     const usersWithActivity = users.map(user => ({
       ...user,
+     	journalEntries: user._count.journal_entries,
+	breathingSessions: user._count.breathing_sessions,
       activityLevel: isUserActive(user.lastActiveAt) ? 'Active' : 'Inactive'
     }));
 
