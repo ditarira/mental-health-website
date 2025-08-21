@@ -10,14 +10,12 @@ router.get('/stats', async (req, res) => {
     const totalBreathingSessions = await prisma.breathingSession.count();
     
     // Count users active in last 30 minutes (truly active)
-    const activeUsers = await prisma.user.count({
-      where: {
-        lastActiveAt: {
-          gte: new Date(Date.now() - 30 * 60 * 1000) // Last 30 minutes
-        }
-      }
-    });
-
+ const activeUsers = await prisma.user.count({
+  where: {
+    isOnline: true
+    }
+   });
+      
     const stats = {
       totalUsers,
       totalJournalEntries,
