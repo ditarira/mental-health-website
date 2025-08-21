@@ -50,7 +50,7 @@ app.use((req, res, next) => {
 });
 
 // Import routes
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./src/routes/auth');
 const journalRoutes = require('./routes/journal');
 const breathingRoutes = require('./routes/breathing');
 const dashboardRoutes = require('./routes/dashboard');
