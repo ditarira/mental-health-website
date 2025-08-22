@@ -9,6 +9,7 @@ const Dashboard = () => {
     currentStreak: 0,
     averageMood: 0
   });
+
   const [recentEntries, setRecentEntries] = useState([]);
   const [recentSessions, setRecentSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -176,44 +177,6 @@ const Dashboard = () => {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '0'
     }}>
-      {/* Header - SMALLER */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(15px)',
-        padding: isMobile ? '15px 20px' : '25px 40px', // Reduced padding
-        borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          textAlign: 'center'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px', // Reduced gap
-            marginBottom: '8px' // Reduced margin
-          }}>
-            <span style={{ fontSize: isMobile ? '2rem' : '2.5rem' }}>✨</span> {/* Smaller emoji */}
-            <h1 style={{
-              margin: 0,
-              fontSize: isMobile ? '1.5rem' : '2rem', // Smaller font
-              color: 'white',
-              fontWeight: '700'
-            }}>
-              Welcome back, {user?.firstName}!
-            </h1>
-          </div>
-          <p style={{
-            margin: 0,
-            fontSize: isMobile ? '0.9rem' : '1rem', // Smaller font
-            color: 'rgba(255, 255, 255, 0.9)'
-          }}>
-            Continue your mindfulness journey 🧘‍♀️
-          </p>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div style={{
@@ -222,7 +185,7 @@ const Dashboard = () => {
         padding: isMobile ? '20px' : '40px'
       }}>
 
-        {/* NEW MOBILE STRUCTURE */}
+        {/* MOBILE LAYOUT */}
         {isMobile ? (
           <div>
             {/* Greeting Card */}
@@ -580,11 +543,43 @@ const Dashboard = () => {
                   Settings
                 </div>
               </button>
-            </div>
+           </div>
           </div>
         ) : (
-          /* DESKTOP LAYOUT (UNCHANGED) */
+          /* DESKTOP LAYOUT */
           <div>
+            {/* ADD - Desktop Greeting Card */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '20px',
+              padding: '40px',
+              marginBottom: '30px',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(10px)',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: '15px' }}>👋</div>
+              <h2 style={{ 
+                color: '#374151', 
+                fontSize: '2rem', 
+                fontWeight: '700',
+                margin: '0 0 10px 0',
+                letterSpacing: '0',
+                wordSpacing: '0'
+              }}>
+                Welcome back, {user?.firstName}!
+              </h2>
+              <p style={{ 
+                color: '#6b7280', 
+                fontSize: '1.2rem',
+                margin: 0,
+                fontStyle: 'italic',
+                letterSpacing: '0',
+                wordSpacing: '0'
+              }}>
+                "Continue your mindfulness journey 🧘‍♀️"
+              </p>
+            </div>
             {/* Desktop Stats Cards */}
             <div style={{
               display: 'grid',

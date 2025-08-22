@@ -1,4 +1,6 @@
 import React from 'react';
+
+import './index.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -15,7 +17,7 @@ import Home from './pages/Home';
 import EmailTest from './components/EmailTest';
 import EmailVerification from './components/EmailVerification';
 import PasswordReset from './components/PasswordReset';
-import './index.css';
+
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();

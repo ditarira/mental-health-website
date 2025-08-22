@@ -8,12 +8,16 @@ const Navigation = () => {
   const location = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [isTablet, setIsTablet] = useState(window.innerWidth > 768 && window.innerWidth <= 1200);
+  const [isTablet, setIsTablet] = useState(window.innerWidth > 768 && window.innerWidth <= 1024);
+  const [isSmallDesktop, setIsSmallDesktop] = useState(window.innerWidth > 1024 && window.innerWidth <= 1366);
+  const [isIpadMini, setIsIpadMini] = useState(window.innerWidth >= 768 && window.innerWidth <= 1024);
 
   useEffect(() => {
     const checkDevice = () => {
       setIsMobile(window.innerWidth <= 768);
-      setIsTablet(window.innerWidth > 768 && window.innerWidth <= 1200);
+      setIsTablet(window.innerWidth > 768 && window.innerWidth <= 1024);
+      setIsSmallDesktop(window.innerWidth > 1024 && window.innerWidth <= 1366);
+      setIsIpadMini(window.innerWidth >= 768 && window.innerWidth <= 1024);
     };
     window.addEventListener('resize', checkDevice);
     return () => window.removeEventListener('resize', checkDevice);
@@ -108,9 +112,7 @@ const Navigation = () => {
   const handleLogoClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isMobile) {
-      navigate("/dashboard");
-    }
+    navigate("/dashboard");
   };
 
   // Handle mobile menu toggle
@@ -144,8 +146,8 @@ const Navigation = () => {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: isMobile ? "0" : isTablet ? "0.6rem" : "0.8rem",
-            cursor: isMobile ? "default" : "pointer",
+            gap: "0.8rem",
+            cursor: "pointer",
             transition: "all 0.3s ease"
           }}
           onClick={handleLogoClick}
@@ -158,7 +160,7 @@ const Navigation = () => {
             width: isMobile ? "40px" : isTablet ? "40px" : "45px",
             height: isMobile ? "40px" : isTablet ? "40px" : "45px",
             background: "linear-gradient(135deg, #667eea, #764ba2)",
-            borderRadius: isMobile ? "16px" : "16px",
+            borderRadius: "16px",
             boxShadow: "0 8px 24px rgba(102, 126, 234, 0.4)"
           }}>
             <span className="brain-animate" style={{
@@ -168,8 +170,8 @@ const Navigation = () => {
               🧠
             </span>
           </div>
-          {/* Show text only on desktop */}
-          {!isMobile && !isTablet && (
+          {/* Show text only on large desktop */}
+          {!isMobile && !isTablet && !isSmallDesktop && (
             <span className="mindful-logo" style={{
               fontSize: "1.5rem",
               background: "linear-gradient(135deg, #667eea, #764ba2)",
@@ -182,20 +184,42 @@ const Navigation = () => {
           )}
         </div>
 
-        {/* Tablet & Desktop Navigation */}
-        {!isMobile && (
+        {/* Center Title for Mobile & iPad Mini Only */}
+        {(isMobile || isIpadMini) && (
+          <div style={{
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 1
+          }}>
+            <span className="mindful-logo" style={{
+              fontSize: isMobile ? "1.2rem" : "1.3rem",
+              background: "linear-gradient(135deg, #667eea, #764ba2)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              textShadow: "0 2px 4px rgba(102, 126, 234, 0.1)",
+              letterSpacing: "0",
+              wordSpacing: "0"
+            }}>
+              MindfulMe
+            </span>
+          </div>
+        )}
+
+        {/* Desktop Navigation (1024px+ with small desktop support) */}
+        {!isMobile && !isTablet && (
           <div style={{
             display: "flex",
-            gap: isTablet ? "0.3rem" : "0.5rem",
+            gap: isSmallDesktop ? "0.4rem" : "0.5rem",
             alignItems: "center",
             background: "rgba(102, 126, 234, 0.05)",
-            padding: isTablet ? "0.8rem 1rem" : "0.7rem 1.2rem",
+            padding: isSmallDesktop ? "0.7rem 1rem" : "0.7rem 1.2rem",
             borderRadius: "18px",
             border: "1px solid rgba(102, 126, 234, 0.1)",
             flex: 1,
             justifyContent: "center",
             width: "100%",
-            maxWidth: isTablet ? "350px" : "750px"
+            maxWidth: isSmallDesktop ? "500px" : "750px"
           }}>
             {navigationItems.map(item => (
               <button
@@ -204,8 +228,8 @@ const Navigation = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: isTablet ? "0" : "0.4rem",
-                  padding: isTablet ? "0.6rem 0.8rem" : "0.5rem 0.8rem",
+                  gap: isSmallDesktop ? "0.3rem" : "0.4rem",
+                  padding: isSmallDesktop ? "0.5rem 0.7rem" : "0.5rem 0.8rem",
                   background: isActive(item.path)
                     ? "linear-gradient(135deg, #667eea, #764ba2)"
                     : "transparent",
@@ -213,19 +237,20 @@ const Navigation = () => {
                   border: "none",
                   borderRadius: "14px",
                   cursor: "pointer",
-                  fontSize: isTablet ? "0.85rem" : "0.85rem",
+                  fontSize: isSmallDesktop ? "0.8rem" : "0.85rem",
                   fontWeight: "600",
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   boxShadow: isActive(item.path)
                     ? "0 8px 25px rgba(102, 126, 234, 0.3)"
                     : "none",
                   transform: isActive(item.path) ? "translateY(-2px)" : "none",
-                  minWidth: isTablet ? "48px" : "auto"
+                  minWidth: "auto"
                 }}
                 onClick={() => navigate(item.path)}
               >
-                <span style={{ fontSize: isTablet ? "1.3rem" : "1.2rem" }}>{item.icon}</span>
-                {!isTablet && window.innerWidth > 1366 && <span>{item.name}</span>}
+                <span style={{ fontSize: isSmallDesktop ? "1.1rem" : "1.2rem" }}>{item.icon}</span>
+                {/* Show text based on screen size */}
+                {(window.innerWidth > 1366) && <span>{item.name}</span>}
               </button>
             ))}
           </div>
@@ -264,6 +289,50 @@ const Navigation = () => {
             </button>
           )}
 
+          {/* Tablet Navigation */}
+          {isTablet && (
+            <div style={{
+              display: "flex",
+              gap: "0.3rem",
+              alignItems: "center",
+              background: "rgba(102, 126, 234, 0.05)",
+              padding: "0.8rem 1rem",
+              borderRadius: "18px",
+              border: "1px solid rgba(102, 126, 234, 0.1)"
+            }}>
+              {navigationItems.slice(0, 4).map(item => (
+                <button
+                  key={item.id}
+                  className="nav-text"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0.6rem 0.8rem",
+                    background: isActive(item.path)
+                      ? "linear-gradient(135deg, #667eea, #764ba2)"
+                      : "transparent",
+                    color: isActive(item.path) ? "white" : "#667eea",
+                    border: "none",
+                    borderRadius: "14px",
+                    cursor: "pointer",
+                    fontSize: "1.3rem",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    boxShadow: isActive(item.path)
+                      ? "0 8px 25px rgba(102, 126, 234, 0.3)"
+                      : "none",
+                    transform: isActive(item.path) ? "translateY(-2px)" : "none",
+                    minWidth: "48px"
+                  }}
+                  onClick={() => navigate(item.path)}
+                  title={item.name}
+                >
+                  {item.icon}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Desktop & Tablet User Profile & Logout */}
           {!isMobile && (
             <>
@@ -272,8 +341,8 @@ const Navigation = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: isTablet ? "0.3rem" : "0.4rem",
-                  padding: isTablet ? "0.4rem 0.6rem" : "0.4rem 0.6rem",
+                  gap: isTablet ? "0.3rem" : isSmallDesktop ? "0.3rem" : "0.4rem",
+                  padding: isTablet ? "0.4rem 0.6rem" : isSmallDesktop ? "0.4rem 0.6rem" : "0.4rem 0.6rem",
                   background: "rgba(102, 126, 234, 0.08)",
                   border: "1px solid rgba(102, 126, 234, 0.2)",
                   borderRadius: "18px",
@@ -282,7 +351,7 @@ const Navigation = () => {
                   fontSize: "0.8rem",
                   transition: "all 0.3s ease",
                   flexShrink: 0,
-                  maxWidth: isTablet ? "80px" : "150px"
+                  maxWidth: isTablet ? "80px" : isSmallDesktop ? "120px" : "150px"
                 }}
                 onClick={() => navigate("/settings")}
               >

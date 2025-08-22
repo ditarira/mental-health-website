@@ -13,8 +13,8 @@ const BreathingExercise = () => {
   const [startTime, setStartTime] = useState(null);
   const [message, setMessage] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [showExerciseList, setShowExerciseList] = useState(true); // NEW STATE
-  const [showDetails, setShowDetails] = useState(null); // For details modal
+  const [showExerciseList, setShowExerciseList] = useState(true);
+  const [showDetails, setShowDetails] = useState(null);
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
@@ -93,7 +93,7 @@ const BreathingExercise = () => {
       inhale: 4,
       hold: 4,
       exhale: 4,
-      special: 'alternate', // Special breathing pattern
+      special: 'alternate',
       emoji: '🔄',
       color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       difficulty: 'Advanced'
@@ -156,7 +156,6 @@ const BreathingExercise = () => {
       if (response.ok) {
         showNotification(completed ? 'Breathing session completed! 🧘‍♀️' : 'Session saved! 💾', 'success');
         fetchSessions();
-        // Refresh dashboard
         window.dispatchEvent(new CustomEvent('journalUpdated'));
       }
     } catch (error) {
@@ -171,7 +170,7 @@ const BreathingExercise = () => {
     setTimeLeft(exercise.inhale);
     setCycle(1);
     setStartTime(Date.now());
-    setShowExerciseList(false); // Hide exercise list
+    setShowExerciseList(false);
   };
 
   const stopExercise = () => {
@@ -186,7 +185,7 @@ const BreathingExercise = () => {
     setTimeLeft(0);
     setCycle(0);
     setStartTime(null);
-    setShowExerciseList(true); // Show exercise list
+    setShowExerciseList(true);
   };
 
   const completeExercise = () => {
@@ -201,7 +200,7 @@ const BreathingExercise = () => {
     setTimeLeft(0);
     setCycle(0);
     setStartTime(null);
-    setShowExerciseList(true); // Show exercise list
+    setShowExerciseList(true);
   };
 
   const getPhaseText = (currentPhase, exercise) => {
@@ -436,13 +435,18 @@ const BreathingExercise = () => {
         </div>
       )}
 
-      {/* Header - SMALLER */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(15px)',
-        padding: isMobile ? '15px 20px' : '25px 40px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
-      }}>
+      {/* WHITE HEADER FOR ALL DEVICES */}
+      {/* WHITE HEADER - HIDE ON MOBILE */}
+{!isMobile && (
+  <div style={{
+    background: 'rgba(255, 255, 255, 0.95)',
+    backdropFilter: 'blur(15px)',
+    padding: isMobile ? '20px' : '30px 40px',
+    margin: isMobile ? '20px' : '40px',
+    borderRadius: '20px',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)'
+  }}>
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
@@ -459,8 +463,10 @@ const BreathingExercise = () => {
             <h1 style={{
               margin: 0,
               fontSize: isMobile ? '1.5rem' : '2rem',
-              color: 'white',
-              fontWeight: '700'
+              color: '#374151',
+              fontWeight: '700',
+              letterSpacing: '0',
+              wordSpacing: '0'
             }}>
               Breathing Exercises
             </h1>
@@ -468,19 +474,20 @@ const BreathingExercise = () => {
           <p style={{
             margin: 0,
             fontSize: isMobile ? '0.9rem' : '1rem',
-            color: 'rgba(255, 255, 255, 0.9)'
+            color: '#6b7280',
+            letterSpacing: '0',
+            wordSpacing: '0'
           }}>
             Find your calm through mindful breathing 🌸
           </p>
         </div>
       </div>
-
-      {/* Main Content */}
+      )}>
+      
       <div style={{
         maxWidth: '1200px',
         margin: '0 auto',
-        padding: isMobile ? '20px' : '40px'
-      }}>
+        padding: isMobile ? '0 20px 40px' : '0 40px 40px'}}>
 
         {/* MOBILE LAYOUT */}
         {isMobile ? (
@@ -489,6 +496,7 @@ const BreathingExercise = () => {
             {showExerciseList ? (
               /* EXERCISE LIST - MOBILE */
               <div>
+
                 {/* Header Card */}
                 <div style={{
                   background: 'rgba(255, 255, 255, 0.95)',
@@ -820,7 +828,7 @@ const BreathingExercise = () => {
                         fontWeight: '600',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
-                        boxboxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)',
+                        boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px'
@@ -1397,4 +1405,3 @@ const BreathingExercise = () => {
 };
 
 export default BreathingExercise;
-

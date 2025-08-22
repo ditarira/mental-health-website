@@ -13,7 +13,7 @@ const Journal = () => {
   const [editingEntry, setEditingEntry] = useState(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState(null);
-  const [showNewEntry, setShowNewEntry] = useState(false); // NEW STATE
+  const [showNewEntry, setShowNewEntry] = useState(false);
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
@@ -106,7 +106,7 @@ const Journal = () => {
         setContent('');
         setMood('');
         setEditingEntry(null);
-        setShowNewEntry(false); // Go back to entries list
+        setShowNewEntry(false);
         fetchEntries();
         refreshDashboard();
       } else {
@@ -126,8 +126,7 @@ const Journal = () => {
     setTitle(entry.title);
     setContent(entry.content);
     setMood(entry.mood);
-    setShowNewEntry(true); // Show the form
-    // Scroll to top
+    setShowNewEntry(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -136,7 +135,7 @@ const Journal = () => {
     setTitle('');
     setContent('');
     setMood('');
-    setShowNewEntry(false); // Go back to entries list
+    setShowNewEntry(false);
   };
 
   const openDeletePopup = (entry) => {
@@ -326,13 +325,17 @@ const Journal = () => {
         </div>
       )}
 
-      {/* Header - SMALLER */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(15px)',
-        padding: isMobile ? '15px 20px' : '25px 40px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
-      }}>
+      {/* WHITE HEADER - HIDE ON MOBILE */}
+{!isMobile && (
+  <div style={{
+    background: 'rgba(255, 255, 255, 0.95)',
+    backdropFilter: 'blur(15px)',
+    padding: isMobile ? '20px' : '30px 40px',
+    margin: isMobile ? '20px' : '40px',
+    borderRadius: '20px',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)'
+  }}>
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
@@ -349,8 +352,10 @@ const Journal = () => {
             <h1 style={{
               margin: 0,
               fontSize: isMobile ? '1.5rem' : '2rem',
-              color: 'white',
-              fontWeight: '700'
+              color: '#374151',
+              fontWeight: '700',
+              letterSpacing: '0',
+              wordSpacing: '0'
             }}>
               My Personal Journal
             </h1>
@@ -358,18 +363,20 @@ const Journal = () => {
           <p style={{
             margin: 0,
             fontSize: isMobile ? '0.9rem' : '1rem',
-            color: 'rgba(255, 255, 255, 0.9)'
+            color: '#6b7280',
+            letterSpacing: '0',
+            wordSpacing: '0'
           }}>
             Express your thoughts and track your mood ❤️
           </p>
         </div>
       </div>
-
+          )}>
       {/* Main Content */}
       <div style={{
         maxWidth: '1000px',
         margin: '0 auto',
-        padding: isMobile ? '20px' : '40px'
+        padding: isMobile ? '0 20px 40px' : '0 40px 40px'
       }}>
 
         {/* MOBILE LAYOUT */}
@@ -419,7 +426,7 @@ const Journal = () => {
                   }}>
                     {editingEntry ? 'Edit Entry' : 'New Entry'}
                   </h3>
-                  <div style={{ width: '60px' }}></div> {/* Spacer */}
+                  <div style={{ width: '60px' }}></div>
                 </div>
 
                 {/* Title Input */}
@@ -777,7 +784,7 @@ const Journal = () => {
             )}
           </div>
         ) : (
-          /* DESKTOP LAYOUT (UNCHANGED) */
+          /* DESKTOP LAYOUT */
           <div>
             {/* Write New Entry */}
             <div style={{
@@ -802,404 +809,404 @@ const Journal = () => {
                     margin: 0,
                     fontSize: '1.5rem',
                     color: '#374151',
-fontWeight: '700'
-                 }}>
-                   {editingEntry ? 'Edit Entry' : 'Write New Entry'}
-                 </h3>
-               </div>
-               {editingEntry && (
-                 <button
-                   onClick={cancelEdit}
-                   style={{
-                     background: '#f3f4f6',
-                     color: '#6b7280',
-                     border: 'none',
-                     borderRadius: '8px',
-                     padding: '8px 12px',
-                     fontSize: '0.8rem',
-                     fontWeight: '600',
-                     cursor: 'pointer'
-                   }}
-                 >
-                   Cancel
-                 </button>
-               )}
-             </div>
+                    fontWeight: '700'
+                  }}>
+                    {editingEntry ? 'Edit Entry' : 'Write New Entry'}
+                  </h3>
+                </div>
+                {editingEntry && (
+                  <button
+                    onClick={cancelEdit}
+                    style={{
+                      background: '#f3f4f6',
+                      color: '#6b7280',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
 
-             {/* Title Input */}
-             <div style={{ marginBottom: '20px' }}>
-               <label style={{
-                 display: 'block',
-                 color: '#6b7280',
-                 fontSize: '0.9rem',
-                 marginBottom: '8px',
-                 fontWeight: '500'
-               }}>
-                 📖 Give your entry a title... (optional)
-               </label>
-               <input
-                 type="text"
-                 value={title}
-                 onChange={(e) => setTitle(e.target.value)}
-                 placeholder="What's on your mind today?"
-                 style={{
-                   width: '100%',
-                   padding: '16px 20px',
-                   borderRadius: '12px',
-                   border: '2px solid #e5e7eb',
-                   background: '#f9fafb',
-                   color: '#374151',
-                   fontSize: '1.1rem',
-                   fontFamily: 'inherit',
-                   transition: 'all 0.2s ease',
-                   outline: 'none'
-                 }}
-                 onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                 onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-               />
-             </div>
+              {/* Title Input */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  color: '#6b7280',
+                  fontSize: '0.9rem',
+                  marginBottom: '8px',
+                  fontWeight: '500'
+                }}>
+                  📖 Give your entry a title... (optional)
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="What's on your mind today?"
+                  style={{
+                    width: '100%',
+                    padding: '16px 20px',
+                    borderRadius: '12px',
+                    border: '2px solid #e5e7eb',
+                    background: '#f9fafb',
+                    color: '#374151',
+                    fontSize: '1.1rem',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease',
+                    outline: 'none'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                />
+              </div>
 
-             {/* Content Textarea */}
-             <div style={{ marginBottom: '25px' }}>
-               <label style={{
-                 display: 'block',
-                 color: '#6b7280',
-                 fontSize: '0.9rem',
-                 marginBottom: '8px',
-                 fontWeight: '500'
-               }}>
-                 💭 How are you feeling today? Pour your heart out here...
-               </label>
-               <textarea
-                 value={content}
-                 onChange={(e) => setContent(e.target.value)}
-                 placeholder="Write about your day, thoughts, feelings, or anything that comes to mind..."
-                 style={{
-                   width: '100%',
-                   minHeight: '150px',
-                   padding: '16px 20px',
-                   borderRadius: '12px',
-                   border: '2px solid #e5e7eb',
-                   background: '#f9fafb',
-                   color: '#374151',
-                   fontSize: '1.1rem',
-                   fontFamily: 'inherit',
-                   resize: 'vertical',
-                   transition: 'all 0.2s ease',
-                   outline: 'none',
-                   lineHeight: '1.6'
-                 }}
-                 onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                 onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-               />
-             </div>
+              {/* Content Textarea */}
+              <div style={{ marginBottom: '25px' }}>
+                <label style={{
+                  display: 'block',
+                  color: '#6b7280',
+                  fontSize: '0.9rem',
+                  marginBottom: '8px',
+                  fontWeight: '500'
+                }}>
+                  💭 How are you feeling today? Pour your heart out here...
+                </label>
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Write about your day, thoughts, feelings, or anything that comes to mind..."
+                  style={{
+                    width: '100%',
+                    minHeight: '150px',
+                    padding: '16px 20px',
+                    borderRadius: '12px',
+                    border: '2px solid #e5e7eb',
+                    background: '#f9fafb',
+                    color: '#374151',
+                    fontSize: '1.1rem',
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                    transition: 'all 0.2s ease',
+                    outline: 'none',
+                    lineHeight: '1.6'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                />
+              </div>
 
-             {/* Mood Selection */}
-             <div style={{ marginBottom: '25px' }}>
-               <label style={{
-                 display: 'block',
-                 color: '#6b7280',
-                 fontSize: '0.9rem',
-                 marginBottom: '12px',
-                 fontWeight: '500'
-               }}>
-                 ❤️ How are you feeling?
-               </label>
-               <div style={{
-                 display: 'flex',
-                 gap: '10px',
-                 flexWrap: 'wrap',
-                 justifyContent: 'center'
-               }}>
-                 {moods.map(moodOption => (
-                   <button
-                     key={moodOption.value}
-                     onClick={() => setMood(moodOption.value)}
-                     style={{
-                       background: mood === moodOption.value
-                         ? 'linear-gradient(135deg, #667eea, #764ba2)'
-                         : 'rgba(102, 126, 234, 0.1)',
-                       border: mood === moodOption.value
-                         ? '3px solid #667eea'
-                         : '2px solid #e5e7eb',
-                       borderRadius: '16px',
-                       padding: '12px 16px',
-                       cursor: 'pointer',
-                       transition: 'all 0.3s ease',
-                       fontSize: '1.8rem',
-                       minWidth: '65px',
-                       minHeight: '65px',
-                       display: 'flex',
-                       alignItems: 'center',
-                       justifyContent: 'center',
-                       boxShadow: mood === moodOption.value
-                         ? '0 8px 25px rgba(102, 126, 234, 0.3)'
-                         : '0 2px 8px rgba(0, 0, 0, 0.1)',
-                       transform: mood === moodOption.value ? 'scale(1.05)' : 'scale(1)'
-                     }}
-                     onMouseEnter={(e) => {
-                       if (mood !== moodOption.value) {
-                         e.target.style.transform = 'scale(1.02)';
-                         e.target.style.background = 'rgba(102, 126, 234, 0.15)';
-                       }
-                     }}
-                     onMouseLeave={(e) => {
-                       if (mood !== moodOption.value) {
-                         e.target.style.transform = 'scale(1)';
-                         e.target.style.background = 'rgba(102, 126, 234, 0.1)';
-                       }
-                     }}
-                     title={moodOption.label}
-                   >
-                     {moodOption.emoji}
-                   </button>
-                 ))}
-               </div>
-             </div>
+              {/* Mood Selection */}
+              <div style={{ marginBottom: '25px' }}>
+                <label style={{
+                  display: 'block',
+                  color: '#6b7280',
+                  fontSize: '0.9rem',
+                  marginBottom: '12px',
+                  fontWeight: '500'
+                }}>
+                  ❤️ How are you feeling?
+                </label>
+                <div style={{
+                  display: 'flex',
+                  gap: '10px',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center'
+                }}>
+                  {moods.map(moodOption => (
+                    <button
+                      key={moodOption.value}
+                      onClick={() => setMood(moodOption.value)}
+                      style={{
+                        background: mood === moodOption.value
+                          ? 'linear-gradient(135deg, #667eea, #764ba2)'
+                          : 'rgba(102, 126, 234, 0.1)',
+                        border: mood === moodOption.value
+                          ? '3px solid #667eea'
+                          : '2px solid #e5e7eb',
+                        borderRadius: '16px',
+                        padding: '12px 16px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        fontSize: '1.8rem',
+                        minWidth: '65px',
+                        minHeight: '65px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: mood === moodOption.value
+                          ? '0 8px 25px rgba(102, 126, 234, 0.3)'
+                          : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                        transform: mood === moodOption.value ? 'scale(1.05)' : 'scale(1)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (mood !== moodOption.value) {
+                          e.target.style.transform = 'scale(1.02)';
+                          e.target.style.background = 'rgba(102, 126, 234, 0.15)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (mood !== moodOption.value) {
+                          e.target.style.transform = 'scale(1)';
+                          e.target.style.background = 'rgba(102, 126, 234, 0.1)';
+                        }
+                      }}
+                      title={moodOption.label}
+                    >
+                      {moodOption.emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-             {/* Save Button */}
-             <button
-               onClick={saveEntry}
-               disabled={loading}
-               style={{
-                 width: '100%',
-                 padding: '16px 25px',
-                 borderRadius: '12px',
-                 border: 'none',
-                 background: loading
-                   ? '#d1d5db'
-                   : editingEntry
-                     ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                     : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                 color: 'white',
-                 fontSize: '1.1rem',
-                 fontWeight: '600',
-                 cursor: loading ? 'not-allowed' : 'pointer',
-                 transition: 'all 0.2s ease',
-                 boxShadow: loading
-                   ? 'none'
-                   : editingEntry
-                     ? '0 8px 25px rgba(16, 185, 129, 0.3)'
-                     : '0 8px 25px rgba(102, 126, 234, 0.3)',
-                 display: 'flex',
-                 alignItems: 'center',
-                 justifyContent: 'center',
-                 gap: '8px'
-               }}
-               onMouseEnter={(e) => {
-                 if (!loading) {
-                   e.target.style.transform = 'translateY(-2px)';
-                 }
-               }}
-               onMouseLeave={(e) => {
-                 if (!loading) {
-                   e.target.style.transform = 'translateY(0)';
-                 }
-               }}
-             >
-               {loading ? (
-                 <>
-                   <span>⏳</span>
-                   <span>Saving...</span>
-                 </>
-               ) : editingEntry ? (
-                 <>
-                   <span>✏️</span>
-                   <span>Update Entry</span>
-                 </>
-               ) : (
-                 <>
-                   <span>💾</span>
-                   <span>Save Entry</span>
-                 </>
-               )}
-             </button>
-           </div>
+              {/* Save Button */}
+              <button
+                onClick={saveEntry}
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '16px 25px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: loading
+                    ? '#d1d5db'
+                    : editingEntry
+                      ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: loading
+                    ? 'none'
+                    : editingEntry
+                      ? '0 8px 25px rgba(16, 185, 129, 0.3)'
+                      : '0 8px 25px rgba(102, 126, 234, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.target.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.target.style.transform = 'translateY(0)';
+                  }
+                }}
+              >
+                {loading ? (
+                  <>
+                    <span>⏳</span>
+                    <span>Saving...</span>
+                  </>
+                ) : editingEntry ? (
+                  <>
+                    <span>✏️</span>
+                    <span>Update Entry</span>
+                  </>
+                ) : (
+                  <>
+                    <span>💾</span>
+                    <span>Save Entry</span>
+                  </>
+                )}
+              </button>
+            </div>
 
-           {/* Journal Entries */}
-           <div style={{
-             background: 'rgba(255, 255, 255, 0.95)',
-             borderRadius: '20px',
-             padding: '30px',
-             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-             backdropFilter: 'blur(10px)'
-           }}>
-             <div style={{
-               display: 'flex',
-               alignItems: 'center',
-               gap: '10px',
-               marginBottom: '25px'
-             }}>
-               <span style={{ fontSize: '1.5rem' }}>📖</span>
-               <h3 style={{
-                 margin: 0,
-                 fontSize: '1.5rem',
-                 color: '#374151',
-                 fontWeight: '700'
-               }}>
-                 Your Journal Entries
-               </h3>
-             </div>
+            {/* Journal Entries */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '20px',
+              padding: '30px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                marginBottom: '25px'
+              }}>
+                <span style={{ fontSize: '1.5rem' }}>📖</span>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: '1.5rem',
+                  color: '#374151',
+                  fontWeight: '700'
+                }}>
+                  Your Journal Entries
+                </h3>
+              </div>
 
-             {entries.length === 0 ? (
-               <div style={{
-                 textAlign: 'center',
-                 padding: '40px',
-                 color: '#6b7280'
-               }}>
-                 <div style={{ fontSize: '4rem', marginBottom: '20px' }}>📔</div>
-                 <h3 style={{ color: '#374151', marginBottom: '10px' }}>No entries yet</h3>
-                 <p style={{ margin: 0 }}>Start writing your first journal entry above!</p>
-               </div>
-             ) : (
-               <div style={{
-                 display: 'grid',
-                 gap: '20px'
-               }}>
-                 {entries.map(entry => {
-                   const entryMood = moods.find(m => m.value === entry.mood);
-                   return (
-                     <div
-                       key={entry.id}
-                       style={{
-                         background: '#f8fafc',
-                         borderRadius: '15px',
-                         padding: '25px',
-                         border: '2px solid #e2e8f0',
-                         transition: 'all 0.2s ease',
-                         position: 'relative'
-                       }}
-                       onMouseEnter={(e) => {
-                         e.currentTarget.style.transform = 'translateY(-2px)';
-                         e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.1)';
-                       }}
-                       onMouseLeave={(e) => {
-                         e.currentTarget.style.transform = 'translateY(0)';
-                         e.currentTarget.style.boxShadow = 'none';
-                       }}
-                     >
-                       {/* Entry Header */}
-                       <div style={{
-                         display: 'flex',
-                         justifyContent: 'space-between',
-                         alignItems: 'flex-start',
-                         marginBottom: '15px',
-                         flexWrap: 'wrap',
-                         gap: '10px'
-                       }}>
-                         <div style={{ flex: 1, minWidth: '200px' }}>
-                           <h4 style={{
-                             margin: '0 0 5px 0',
-                             color: '#374151',
-                             fontSize: '1.2rem',
-                             fontWeight: '600'
-                           }}>
-                             {entry.title}
-                           </h4>
-                           <p style={{
-                             margin: '8px 0 0 0',
-                             fontSize: '0.7rem',
-                             color: '#9ca3af',
-                             fontFamily: 'Arial, sans-serif'
-                           }}>
-                             {formatDate(entry.createdAt)}
-                           </p>
-                         </div>
+              {entries.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px',
+                  color: '#6b7280'
+                }}>
+                  <div style={{ fontSize: '4rem', marginBottom: '20px' }}>📔</div>
+                  <h3 style={{ color: '#374151', marginBottom: '10px' }}>No entries yet</h3>
+                  <p style={{ margin: 0 }}>Start writing your first journal entry above!</p>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gap: '20px'
+                }}>
+                  {entries.map(entry => {
+                    const entryMood = moods.find(m => m.value === entry.mood);
+                    return (
+                      <div
+                        key={entry.id}
+                        style={{
+                          background: '#f8fafc',
+                          borderRadius: '15px',
+                          padding: '25px',
+                          border: '2px solid #e2e8f0',
+                          transition: 'all 0.2s ease',
+                          position: 'relative'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        {/* Entry Header */}
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          marginBottom: '15px',
+                          flexWrap: 'wrap',
+                          gap: '10px'
+                        }}>
+                          <div style={{ flex: 1, minWidth: '200px' }}>
+                            <h4 style={{
+                              margin: '0 0 5px 0',
+                              color: '#374151',
+                              fontSize: '1.2rem',
+                              fontWeight: '600'
+                            }}>
+                              {entry.title}
+                            </h4>
+                            <p style={{
+                              margin: '8px 0 0 0',
+                              fontSize: '0.7rem',
+                              color: '#9ca3af',
+                              fontFamily: 'Arial, sans-serif'
+                            }}>
+                              {formatDate(entry.createdAt)}
+                            </p>
+                          </div>
 
-                         <div style={{
-                           display: 'flex',
-                           alignItems: 'center',
-                           gap: '8px'
-                         }}>
-                           {/* Mood Emoji */}
-                           {entryMood && (
-                             <div style={{
-                               background: 'rgba(102, 126, 234, 0.1)',
-                               padding: '6px 10px',
-                               borderRadius: '10px',
-                               fontSize: '1.4rem',
-                               border: '2px solid rgba(102, 126, 234, 0.2)'
-                             }}>
-                               {entryMood.emoji}
-                             </div>
-                           )}
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}>
+                            {/* Mood Emoji */}
+                            {entryMood && (
+                              <div style={{
+                                background: 'rgba(102, 126, 234, 0.1)',
+                                padding: '6px 10px',
+                                borderRadius: '10px',
+                                fontSize: '1.4rem',
+                                border: '2px solid rgba(102, 126, 234, 0.2)'
+                              }}>
+                                {entryMood.emoji}
+                              </div>
+                            )}
 
-                           {/* Edit & Delete Buttons */}
-                           <div style={{
-                             display: 'flex',
-                             gap: '4px'
-                           }}>
-                             <button
-                               onClick={() => editEntry(entry)}
-                               style={{
-                                 background: 'linear-gradient(135deg, #10b981, #059669)',
-                                 color: 'white',
-                                 border: 'none',
-                                 borderRadius: '8px',
-                                 padding: '8px 10px',
-                                 fontSize: '0.9rem',
-                                 cursor: 'pointer',
-                                 transition: 'all 0.2s ease',
-                                 fontWeight: '600'
-                               }}
-                               onMouseEnter={(e) => {
-                                 e.target.style.transform = 'scale(1.05)';
-                               }}
-                               onMouseLeave={(e) => {
-                                 e.target.style.transform = 'scale(1)';
-                               }}
-                               title="Edit entry"
-                             >
-                               ✏️ Edit
-                             </button>
+                            {/* Edit & Delete Buttons */}
+                            <div style={{
+                              display: 'flex',
+                              gap: '4px'
+                            }}>
+                              <button
+                                onClick={() => editEntry(entry)}
+                                style={{
+                                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '8px',
+                                  padding: '8px 10px',
+                                  fontSize: '0.9rem',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s ease',
+                                  fontWeight: '600'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.transform = 'scale(1.05)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.transform = 'scale(1)';
+                                }}
+                                title="Edit entry"
+                              >
+                                ✏️ Edit
+                              </button>
 
-                             <button
-                               onClick={() => openDeletePopup(entry)}
-                               style={{
-                                 background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                                 color: 'white',
-                                 border: 'none',
-                                 borderRadius: '8px',
-                                 padding: '8px 10px',
-                                 fontSize: '0.9rem',
-                                 cursor: 'pointer',
-                                 transition: 'all 0.2s ease',
-                                 fontWeight: '600'
-                               }}
-                               onMouseEnter={(e) => {
-                                 e.target.style.transform = 'scale(1.05)';
-                               }}
-                               onMouseLeave={(e) => {
-                                 e.target.style.transform = 'scale(1)';
-                               }}
-                               title="Delete entry"
-                             >
-                               🗑️ Delete
-                             </button>
-                           </div>
-                         </div>
-                       </div>
+                              <button
+                                onClick={() => openDeletePopup(entry)}
+                                style={{
+                                  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '8px',
+                                  padding: '8px 10px',
+                                  fontSize: '0.9rem',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s ease',
+                                  fontWeight: '600'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.transform = 'scale(1.05)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.transform = 'scale(1)';
+                                }}
+                                title="Delete entry"
+                              >
+                                🗑️ Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
 
-                       {/* Entry Content */}
-                       <div style={{
-                         color: '#374151',
-                         fontSize: '1rem',
-                         lineHeight: '1.6',
-                         whiteSpace: 'pre-wrap'
-                       }}>
-                         {entry.content}
-                       </div>
-                     </div>
-                   );
-                 })}
-               </div>
-             )}
-           </div>
-         </div>
-       )}
-     </div>
-   </div>
- );
+                        {/* Entry Content */}
+                        <div style={{
+                          color: '#374151',
+                          fontSize: '1rem',
+                          lineHeight: '1.6',
+                          whiteSpace: 'pre-wrap'
+                        }}>
+                          {entry.content}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default Journal;

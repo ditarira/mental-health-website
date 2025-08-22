@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-
 const Resources = () => {
   const [notification, setNotification] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -14,6 +13,22 @@ const Resources = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Add this useEffect after your existing useEffect
+  useEffect(() => {
+    if (alarmOpen) {
+      // Prevent body scroll when popup is open
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restore body scroll when popup is closed
+      document.body.style.overflow = 'unset';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [alarmOpen]);
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
@@ -204,16 +219,17 @@ const Resources = () => {
           </button>
         </div>
       )}
-   {/* ADD THE ALARM BUTTON HERE */}
+
+      {/* FIXED ALARM BUTTON - PERFECTLY ROUND */}
       <button
         onClick={() => setAlarmOpen(true)}
         style={{
           position: 'fixed',
-          top: isMobile ? '20px' : '30px',
+          top: isMobile ? '80px' : '100px',
           left: isMobile ? '20px' : '30px',
           width: isMobile ? '60px' : '70px',
           height: isMobile ? '60px' : '70px',
-          borderRadius: '50%',
+          borderRadius: '50%', // Perfect circle
           background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
           border: 'none',
           color: 'white',
@@ -225,128 +241,165 @@ const Resources = () => {
           alignItems: 'center',
           justifyContent: 'center',
           animation: 'pulse 2s infinite',
-          transition: 'all 0.3s ease'
+          transition: 'all 0.3s ease',
+          aspectRatio: '1 / 1' // Ensures perfect circle even if width/height differ
         }}
       >
         🚨
       </button>
 
-{/* Alarm Popup */}
-{alarmOpen && (
-  <div
-    style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(0, 0, 0, 0.5)',
-      backdropFilter: 'blur(10px)',
-      zIndex: 10000,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}
-    onClick={() => setAlarmOpen(false)}
-  >
-    <div
-      style={{
-        background: 'white',
-        borderRadius: '20px',
-        padding: isMobile ? '2rem' : '3rem',
-        maxWidth: isMobile ? '350px' : '450px',
-        width: '100%',
-        textAlign: 'center',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
-      }}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🆘</div>
-      <h2 style={{
-        fontSize: isMobile ? '1.5rem' : '1.8rem',
-        fontWeight: '700',
-        color: '#dc2626',
-        margin: '0 0 2rem 0'
-      }}>
-        Need Help Now?
-      </h2>
-      
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-        <button
-          onClick={() => {
-            window.open('tel:988', '_self');
-            setAlarmOpen(false);
-          }}
+      {/* Alarm Popup */}
+      {alarmOpen && (
+        <div
           style={{
-            background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-            color: 'white',
-            border: 'none',
-            padding: '1.2rem',
-            borderRadius: '15px',
-            fontSize: '1.1rem',
-            fontWeight: '600',
-            cursor: 'pointer'
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 10000,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            padding: '20px 10px 10px 10px',  // More padding at top   
+            overflow: 'hidden' // Prevent scrolling
           }}
+          onClick={() => setAlarmOpen(false)}
         >
-          📞 Call 988 - Crisis Lifeline
-        </button>
-        
-        <button
-          onClick={() => {
-            window.open('sms:741741?body=HOME', '_self');
-            setAlarmOpen(false);
-          }}
-          style={{
-            background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-            color: 'white',
-            border: 'none',
-            padding: '1.2rem',
-            borderRadius: '15px',
-            fontSize: '1.1rem',
-            fontWeight: '600',
-            cursor: 'pointer'
-          }}
-        >
-          💬 Text HOME to 741741
-        </button>
-        
-        <button
-          onClick={() => {
-            window.location.href = '/breathing';
-            setAlarmOpen(false);
-          }}
-          style={{
-            background: 'linear-gradient(135deg, #10b981, #059669)',
-            color: 'white',
-            border: 'none',
-            padding: '1.2rem',
-            borderRadius: '15px',
-            fontSize: '1.1rem',
-            fontWeight: '600',
-            cursor: 'pointer'
-          }}
-        >
-          🧘 Breathing Exercise
-        </button>
-      </div>
-      
-      <button
-        onClick={() => setAlarmOpen(false)}
-        style={{
-          background: 'rgba(0, 0, 0, 0.1)',
-          color: '#6b7280',
-          border: 'none',
-          padding: '0.8rem 2rem',
-          borderRadius: '10px',
-          cursor: 'pointer'
-        }}
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: isMobile ? '1rem' : '1.5rem',
+              maxWidth: isMobile ? '280px' : '350px',
+              width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              maxHeight: '80vh', // Ensure it fits in viewport
+              overflow: 'hidden' // No internal scrolling
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Compact Header */}
+            <div style={{ 
+              fontSize: isMobile ? '2rem' : '2.5rem', 
+              marginBottom: '0.5rem' 
+            }}>🆘</div>
+            
+            <h2 style={{
+              fontSize: isMobile ? '1.1rem' : '1.3rem',
+              fontWeight: '700',
+              color: '#dc2626',
+              margin: '0 0 1rem 0',
+              letterSpacing: '0'
+            }}>
+              Need Help Now?
+            </h2>
+            
+            {/* Compact Action Buttons */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '0.6rem', 
+              marginBottom: '1rem' 
+            }}>
+              <button
+                onClick={() => {
+                  window.open('tel:988', '_self');
+                  setAlarmOpen(false);
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.8rem',
+                  borderRadius: '10px',
+                  fontSize: isMobile ? '0.85rem' : '0.9rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  letterSpacing: '0'
+                }}
+              >
+                <span>📞</span>
+                <span>Call 988</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  window.open('sms:741741?body=HOME', '_self');
+                  setAlarmOpen(false);
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.8rem',
+                  borderRadius: '10px',
+                  fontSize: isMobile ? '0.85rem' : '0.9rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  letterSpacing: '0'
+                }}
+              >
+                <span>💬</span>
+                <span>Text 741741</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  window.location.href = '/breathing';
+                  setAlarmOpen(false);
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.8rem',
+                  borderRadius: '10px',
+                  fontSize: isMobile ? '0.85rem' : '0.9rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  letterSpacing: '0'
+                }}
+              >
+                <span>🧘</span>
+                <span>Breathing</span>
+              </button>
+            </div>
+            
+            {/* Compact Close Button */}
+            <button
+              onClick={() => setAlarmOpen(false)}
+              style={{
+                background: 'rgba(0, 0, 0, 0.1)',
+                color: '#6b7280',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.8rem',
+                letterSpacing: '0'
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={{
         maxWidth: '1200px',
@@ -446,8 +499,7 @@ const Resources = () => {
                     borderRadius: '12px',
                     fontSize: '0.7rem',
                     fontWeight: '600',
-                    letterSpacing: '0.5px',
-                    fontFamily: 'monospace'
+                    letterSpacing: '0.5px'
                   }}>
                     24/7 AVAILABLE
                   </span>
@@ -464,14 +516,16 @@ const Resources = () => {
                   {resource.title}
                 </h3>
 
+                {/* FIXED TEXT COLOR FOR READABILITY */}
                 <p style={{
                   fontSize: '0.9rem',
-                  opacity: 0.9,
+                  color: 'rgba(255, 255, 255, 0.95)', // CHANGED from opacity: 0.9 to bright white
                   margin: '0 0 1.5rem 0',
                   lineHeight: '1.5',
                   textAlign: 'center',
                   letterSpacing: '0',
-                  whiteSpace: 'normal'
+                  whiteSpace: 'normal',
+                  fontWeight: '500' // ADDED weight for better readability
                 }}>
                   {resource.description}
                 </p>
@@ -681,6 +735,23 @@ const Resources = () => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes pulse {
+          0% {
+            transform: scale(1);
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+          }
+          50% {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(220, 38, 38, 0.6);
+          }
+          100% {
+            transform: scale(1);
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+          }
+        }
+      `}</style>
     </div>
   );
 };

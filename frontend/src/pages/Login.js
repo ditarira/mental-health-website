@@ -133,54 +133,58 @@ const Login = () => {
   };
 
   const resetPassword = async () => {
-    if (newPassword !== confirmPassword) {
-      setError('❌ Passwords do not match');
-      return;
-    }
-    if (newPassword.length < 6) {
-      setError('❌ Password must be at least 6 characters');
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail, newPassword: newPassword })
-      });
-      const result = await response.json();
-      if (response.ok) {
-        // AUTO-LOGIN AFTER PASSWORD RESET
-        setMessage('✅ Password reset successfully! Logging you in...');
-        
-        // Login with new password
-        const loginResult = await login(forgotEmail, newPassword);
-        
-        if (loginResult.success) {
-          // Will redirect to dashboard automatically
-          navigate('/dashboard');
-        } else {
-          setMessage('✅ Password reset successfully! Please login with your new password.');
-          setShowForgotPassword(false);
-          setResetStep('email');
-          // Clear form
-          setForgotEmail('');
-          setResetCode('');
-          setNewPassword('');
-          setConfirmPassword('');
-          setGeneratedCode('');
-        }
+  if (newPassword !== confirmPassword) {
+    setError('❌ Passwords do not match');
+    return;
+  }
+  if (newPassword.length < 6) {
+    setError('❌ Password must be at least 6 characters');
+    return;
+  }
+  setLoading(true);
+  try {
+    // FIXED: Use generatedCode as the token
+    const response = await fetch(`https://mental-health-backend-2mtp.onrender.com/api/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        token: generatedCode,  // ✅ Use code as token
+        newPassword: newPassword 
+      })
+    });
+    
+    const result = await response.json();
+    if (response.ok) {
+      // AUTO-LOGIN AFTER PASSWORD RESET
+      setMessage('✅ Password reset successfully! Logging you in...');
+
+      // Login with new password
+      const loginResult = await login(forgotEmail, newPassword);
+
+      if (loginResult.success) {
+        navigate('/dashboard');
       } else {
-        setError(result.error || 'Failed to reset password');
+        setMessage('✅ Password reset successfully! Please login with your new password.');
+        setShowForgotPassword(false);
+        setResetStep('email');
+        // Clear form
+        setForgotEmail('');
+        setResetCode('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setGeneratedCode('');
       }
-    } catch (error) {
-      console.error('Reset password error:', error);
-      setError('❌ Network error. Please try again.');
-    } finally {
-      setLoading(false);
-      setTimeout(() => setMessage(''), 5000);
+    } else {
+      setError(result.message || 'Failed to reset password');
     }
-  };
+  } catch (error) {
+    console.error('Reset password error:', error);
+    setError('❌ Network error. Please try again.');
+  } finally {
+    setLoading(false);
+    setTimeout(() => setMessage(''), 5000);
+  }
+};
 
   if (user) {
     return (
