@@ -315,49 +315,26 @@ function Home() {
 </nav>
 
       {/* Hero Section */}
-      <section style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        position: 'relative',
-        padding: window.innerWidth <= 768 ? '2rem 1rem' : '2rem',
-        marginTop: '80px'
-      }}>
-        {/* Floating Elements */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          overflow: 'hidden',
-          pointerEvents: 'none'
-        }}>
-          <span style={{
-            position: 'absolute',
-            top: '10%',
-            left: '10%',
-            fontSize: '2rem',
-            opacity: 0.6,
-            animation: 'float 6s ease-in-out infinite'
-          }}>✨</span>
-          <span style={{
-            position: 'absolute',
-            top: '20%',
-            right: '15%',
-            fontSize: '2rem',
-            opacity: 0.6,
-            animation: 'float 6s ease-in-out infinite 1s'
-          }}>🌟</span>
-          <span style={{
-            position: 'absolute',
-            bottom: '20%',
-            right: '10%',
-            fontSize: '2rem',
-            opacity: 0.6,
-            animation: 'float 6s ease-in-out infinite 3s'
-          }}>🌸</span>
-        </div>
-
+ <section style={{
+  minHeight: '100vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundImage: 'url(/1aac982e-9668-4e85-92c3-c7b101401235.gif)',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+  position: 'relative',
+  padding: window.innerWidth <= 768 ? '2rem 1rem' : '2rem',
+  marginTop: '80px'
+}}>
+{/* Dark overlay for text readability */}
+<div style={{
+  position: 'absolute',
+  inset: 0,
+  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%)',
+  zIndex: 1
+}}></div>
         <div style={{
           textAlign: 'center',
           maxWidth: '800px',
@@ -401,7 +378,7 @@ function Home() {
           {/* Subtitle */}
           <p style={{
             fontSize: window.innerWidth <= 768 ? '1.1rem' : '1.25rem',
-            color: 'rgba(255, 255, 255, 0.9)',
+            color: 'white',
             marginBottom: '3rem',
             lineHeight: '1.6'
           }}>
@@ -1211,16 +1188,7 @@ function Home() {
              }}>
                Your trusted companion for mental wellness. Find peace, track progress, and grow stronger every day.
              </p>
-             <div style={{
-               display: 'flex',
-               gap: '1rem'
-             }}>
-               <a href="#" style={{ fontSize: '1.5rem', textDecoration: 'none' }}>🐦</a>
-               <a href="#" style={{ fontSize: '1.5rem', textDecoration: 'none' }}>📷</a>
-               <a href="#" style={{ fontSize: '1.5rem', textDecoration: 'none' }}>📘</a>
-               <a href="#" style={{ fontSize: '1.5rem', textDecoration: 'none' }}>📺</a>
-             </div>
-           </div>
+            </div>
 
            {/* Features Column */}
            <div>
