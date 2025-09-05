@@ -23,8 +23,19 @@ const Navigation = () => {
     return () => window.removeEventListener('resize', checkDevice);
   }, []);
 
-  // Add animations and fonts
+  // Add favicon and animations
   useEffect(() => {
+    // Add custom brain favicon
+    const existingFavicon = document.querySelector("link[rel='icon']");
+    if (existingFavicon) {
+      existingFavicon.remove();
+    }
+    const favicon = document.createElement('link');
+    favicon.rel = 'icon';
+    favicon.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>";
+    document.head.appendChild(favicon);
+
+    // Add styles
     const style = document.createElement("style");
     style.textContent = `
       @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
@@ -79,7 +90,10 @@ const Navigation = () => {
       }
     `;
     document.head.appendChild(style);
-    return () => document.head.removeChild(style);
+    return () => {
+      document.head.removeChild(style);
+      // Don't remove favicon on cleanup
+    };
   }, []);
 
   const navigationItems = [
@@ -136,7 +150,7 @@ const Navigation = () => {
         position: "sticky",
         top: 0,
         zIndex: 1000,
-        minHeight: isMobile ? "60px" : isTablet ? "60px" : "60px",
+        minHeight: isMobile ? "60px" : isTablet ? "70px" : "75px",
         maxWidth: "100vw",
         overflow: "hidden"
       }}>
@@ -170,8 +184,8 @@ const Navigation = () => {
               🧠
             </span>
           </div>
-          {/* Show text only on large desktop */}
-          {!isMobile && !isTablet && !isSmallDesktop && (
+          {/* Show text only on large desktop (>1366px) */}
+          {window.innerWidth > 1366 && (
             <span className="mindful-logo" style={{
               fontSize: "1.5rem",
               background: "linear-gradient(135deg, #667eea, #764ba2)",
@@ -184,8 +198,8 @@ const Navigation = () => {
           )}
         </div>
 
-        {/* Center Title for Mobile & iPad Mini Only */}
-        {(isMobile || isIpadMini) && (
+        {/* Center Title ONLY for Mobile & iPad Mini (768px or less) */}
+        {isMobile && (
           <div style={{
             position: "absolute",
             left: "50%",
@@ -193,7 +207,7 @@ const Navigation = () => {
             zIndex: 1
           }}>
             <span className="mindful-logo" style={{
-              fontSize: isMobile ? "1.2rem" : "1.3rem",
+              fontSize: "1.2rem",
               background: "linear-gradient(135deg, #667eea, #764ba2)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
@@ -206,20 +220,69 @@ const Navigation = () => {
           </div>
         )}
 
-        {/* Desktop Navigation (1024px+ with small desktop support) */}
+ {/* Tablet Navigation - PROPERLY CENTERED */}
+          {isTablet && (
+            <div style={{
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              display: "flex",
+              gap: "0.4rem",
+              alignItems: "center",
+              background: "rgba(102, 126, 234, 0.05)",
+              padding: "0.7rem 0.8rem",
+              borderRadius: "16px",
+              border: "1px solid rgba(102, 126, 234, 0.1)"
+            }}>
+              {navigationItems.slice(0, 4).map(item => (
+                <button
+                  key={item.id}
+                  className="nav-text"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0.6rem 0.8rem",
+                    background: isActive(item.path)
+                      ? "linear-gradient(135deg, #667eea, #764ba2)"
+                      : "transparent",
+                    color: isActive(item.path) ? "white" : "#667eea",
+                    border: "none",
+                    borderRadius: "14px",
+                    cursor: "pointer",
+                    fontSize: "1.3rem",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    boxShadow: isActive(item.path)
+                      ? "0 8px 25px rgba(102, 126, 234, 0.3)"
+                      : "none",
+                    transform: isActive(item.path) ? "translateY(-2px)" : "none",
+                    minWidth: "48px"
+                  }}
+                  onClick={() => navigate(item.path)}
+                  title={item.name}
+                >
+                  {item.icon}
+                </button>
+              ))}
+            </div>
+          )}
+
+
+        {/* Desktop Navigation - CENTERED (for >1024px) */}
         {!isMobile && !isTablet && (
           <div style={{
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
             display: "flex",
-            gap: isSmallDesktop ? "0.4rem" : "0.5rem",
+            gap: isSmallDesktop ? "0.6rem" : "0.8rem",
             alignItems: "center",
             background: "rgba(102, 126, 234, 0.05)",
-            padding: isSmallDesktop ? "0.7rem 1rem" : "0.7rem 1.2rem",
-            borderRadius: "18px",
+            padding: isSmallDesktop ? "1rem 1.5rem" : "1rem 2rem",
+            borderRadius: "20px",
             border: "1px solid rgba(102, 126, 234, 0.1)",
-            flex: 1,
-            justifyContent: "center",
-            width: "100%",
-            maxWidth: isSmallDesktop ? "500px" : "750px"
+            maxWidth: isSmallDesktop ? "650px" : "850px",
+            minHeight: "45px"
           }}>
             {navigationItems.map(item => (
               <button
@@ -229,7 +292,7 @@ const Navigation = () => {
                   display: "flex",
                   alignItems: "center",
                   gap: isSmallDesktop ? "0.3rem" : "0.4rem",
-                  padding: isSmallDesktop ? "0.5rem 0.7rem" : "0.5rem 0.8rem",
+                  padding: isSmallDesktop ? "0.7rem 1rem" : "0.7rem 1.2rem",
                   background: isActive(item.path)
                     ? "linear-gradient(135deg, #667eea, #764ba2)"
                     : "transparent",
@@ -289,51 +352,7 @@ const Navigation = () => {
             </button>
           )}
 
-          {/* Tablet Navigation */}
-          {isTablet && (
-            <div style={{
-              display: "flex",
-              gap: "0.3rem",
-              alignItems: "center",
-              background: "rgba(102, 126, 234, 0.05)",
-              padding: "0.8rem 1rem",
-              borderRadius: "18px",
-              border: "1px solid rgba(102, 126, 234, 0.1)"
-            }}>
-              {navigationItems.slice(0, 4).map(item => (
-                <button
-                  key={item.id}
-                  className="nav-text"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "0.6rem 0.8rem",
-                    background: isActive(item.path)
-                      ? "linear-gradient(135deg, #667eea, #764ba2)"
-                      : "transparent",
-                    color: isActive(item.path) ? "white" : "#667eea",
-                    border: "none",
-                    borderRadius: "14px",
-                    cursor: "pointer",
-                    fontSize: "1.3rem",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    boxShadow: isActive(item.path)
-                      ? "0 8px 25px rgba(102, 126, 234, 0.3)"
-                      : "none",
-                    transform: isActive(item.path) ? "translateY(-2px)" : "none",
-                    minWidth: "48px"
-                  }}
-                  onClick={() => navigate(item.path)}
-                  title={item.name}
-                >
-                  {item.icon}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Desktop & Tablet User Profile & Logout */}
+                  {/* Desktop & Tablet User Profile & Logout */}
           {!isMobile && (
             <>
               <div
@@ -492,7 +511,9 @@ const Navigation = () => {
                 <div style={{
                   fontSize: "1rem",
                   fontWeight: "600",
-                  color: "#667eea"
+                  background: "linear-gradient(135deg, #667eea, #764ba2)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent"
                 }}>
                   {user?.firstName} {user?.lastName}
                 </div>
@@ -515,7 +536,7 @@ const Navigation = () => {
               </div>
             </div>
 
-            {/* Navigation Items */}
+            {/* Navigation Items - COLORED */}
             {navigationItems.map(item => (
               <button
                 key={item.id}
@@ -547,7 +568,13 @@ const Navigation = () => {
                 }}
               >
                 <span style={{ fontSize: "1.3rem" }}>{item.icon}</span>
-                <span>{item.name}</span>
+                <span style={{
+                  background: isActive(item.path) ? "none" : "linear-gradient(135deg, #667eea, #764ba2)",
+                  WebkitBackgroundClip: isActive(item.path) ? "unset" : "text",
+                  WebkitTextFillColor: isActive(item.path) ? "white" : "transparent"
+                }}>
+                  {item.name}
+                </span>
               </button>
             ))}
 

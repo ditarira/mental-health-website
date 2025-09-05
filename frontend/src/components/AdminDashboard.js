@@ -185,66 +185,69 @@ const AdminDashboard = () => {
        maxWidth: '1400px',
        margin: '0 auto'
      }}>
-      {/* Header Section - Make Transparent */}
-	<div style={{
-	  background: 'rgba(255, 255, 255, 0.1)', // Make transparent like other components
-  	backdropFilter: 'blur(15px)',
- 	 borderRadius: '20px',
-  	padding: '30px',
-  	boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
-  	marginBottom: '25px',
-  	border: '1px solid rgba(255, 255, 255, 0.2)' // Add subtle border
-   }}>
-         <div style={{
-           display: 'flex',
-           justifyContent: 'space-between',
-           alignItems: 'center',
-           flexWrap: 'wrap',
-           gap: '20px'
-         }}>
-           <div>
-             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-               <span style={{ fontSize: '3rem', marginRight: '20px' }}>👑</span>
-               <h1 style={{
-                 color: '#1f2937',
-                 margin: 0,
-                 fontSize: '2.5rem',
-                 fontWeight: '700'
-               }}>
-                 Admin Dashboard
-               </h1>
-             </div>
-             <p style={{
-               color: '#6b7280',
-               margin: 0,
-               fontSize: '1.1rem'
-             }}>
-               Welcome back, Admin! Monitor your MindfulMe platform
-             </p>
-           </div>
-           <button
-             onClick={handleRefresh}
-             disabled={refreshing}
-             style={{
-               padding: '12px 20px',
-               borderRadius: '12px',
-               border: 'none',
-               background: refreshing ? '#d1d5db' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-               color: 'white',
-               fontSize: '1rem',
-               fontWeight: '600',
-               cursor: refreshing ? 'not-allowed' : 'pointer',
-               boxShadow: refreshing ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.3)',
-               transition: 'all 0.2s ease',
-               display: 'flex',
-               alignItems: 'center',
-               gap: '8px'
-             }}
-           >
-             {refreshing ? '⏳ Refreshing...' : '🔄 Refresh Data'}
-           </button>
-         </div>
-       </div>
+   
+{/* Header Section - WHITE BACKGROUND TO MATCH OTHER PAGES */}
+<div style={{
+  background: 'rgba(255, 255, 255, 0.98)',
+  backdropFilter: 'blur(25px)',
+  boxShadow: '0 8px 32px rgba(102, 126, 234, 0.12)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  borderRadius: '20px',
+  padding: '30px',
+  marginBottom: '25px'
+}}>
+  <div style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '20px'
+  }}>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+        <span style={{ fontSize: '3rem', marginRight: '20px' }}>👑</span>
+        <h1 style={{
+          margin: 0,
+          fontSize: '2.5rem',
+          background: 'linear-gradient(135deg, #667eea, #764ba2)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          fontWeight: '700'
+        }}>
+          Admin Dashboard
+        </h1>
+      </div>
+      <p style={{
+        color: '#6b7280',
+        margin: 0,
+        fontSize: '1.1rem'
+      }}>
+        Welcome back, Admin! Monitor your MindfulMe platform
+      </p>
+    </div>
+    <button
+      onClick={handleRefresh}
+      disabled={refreshing}
+      style={{
+        padding: '12px 20px',
+        borderRadius: '12px',
+        border: 'none',
+        background: refreshing ? '#d1d5db' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        fontSize: '1rem',
+        fontWeight: '600',
+        cursor: refreshing ? 'not-allowed' : 'pointer',
+        boxShadow: refreshing ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.3)',
+        transition: 'all 0.2s ease',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px'
+      }}
+    >
+      {refreshing ? '⏳ Refreshing...' : '🔄 Refresh Data'}
+    </button>
+  </div>
+</div>
 
        {/* Refresh Success Message */}
        {refreshMessage && (

@@ -148,8 +148,9 @@ const Login = () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        token: generatedCode,  // ✅ Use code as token
-        newPassword: newPassword 
+      token: generatedCode,  // ✅ Use code as token
+      newPassword: newPassword,
+      email: forgotEmail
       })
     });
     

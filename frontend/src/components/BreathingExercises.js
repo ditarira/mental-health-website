@@ -15,6 +15,7 @@ const BreathingExercise = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showExerciseList, setShowExerciseList] = useState(true);
   const [showDetails, setShowDetails] = useState(null);
+  const [isCountdown, setIsCountdown] = useState(false); // NEW: countdown state
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://mental-health-backend-2mtp.onrender.com';
 
@@ -154,7 +155,7 @@ const BreathingExercise = () => {
       });
 
       if (response.ok) {
-        showNotification(completed ? 'Breathing session completed! 🧘‍♀️' : 'Session saved! 💾', 'success');
+        showNotification(completed ? 'Breathing session completed!' : 'Session saved!', 'success');
         fetchSessions();
         window.dispatchEvent(new CustomEvent('journalUpdated'));
       }
@@ -163,24 +164,26 @@ const BreathingExercise = () => {
     }
   };
 
+  // UPDATED: Start with countdown instead of immediately starting exercise
   const startExercise = (exercise) => {
     setCurrentExercise(exercise);
-    setIsActive(true);
-    setPhase('inhale');
-    setTimeLeft(exercise.inhale);
-    setCycle(1);
-    setStartTime(Date.now());
+    setIsCountdown(true); // Start countdown phase
+    setPhase('countdown');
+    setTimeLeft(3); // Start countdown from 3
+    setCycle(0);
+    setStartTime(null); // Don't start timing until actual exercise begins
     setShowExerciseList(false);
   };
 
   const stopExercise = () => {
-    if (currentExercise && startTime) {
+    if (currentExercise && startTime && !isCountdown) {
       const duration = (Date.now() - startTime) / 1000;
       saveSession(currentExercise, duration, false);
     }
     
     setCurrentExercise(null);
     setIsActive(false);
+    setIsCountdown(false); // Reset countdown
     setPhase('');
     setTimeLeft(0);
     setCycle(0);
@@ -196,6 +199,7 @@ const BreathingExercise = () => {
     
     setCurrentExercise(null);
     setIsActive(false);
+    setIsCountdown(false); // Reset countdown
     setPhase('');
     setTimeLeft(0);
     setCycle(0);
@@ -204,6 +208,9 @@ const BreathingExercise = () => {
   };
 
   const getPhaseText = (currentPhase, exercise) => {
+    if (currentPhase === 'countdown') {
+      return timeLeft > 0 ? `Starting in ${timeLeft}` : 'Begin!';
+    }
     if (exercise?.special === 'alternate') {
       if (currentPhase === 'inhale') return cycle % 2 === 1 ? 'Inhale Left' : 'Inhale Right';
       if (currentPhase === 'hold') return 'Hold';
@@ -213,31 +220,51 @@ const BreathingExercise = () => {
     return currentPhase.charAt(0).toUpperCase() + currentPhase.slice(1);
   };
 
+  // UPDATED: Handle countdown and exercise phases
   useEffect(() => {
     let interval = null;
 
-    if (isActive && currentExercise && timeLeft > 0) {
+    if (currentExercise && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(prevTime => prevTime - 1);
       }, 1000);
-    } else if (isActive && currentExercise && timeLeft === 0) {
-      // Move to next phase
-      if (phase === 'inhale') {
-        if (currentExercise.hold) {
-          setPhase('hold');
-          setTimeLeft(currentExercise.hold);
-        } else {
+    } else if (currentExercise && timeLeft === 0) {
+      if (isCountdown) {
+        // Countdown finished, start actual exercise
+        setIsCountdown(false);
+        setIsActive(true);
+        setPhase('inhale');
+        setTimeLeft(currentExercise.inhale);
+        setCycle(1);
+        setStartTime(Date.now()); // Start timing the actual exercise
+      } else if (isActive) {
+        // Handle exercise phases (existing logic)
+        if (phase === 'inhale') {
+          if (currentExercise.hold) {
+            setPhase('hold');
+            setTimeLeft(currentExercise.hold);
+          } else {
+            setPhase('exhale');
+            setTimeLeft(currentExercise.exhale);
+          }
+        } else if (phase === 'hold') {
           setPhase('exhale');
           setTimeLeft(currentExercise.exhale);
-        }
-      } else if (phase === 'hold') {
-        setPhase('exhale');
-        setTimeLeft(currentExercise.exhale);
-      } else if (phase === 'exhale') {
-        if (currentExercise.hold2) {
-          setPhase('hold2');
-          setTimeLeft(currentExercise.hold2);
-        } else {
+        } else if (phase === 'exhale') {
+          if (currentExercise.hold2) {
+            setPhase('hold2');
+            setTimeLeft(currentExercise.hold2);
+          } else {
+            // Complete cycle
+            if (cycle >= totalCycles) {
+              completeExercise();
+              return;
+            }
+            setCycle(prev => prev + 1);
+            setPhase('inhale');
+            setTimeLeft(currentExercise.inhale);
+          }
+        } else if (phase === 'hold2') {
           // Complete cycle
           if (cycle >= totalCycles) {
             completeExercise();
@@ -247,20 +274,11 @@ const BreathingExercise = () => {
           setPhase('inhale');
           setTimeLeft(currentExercise.inhale);
         }
-      } else if (phase === 'hold2') {
-        // Complete cycle
-        if (cycle >= totalCycles) {
-          completeExercise();
-          return;
-        }
-        setCycle(prev => prev + 1);
-        setPhase('inhale');
-        setTimeLeft(currentExercise.inhale);
       }
     }
 
     return () => clearInterval(interval);
-  }, [isActive, timeLeft, phase, currentExercise, cycle, totalCycles]);
+  }, [timeLeft, phase, currentExercise, cycle, totalCycles, isActive, isCountdown]);
 
   useEffect(() => {
     if (user && token) {
@@ -435,68 +453,73 @@ const BreathingExercise = () => {
         </div>
       )}
 
-      {/* WHITE HEADER FOR ALL DEVICES */}
       {/* WHITE HEADER - HIDE ON MOBILE */}
-{!isMobile && (
-  <div style={{
-    background: 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(15px)',
-    padding: isMobile ? '20px' : '30px 40px',
-    margin: isMobile ? '20px' : '40px',
-    borderRadius: '20px',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.2)'
-  }}>
+      {!isMobile && (
         <div style={{
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(25px)',
+          boxShadow: '0 8px 32px rgba(102, 126, 234, 0.12)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          borderRadius: '20px',
+          padding: '40px',
+          margin: '40px',
+          marginBottom: '32px',
           maxWidth: '1200px',
-          margin: '0 auto',
-          textAlign: 'center'
+          marginLeft: 'auto',
+          marginRight: 'auto'
         }}>
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            marginBottom: '8px'
+            maxWidth: '1200px',
+            margin: '0 auto',
+            textAlign: 'center'
           }}>
-            <span style={{ fontSize: isMobile ? '2rem' : '2.5rem' }}>🧘‍♀️</span>
-            <h1 style={{
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              marginBottom: '8px'
+            }}>
+              <span style={{ fontSize: '2.5rem' }}>🧘‍♀️</span>
+              <h1 style={{
+                margin: 0,
+                fontSize: '2rem',
+                color: '#374151',
+                fontWeight: '700',
+                letterSpacing: '0',
+                wordSpacing: '0'
+              }}>
+                Breathing Exercises
+              </h1>
+            </div>
+            <p style={{
               margin: 0,
-              fontSize: isMobile ? '1.5rem' : '2rem',
-              color: '#374151',
-              fontWeight: '700',
+              fontSize: '1rem',
+              color: '#6b7280',
               letterSpacing: '0',
               wordSpacing: '0'
             }}>
-              Breathing Exercises
-            </h1>
+              Find your calm through mindful breathing
+            </p>
           </div>
-          <p style={{
-            margin: 0,
-            fontSize: isMobile ? '0.9rem' : '1rem',
-            color: '#6b7280',
-            letterSpacing: '0',
-            wordSpacing: '0'
-          }}>
-            Find your calm through mindful breathing 🌸
-          </p>
         </div>
-      </div>
-      )}>
+      )}
       
       <div style={{
         maxWidth: '1200px',
         margin: '0 auto',
-        padding: isMobile ? '0 20px 40px' : '0 40px 40px'}}>
-
+        padding: isMobile ? '0 20px 40px' : '0 40px 40px'
+      }}>
+        {/* Rest of your existing layout code continues here... */}
+        {/* I'll include the breathing circle updates for both mobile and desktop */}
+        
         {/* MOBILE LAYOUT */}
         {isMobile ? (
           <div>
             {/* Show Exercise List OR Active Exercise */}
             {showExerciseList ? (
-              /* EXERCISE LIST - MOBILE */
+              /* Your existing exercise list code... */
               <div>
-
                 {/* Header Card */}
                 <div style={{
                   background: 'rgba(255, 255, 255, 0.95)',
@@ -541,16 +564,8 @@ const BreathingExercise = () => {
                         backdropFilter: 'blur(10px)',
                         transition: 'all 0.2s ease'
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.1)';
-                      }}
                     >
-                      {/* Exercise Header */}
+                      {/* Your existing exercise card content... */}
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -582,7 +597,6 @@ const BreathingExercise = () => {
                         </div>
                       </div>
 
-                      {/* Description */}
                       <p style={{
                         color: '#6b7280',
                         fontSize: '0.9rem',
@@ -592,7 +606,6 @@ const BreathingExercise = () => {
                         Description: {exercise.description}
                       </p>
 
-                      {/* Phases */}
                       <div style={{
                         background: '#f8fafc',
                         borderRadius: '8px',
@@ -619,7 +632,6 @@ const BreathingExercise = () => {
                         )}
                       </div>
 
-                      {/* Action Buttons */}
                       <div style={{
                         display: 'flex',
                         gap: '10px'
@@ -674,7 +686,7 @@ const BreathingExercise = () => {
                 </div>
               </div>
             ) : (
-              /* ACTIVE EXERCISE - MOBILE */
+              /* ACTIVE EXERCISE - MOBILE WITH COUNTDOWN */
               currentExercise && (
                 <div style={{
                   background: 'rgba(255, 255, 255, 0.95)',
@@ -683,7 +695,7 @@ const BreathingExercise = () => {
                   boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
                   backdropFilter: 'blur(10px)',
                   textAlign: 'center',
-                  border: '3px solid #667eea'
+                  border: `3px solid ${isCountdown ? '#f59e0b' : '#667eea'}`
                 }}>
                   {/* Back Button */}
                   <div style={{
@@ -721,20 +733,24 @@ const BreathingExercise = () => {
                     <div style={{ width: '60px' }}></div>
                   </div>
 
-                  {/* Breathing Circle */}
+                  {/* UPDATED: Breathing Circle with countdown styling */}
                   <div style={{
                     width: '200px',
                     height: '200px',
                     margin: '0 auto 25px auto',
                     borderRadius: '50%',
-                    background: currentExercise.color,
+                    background: isCountdown ? 
+                      'linear-gradient(135deg, #f59e0b, #d97706)' : 
+                      currentExercise.color,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     position: 'relative',
-                    transform: phase === 'inhale' ? 'scale(1.1)' : 'scale(1)',
+                    transform: phase === 'inhale' && !isCountdown ? 'scale(1.1)' : 'scale(1)',
                     transition: 'transform 0.5s ease',
-                    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.3)'
+                    boxShadow: isCountdown ? 
+                      '0 20px 60px rgba(245, 158, 11, 0.3)' : 
+                      '0 20px 60px rgba(102, 126, 234, 0.3)'
                   }}>
                     <div style={{
                       color: 'white',
@@ -753,90 +769,120 @@ const BreathingExercise = () => {
                         fontWeight: '700',
                         fontFamily: 'Arial, sans-serif'
                       }}>
-                        {Math.ceil(timeLeft)}
+                        {isCountdown && timeLeft === 0 ? '🌟' : Math.ceil(timeLeft)}
                       </div>
                     </div>
                   </div>
 
-                  {/* Progress */}
-                  <div style={{
-                    marginBottom: '25px'
-                  }}>
-                    <p style={{
-                      fontSize: '1.1rem',
-                      fontWeight: '600',
-                      color: '#374151',
-                      margin: '0 0 10px 0',
-                      fontFamily: 'Arial, sans-serif'
-                    }}>
-                      Cycle {cycle} of {totalCycles}
-                    </p>
+                  {/* UPDATED: Progress - hide during countdown */}
+                  {!isCountdown && (
                     <div style={{
-                      background: '#e5e7eb',
-                      borderRadius: '10px',
-                      height: '8px',
-                      overflow: 'hidden'
+                      marginBottom: '25px'
                     }}>
+                      <p style={{
+                        fontSize: '1.1rem',
+                        fontWeight: '600',
+                        color: '#374151',
+                        margin: '0 0 10px 0',
+                        fontFamily: 'Arial, sans-serif'
+                      }}>
+                        Cycle {cycle} of {totalCycles}
+                      </p>
                       <div style={{
-                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                        height: '100%',
-                        width: `${(cycle / totalCycles) * 100}%`,
+                        background: '#e5e7eb',
                         borderRadius: '10px',
-                        transition: 'width 0.5s ease'
-                      }}></div>
+                        height: '8px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                          height: '100%',
+                          width: `${(cycle / totalCycles) * 100}%`,
+                          borderRadius: '10px',
+                          transition: 'width 0.5s ease'
+                        }}></div>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Controls */}
+                  {/* UPDATED: Controls - show different buttons during countdown */}
                   <div style={{
                     display: 'flex',
                     gap: '15px',
                     justifyContent: 'center',
                     flexWrap: 'wrap'
                   }}>
-                    <button
-                      onClick={stopExercise}
-                      style={{
-                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '12px',
-                        padding: '12px 20px',
-                        fontSize: '1rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                      }}
-                    >
-                      <span>⏹️</span>
-                      <span>Stop</span>
-                    </button>
+                    {isCountdown ? (
+                      /* Only show back button during countdown */
+                      <button
+                        onClick={stopExercise}
+                        style={{
+                          background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '12px',
+                          padding: '12px 20px',
+                          fontSize: '1rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <span>✕</span>
+                        <span>Cancel</span>
+                      </button>
+                    ) : (
+                      /* Show normal controls during exercise */
+                      <>
+                        <button
+                          onClick={stopExercise}
+                          style={{
+                            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '12px',
+                            padding: '12px 20px',
+                            fontSize: '1rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          <span>⏹️</span>
+                          <span>Stop</span>
+                        </button>
 
-                    <button
-                      onClick={completeExercise}
-                      style={{
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '12px',
-                        padding: '12px 20px',
-                        fontSize: '1rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                      }}
-                    >
-                      <span>✅</span>
-                      <span>Complete</span>
-                    </button>
+                        <button
+                          onClick={completeExercise}
+                          style={{
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '12px',
+                            padding: '12px 20px',
+                            fontSize: '1rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          <span>✅</span>
+                          <span>Complete</span>
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               )
@@ -980,7 +1026,7 @@ const BreathingExercise = () => {
                         e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.1)';
                       }}
                     >
-                      {/* Exercise Header */}
+                      {/* Exercise content - same as before */}
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -1012,7 +1058,6 @@ const BreathingExercise = () => {
                         </div>
                       </div>
 
-                      {/* Description */}
                       <p style={{
                         color: '#6b7280',
                         fontSize: '1rem',
@@ -1022,7 +1067,6 @@ const BreathingExercise = () => {
                         {exercise.description}
                       </p>
 
-                      {/* Phases */}
                       <div style={{
                         background: '#f8fafc',
                         borderRadius: '12px',
@@ -1050,7 +1094,6 @@ const BreathingExercise = () => {
                         </div>
                       </div>
 
-                      {/* Action Buttons */}
                       <div style={{
                         display: 'flex',
                         gap: '12px'
@@ -1074,14 +1117,6 @@ const BreathingExercise = () => {
                             gap: '8px',
                             boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.4)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.3)';
-                          }}
                         >
                           <span>▶</span>
                           <span>Start Exercise</span>
@@ -1104,14 +1139,6 @@ const BreathingExercise = () => {
                             justifyContent: 'center',
                             gap: '8px'
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#667eea';
-                            e.currentTarget.style.color = 'white';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)';
-                            e.currentTarget.style.color = '#667eea';
-                          }}
                         >
                           <span>ℹ</span>
                           <span>Details</span>
@@ -1122,7 +1149,7 @@ const BreathingExercise = () => {
                 </div>
               </div>
             ) : (
-              /* ACTIVE EXERCISE - DESKTOP */
+              /* ACTIVE EXERCISE - DESKTOP WITH COUNTDOWN */
               currentExercise && (
                 <div style={{
                   background: 'rgba(255, 255, 255, 0.95)',
@@ -1131,7 +1158,7 @@ const BreathingExercise = () => {
                   boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
                   backdropFilter: 'blur(10px)',
                   textAlign: 'center',
-                  border: '3px solid #667eea',
+                  border: `3px solid ${isCountdown ? '#f59e0b' : '#667eea'}`,
                   gridColumn: '1 / -1'
                 }}>
                   {/* Back Button */}
@@ -1157,12 +1184,6 @@ const BreathingExercise = () => {
                         gap: '8px',
                         transition: 'all 0.2s ease'
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#e5e7eb';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = '#f3f4f6';
-                      }}
                     >
                       ← Back
                     </button>
@@ -1177,20 +1198,24 @@ const BreathingExercise = () => {
                     <div style={{ width: '80px' }}></div>
                   </div>
 
-                  {/* Breathing Circle */}
+                  {/* UPDATED: Breathing Circle - Desktop with countdown */}
                   <div style={{
                     width: '300px',
                     height: '300px',
                     margin: '0 auto 30px auto',
                     borderRadius: '50%',
-                    background: currentExercise.color,
+                    background: isCountdown ? 
+                      'linear-gradient(135deg, #f59e0b, #d97706)' : 
+                      currentExercise.color,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     position: 'relative',
-                    transform: phase === 'inhale' ? 'scale(1.1)' : 'scale(1)',
+                    transform: phase === 'inhale' && !isCountdown ? 'scale(1.1)' : 'scale(1)',
                     transition: 'transform 1s ease',
-                    boxShadow: '0 30px 80px rgba(102, 126, 234, 0.4)'
+                    boxShadow: isCountdown ? 
+                      '0 30px 80px rgba(245, 158, 11, 0.4)' : 
+                      '0 30px 80px rgba(102, 126, 234, 0.4)'
                   }}>
                     <div style={{
                       color: 'white',
@@ -1209,107 +1234,121 @@ const BreathingExercise = () => {
                         fontWeight: '700',
                         fontFamily: 'Arial, sans-serif'
                       }}>
-                        {Math.ceil(timeLeft)}
+                        {isCountdown && timeLeft === 0 ? '✨' : Math.ceil(timeLeft)}
                       </div>
                     </div>
                   </div>
 
-                  {/* Progress */}
-                  <div style={{
-                    marginBottom: '30px'
-                  }}>
-                    <p style={{
-                      fontSize: '1.3rem',
-                      fontWeight: '600',
-                      color: '#374151',
-                      margin: '0 0 15px 0',
-                      fontFamily: 'Arial, sans-serif'
-                    }}>
-                      Cycle {cycle} of {totalCycles}
-                    </p>
+                  {/* UPDATED: Progress - hide during countdown */}
+                  {!isCountdown && (
                     <div style={{
-                      background: '#e5e7eb',
-                      borderRadius: '15px',
-                      height: '12px',
-                      overflow: 'hidden',
-                      maxWidth: '400px',
-                      margin: '0 auto'
+                      marginBottom: '30px'
                     }}>
+                      <p style={{
+                        fontSize: '1.3rem',
+                        fontWeight: '600',
+                        color: '#374151',
+                        margin: '0 0 15px 0',
+                        fontFamily: 'Arial, sans-serif'
+                      }}>
+                        Cycle {cycle} of {totalCycles}
+                      </p>
                       <div style={{
-                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                        height: '100%',
-                        width: `${(cycle / totalCycles) * 100}%`,
+                        background: '#e5e7eb',
                         borderRadius: '15px',
-                        transition: 'width 0.5s ease'
-                      }}></div>
+                        height: '12px',
+                        overflow: 'hidden',
+                        maxWidth: '400px',
+                        margin: '0 auto'
+                      }}>
+                        <div style={{
+                          background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                          height: '100%',
+                          width: `${(cycle / totalCycles) * 100}%`,
+                          borderRadius: '15px',
+                          transition: 'width 0.5s ease'
+                        }}></div>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Controls */}
+                  {/* UPDATED: Controls - Desktop */}
                   <div style={{
                     display: 'flex',
                     gap: '20px',
                     justifyContent: 'center'
                   }}>
-                    <button
-                      onClick={stopExercise}
-                      style={{
-                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '15px',
-                        padding: '16px 24px',
-                        fontSize: '1.1rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 12px 30px rgba(239, 68, 68, 0.4)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(239, 68, 68, 0.3)';
-                      }}
-                    >
-                      <span>⏹️</span>
-                      <span>Stop</span>
-                    </button>
+                    {isCountdown ? (
+                      /* Only show cancel button during countdown */
+                      <button
+                        onClick={stopExercise}
+                        style={{
+                          background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '15px',
+                          padding: '16px 24px',
+                          fontSize: '1.1rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px'
+                        }}
+                      >
+                        <span>✕</span>
+                        <span>Cancel</span>
+                      </button>
+                    ) : (
+                      /* Show normal controls during exercise */
+                      <>
+                        <button
+                          onClick={stopExercise}
+                          style={{
+                            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '15px',
+                            padding: '16px 24px',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px'
+                          }}
+                        >
+                          <span>⏹️</span>
+                          <span>Stop</span>
+                        </button>
 
-                    <button
-                      onClick={completeExercise}
-                      style={{
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '15px',
-                        padding: '16px 24px',
-                        fontSize: '1.1rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 12px 30px rgba(16, 185, 129, 0.4)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.3)';
-                      }}
-                    >
-                      <span>✅</span>
-                      <span>Complete</span>
-                    </button>
+                        <button
+                          onClick={completeExercise}
+                          style={{
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '15px',
+                            padding: '16px 24px',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px'
+                          }}
+                        >
+                          <span>✅</span>
+                          <span>Complete</span>
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               )
@@ -1349,14 +1388,6 @@ const BreathingExercise = () => {
                         padding: '18px',
                         border: '1px solid #e5e7eb',
                         transition: 'all 0.2s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#f1f5f9';
-                        e.currentTarget.style.borderColor = '#d1d5db';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = '#f8fafc';
-                        e.currentTarget.style.borderColor = '#e5e7eb';
                       }}
                     >
                       <div style={{

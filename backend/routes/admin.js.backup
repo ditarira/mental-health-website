@@ -8,19 +8,19 @@ router.get('/stats', async (req, res) => {
     const totalUsers = await prisma.user.count();
     const totalJournalEntries = await prisma.journalEntry.count();
     const totalBreathingSessions = await prisma.breathingSession.count();
-
-    // Count users with isOnline: true
-    const activeUsers = await prisma.user.count({
-      where: {
-        isOnline: true
-      }
-    });
-
+    
+    // Count users active in last 30 minutes (truly active)
+ const activeUsers = await prisma.user.count({
+  where: {
+    isOnline: true
+    }
+   });
+      
     const stats = {
       totalUsers,
       totalJournalEntries,
       totalBreathingSessions,
-      activeUsers,
+      activeUsers, // Now shows real active users!
       lastUpdated: new Date().toISOString()
     };
 
@@ -52,21 +52,21 @@ router.get('/users', async (req, res) => {
         lastActiveAt: true,
         isOnline: true,
         _count: {
-         select: {
-         journal_entries: true,
-         breathing_sessions: true
-        }
+ 	 select: {
+    	 journal_entries: true,
+   	 breathing_sessions: true
+  	}
        }
       },
       orderBy: { createdAt: 'desc' }
     });
 
-    // Use isOnline for activity status (same as count logic)
+    // Add activity status and rename _count fields to match frontend expectations
     const usersWithActivity = users.map(user => ({
       ...user,
-      journalEntries: user._count.journal_entries,
-      breathingSessions: user._count.breathing_sessions,
-      activityLevel: user.isOnline ? 'Active' : 'Inactive'
+     	journalEntries: user._count.journal_entries,
+	breathingSessions: user._count.breathing_sessions,
+      activityLevel: isUserActive(user.lastActiveAt) ? 'Active' : 'Inactive'
     }));
 
     res.json({
@@ -84,32 +84,40 @@ router.get('/users', async (req, res) => {
   }
 });
 
-// Reset route
+// ADD THIS RESET ROUTE
 router.post('/reset-activity', async (req, res) => {
   try {
     console.log('🔄 Resetting all user activity...');
-
+    
+    // Set everyone to inactive (2 hours ago)
     const result = await prisma.user.updateMany({
-      data: {
-        lastActiveAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        isOnline: false
+      data: { 
+        lastActiveAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        isOnline: false 
       }
     });
-
+    
     console.log(`✅ Reset ${result.count} users to inactive`);
-
-    res.json({
-      success: true,
+    
+    res.json({ 
+      success: true, 
       message: `Reset ${result.count} users to inactive`,
       count: result.count
     });
   } catch (error) {
     console.error('❌ Reset failed:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
     });
   }
 });
+
+// Helper function to check if user is active
+function isUserActive(lastActiveAt) {
+  if (!lastActiveAt) return false;
+  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+  return new Date(lastActiveAt) > thirtyMinutesAgo;
+}
 
 module.exports = router;

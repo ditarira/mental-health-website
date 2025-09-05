@@ -194,8 +194,8 @@ const SettingsCard = ({ title, icon, children, gradient }) => (
       height: '4px',
       background: gradient
     }} />
-    
-    {/* Header */}
+
+{/* Header */}
     <div style={{
       display: 'flex',
       alignItems: 'center',
@@ -225,11 +225,13 @@ const SettingsCard = ({ title, icon, children, gradient }) => (
         {title}
       </h2>
     </div>
-    
+
     {/* Content */}
     {children}
   </div>
 );
+
+
 
 // NOW THE MAIN COMPONENT
 const Settings = () => {
@@ -599,44 +601,53 @@ const verifyCodeAndChangePassword = async () => {
       padding: '0'
     }}>
       
-      {/* Header - FIXED TO MATCH OTHER COMPONENTS */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(15px)',
-        padding: isMobile ? '20px' : '40px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+     {/* Header - WHITE BACKGROUND TO MATCH OTHER PAGES */}
+<div style={{
+  background: 'rgba(255, 255, 255, 0.98)',
+  backdropFilter: 'blur(25px)',
+  boxShadow: '0 8px 32px rgba(102, 126, 234, 0.12)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  borderRadius: '20px',
+  padding: isMobile ? '20px' : '40px',
+  margin: isMobile ? '20px' : '40px',  // Same margins as content
+  marginBottom: isMobile ? '20px' : '32px',
+  maxWidth: '1200px',  // Same max-width as content
+  marginLeft: 'auto',  // Center it
+  marginRight: 'auto'  // Center it
+}}>
+  <div style={{
+    maxWidth: '1200px',
+    margin: '0 auto',
+    textAlign: 'center'
+  }}>
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '15px',
+      marginBottom: '15px'
+    }}>
+      <span style={{ fontSize: isMobile ? '2.5rem' : '3rem' }}>⚙️</span>
+      <h1 style={{
+        margin: 0,
+        fontSize: isMobile ? '1.8rem' : '2.5rem',
+        background: 'linear-gradient(135deg, #667eea, #764ba2)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        fontWeight: '700'
       }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          textAlign: 'center'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '15px',
-            marginBottom: '15px'
-          }}>
-            <span style={{ fontSize: isMobile ? '2.5rem' : '3rem' }}>⚙️</span>
-            <h1 style={{
-              margin: 0,
-              fontSize: isMobile ? '1.8rem' : '2.5rem',
-              color: 'white',
-              fontWeight: '700'
-            }}>
-              Account Settings
-            </h1>
-          </div>
-          <p style={{
-            margin: 0,
-            fontSize: isMobile ? '1rem' : '1.1rem',
-            color: 'rgba(255, 255, 255, 0.9)'
-          }}>
-            Personalize your MindfulMe experience 🎨
-          </p>
-        </div>
-      </div>
+        Account Settings
+      </h1>
+    </div>
+    <p style={{
+      margin: 0,
+      fontSize: isMobile ? '1rem' : '1.1rem',
+      color: '#6b7280'
+    }}>
+      Personalize your MindfulMe experience 🎨
+    </p>
+  </div>
+</div>
 
       {/* Main Content */}
       <div style={{ 

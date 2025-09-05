@@ -165,7 +165,7 @@ const Dashboard = () => {
           backdropFilter: 'blur(10px)'
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '20px' }}>⏳</div>
-          <p style={{ color: '#6b7280', margin: 0 }}>Loading your dashboard...</p>
+          <p style={{ color: '#6b7280', margin: 0 }}>Taking a deep breath… we'll be ready in a sec.</p>
         </div>
       </div>
     );

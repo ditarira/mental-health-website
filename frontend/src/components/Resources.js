@@ -191,7 +191,7 @@ const Resources = () => {
           top: '20px',
           right: '20px',
           background: notification.type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)',
-          color: 'white',
+          color: 'black',
           padding: '15px 20px',
           borderRadius: '12px',
           boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
@@ -209,7 +209,7 @@ const Resources = () => {
             style={{
               background: 'none',
               border: 'none',
-              color: 'white',
+              color: 'black',
               fontSize: '1.2rem',
               cursor: 'pointer',
               padding: '0'
@@ -312,7 +312,7 @@ const Resources = () => {
                 }}
                 style={{
                   background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-                  color: 'white',
+                  color: 'black',
                   border: 'none',
                   padding: '0.8rem',
                   borderRadius: '10px',
@@ -337,7 +337,7 @@ const Resources = () => {
                 }}
                 style={{
                   background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-                  color: 'white',
+                  color: 'black',
                   border: 'none',
                   padding: '0.8rem',
                   borderRadius: '10px',
@@ -362,7 +362,7 @@ const Resources = () => {
                 }}
                 style={{
                   background: 'linear-gradient(135deg, #10b981, #059669)',
-                  color: 'white',
+                  color: 'black',
                   border: 'none',
                   padding: '0.8rem',
                   borderRadius: '10px',
@@ -409,7 +409,7 @@ const Resources = () => {
         <div style={{
           textAlign: 'center',
           marginBottom: isMobile ? '2rem' : '3rem',
-          color: 'white'
+          color: 'black'
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
           <h1 style={{
@@ -420,14 +420,15 @@ const Resources = () => {
           }}>
             Mental Health Resources
           </h1>
-          <p style={{
-            fontSize: '1.1rem',
-            opacity: 0.9,
-            margin: '0',
-            letterSpacing: '0'
-          }}>
-            Professional support and caring communities
-          </p>
+ <p style={{
+  fontSize: '1.1rem',
+  color: '#000000', // Pure black
+  margin: '0',
+  letterSpacing: '0'
+}}>
+  .
+</p>
+
         </div>
 
         {/* Emergency Crisis Support */}
@@ -444,7 +445,7 @@ const Resources = () => {
             marginBottom: isMobile ? '1.5rem' : '2rem'
           }}>
             <h2 style={{
-              color: 'white',
+              color: 'black',
               fontSize: isMobile ? '1.3rem' : '1.5rem',
               fontWeight: '700',
               margin: '0 0 0.5rem 0',
@@ -456,14 +457,14 @@ const Resources = () => {
             }}>
               🚨 Emergency Crisis Support
             </h2>
-            <p style={{
-              color: 'rgba(255,255,255,0.9)',
-              margin: '0',
-              fontSize: isMobile ? '0.9rem' : '1rem',
-              letterSpacing: '0'
-            }}>
-              If you're in crisis, these resources are available 24/7
-            </p>
+                 <p style={{
+  color: '#000000', // Pure black
+  margin: '0',
+  fontSize: isMobile ? '0.9rem' : '1rem',
+  letterSpacing: '0'
+}}>
+  If you're in crisis, these resources are available 24/7
+</p>
           </div>
 
           <div style={{
@@ -515,20 +516,17 @@ const Resources = () => {
                 }}>
                   {resource.title}
                 </h3>
-
-                {/* FIXED TEXT COLOR FOR READABILITY */}
-                <p style={{
-                  fontSize: '0.9rem',
-                  color: 'rgba(255, 255, 255, 0.95)', // CHANGED from opacity: 0.9 to bright white
-                  margin: '0 0 1.5rem 0',
-                  lineHeight: '1.5',
-                  textAlign: 'center',
-                  letterSpacing: '0',
-                  whiteSpace: 'normal',
-                  fontWeight: '500' // ADDED weight for better readability
-                }}>
-                  {resource.description}
-                </p>
+<p style={{
+  fontSize: '0.9rem',
+  color: '#000000', // Pure black instead of #4D0026
+  margin: '0 0 1.5rem 0',
+  lineHeight: '1.5',
+  textAlign: 'center',
+  letterSpacing: '0',
+  whiteSpace: 'normal'
+}}>
+  {resource.description}
+</p>
 
                 <div style={{
                   display: 'flex',
@@ -538,24 +536,24 @@ const Resources = () => {
                 }}>
                   {resource.contact && (
                     <button
-                      onClick={() => handleCall(resource.contact)}
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.9)',
-                        color: '#1f2937',
-                        border: 'none',
-                        padding: '12px 16px',
-                        borderRadius: '10px',
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                        letterSpacing: '0',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
+  onClick={() => handleCall(resource.contact)}
+  style={{
+    background: 'rgba(255, 255, 255, 0.9)',
+    color: 'black', // Changed from white to dark for contrast on white button
+    border: 'none',
+    padding: '12px 16px',
+    borderRadius: '10px',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    letterSpacing: '0',
+    whiteSpace: 'nowrap'
+  }}
+>
                       <span>{resource.contact.includes('Text') ? '💬' : '📞'}</span>
                       <span>{resource.contact}</span>
                     </button>
@@ -593,7 +591,7 @@ const Resources = () => {
         {/* Professional Support & Wellness Resources */}
         <div>
           <h2 style={{
-            color: 'white',
+            color: 'black',
             fontSize: isMobile ? '1.3rem' : '1.5rem',
             fontWeight: '700',
             marginBottom: isMobile ? '1.5rem' : '2rem',
@@ -667,7 +665,7 @@ const Resources = () => {
                   opacity: 0.8,
                   margin: '0 0 1.5rem 0',
                   lineHeight: '1.5',
-                  color: '#374151',
+                  color: '#4D0026',
                   textAlign: 'center',
                   letterSpacing: '0',
                   whiteSpace: 'normal'

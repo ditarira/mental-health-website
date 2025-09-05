@@ -327,15 +327,20 @@ const Journal = () => {
 
       {/* WHITE HEADER - HIDE ON MOBILE */}
 {!isMobile && (
-  <div style={{
-    background: 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(15px)',
-    padding: isMobile ? '20px' : '30px 40px',
-    margin: isMobile ? '20px' : '40px',
-    borderRadius: '20px',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.2)'
-  }}>
+  
+<div style={{
+  background: 'rgba(255, 255, 255, 0.98)',
+  backdropFilter: 'blur(25px)',
+  boxShadow: '0 8px 32px rgba(102, 126, 234, 0.12)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  borderRadius: '20px',
+  padding: isMobile ? '20px' : '40px',
+  margin: isMobile ? '20px' : '40px',  // Same margins as content
+  marginBottom: isMobile ? '20px' : '32px',
+  maxWidth: '1200px',  // Same max-width as content
+  marginLeft: 'auto',  // Center it
+  marginRight: 'auto'  // Center it
+}}>
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
@@ -371,7 +376,7 @@ const Journal = () => {
           </p>
         </div>
       </div>
-          )}>
+          )}
       {/* Main Content */}
       <div style={{
         maxWidth: '1000px',

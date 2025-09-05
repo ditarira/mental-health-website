@@ -332,7 +332,7 @@ function Home() {
 <div style={{
   position: 'absolute',
   inset: 0,
-  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%)',
+  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%)',
   zIndex: 1
 }}></div>
         <div style={{
@@ -374,18 +374,24 @@ function Home() {
               display: 'block'
             }}> 5 Minutes a Day</span>
           </h1>
-
-          {/* Subtitle */}
-          <p style={{
-            fontSize: window.innerWidth <= 768 ? '1.1rem' : '1.25rem',
-            color: 'white',
-            marginBottom: '3rem',
-            lineHeight: '1.6'
-          }}>
-            Join thousands who have transformed their mental health with MindfulMe's
-            gentle, science-backed approach to wellness. Start your journey to a calmer,
-            happier you - completely free.
-          </p>
+{/* Subtitle */}
+<p style={{
+  fontSize: window.innerWidth <= 768 ? '1.1rem' : '1.25rem',
+  color: '#1f2937',
+  marginBottom: '3rem',
+  lineHeight: '1.6',
+  fontWeight: '900',
+  background: 'rgba(255, 255, 255, 0.85)',
+  padding: '1.2rem 1.8rem',
+  borderRadius: '15px',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.3)',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+}}>
+  Join thousands who have transformed their mental health with MindfulMe's
+  gentle, science-backed approach to wellness. Start your journey to a calmer,
+  happier you - completely free.
+</p>
 
           {/* Stats */}
           <div style={{
